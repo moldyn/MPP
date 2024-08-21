@@ -1,0 +1,389 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d43" for="node" attr.name="metric_tag_timescales" attr.type="float" />
+  <key id="d42" for="node" attr.name="metric_tag_sim" attr.type="float" />
+  <key id="d41" for="node" attr.name="metric_tag_ntimescales" attr.type="float" />
+  <key id="d40" for="node" attr.name="metric_tag_its" attr.type="float" />
+  <key id="d39" for="node" attr.name="metric_tag_transition" attr.type="float" />
+  <key id="d38" for="node" attr.name="metric_tag_yline" attr.type="float" />
+  <key id="d37" for="node" attr.name="metric_tag_color" attr.type="float" />
+  <key id="d36" for="node" attr.name="metric_tag_labels" attr.type="float" />
+  <key id="d35" for="node" attr.name="metric_tag_axs" attr.type="float" />
+  <key id="d34" for="node" attr.name="metric_tag_nbins" attr.type="float" />
+  <key id="d33" for="node" attr.name="metric_tag_macrotrajs" attr.type="float" />
+  <key id="d32" for="node" attr.name="metric_tag_folder" attr.type="float" />
+  <key id="d31" for="node" attr.name="metric_tag_matrix" attr.type="float" />
+  <key id="d30" for="node" attr.name="metric_tag_ticks" attr.type="float" />
+  <key id="d29" for="node" attr.name="metric_tag_clustering" attr.type="float" />
+  <key id="d28" for="node" attr.name="metric_tag_decimals" attr.type="float" />
+  <key id="d27" for="node" attr.name="metric_tag_resolution" attr.type="float" />
+  <key id="d26" for="node" attr.name="metric_tag_tqdm" attr.type="float" />
+  <key id="d25" for="node" attr.name="metric_tag_pool" attr.type="float" />
+  <key id="d24" for="node" attr.name="metric_tag_tasks" attr.type="float" />
+  <key id="d23" for="node" attr.name="metric_tag_results" attr.type="float" />
+  <key id="d22" for="node" attr.name="metric_tag_comparison" attr.type="float" />
+  <key id="d21" for="node" attr.name="metric_tag_fnc" attr.type="float" />
+  <key id="d20" for="node" attr.name="metric_tag_distribution" attr.type="float" />
+  <key id="d19" for="node" attr.name="metric_tag_variance" attr.type="float" />
+  <key id="d18" for="node" attr.name="metric_tag_exponent" attr.type="float" />
+  <key id="d17" for="node" attr.name="metric_tag_pops" attr.type="float" />
+  <key id="d16" for="node" attr.name="metric_tag_mstate" attr.type="float" />
+  <key id="d15" for="node" attr.name="metric_tag_transitions" attr.type="float" />
+  <key id="d14" for="node" attr.name="metric_tag_macrostates" attr.type="float" />
+  <key id="d13" for="node" attr.name="metric_tag_state" attr.type="float" />
+  <key id="d12" for="node" attr.name="metric_tag_idx" attr.type="float" />
+  <key id="d11" for="node" attr.name="metric_fan-out-dependency-graph" attr.type="long" />
+  <key id="d10" for="node" attr.name="metric_fan-in-dependency-graph" attr.type="long" />
+  <key id="d9" for="node" attr.name="metric_file_result_dependency_graph_louvain-modularity-in-file" attr.type="long" />
+  <key id="d8" for="node" attr.name="metric_tag_probability" attr.type="float" />
+  <key id="d7" for="node" attr.name="metric_tag_microstates" attr.type="float" />
+  <key id="d6" for="node" attr.name="metric_tag_pop" attr.type="float" />
+  <key id="d5" for="node" attr.name="metric_tag_int" attr.type="float" />
+  <key id="d4" for="node" attr.name="metric_tag_tmat" attr.type="float" />
+  <key id="d3" for="node" attr.name="metric_sloc-in-file" attr.type="long" />
+  <key id="d2" for="node" attr.name="metric_number-of-methods-in-file" attr.type="long" />
+  <key id="d1" for="node" attr.name="display_name" attr.type="string" />
+  <key id="d0" for="node" attr.name="absolute_name" attr.type="string" />
+  <graph edgedefault="directed">
+    <node id="Scripts_fg/MPT_MCMC_peaks.py">
+      <data key="d0">Scripts_fg/MPT_MCMC_peaks.py</data>
+      <data key="d1">MPT_MCMC_peaks.py</data>
+      <data key="d2">2</data>
+      <data key="d3">225</data>
+      <data key="d4">0.5493839544078853</data>
+      <data key="d5">0.34897370400085614</data>
+      <data key="d6">0.3169522813891646</data>
+      <data key="d7">0.29582212929655366</data>
+      <data key="d8">0.22969319479082928</data>
+      <data key="d9">0</data>
+      <data key="d10">0</data>
+      <data key="d11">6</data>
+    </node>
+    <node id="click">
+      <data key="d1">click</data>
+      <data key="d9">0</data>
+      <data key="d10">7</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="numpy">
+      <data key="d1">numpy</data>
+      <data key="d9">4</data>
+      <data key="d10">11</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="msmhelper">
+      <data key="d1">msmhelper</data>
+      <data key="d9">0</data>
+      <data key="d10">9</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="Scripts_fg/msmhelper/msm">
+      <data key="d1">Scripts_fg/msmhelper/msm</data>
+      <data key="d9">0</data>
+      <data key="d10">4</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="tqdm">
+      <data key="d1">tqdm</data>
+      <data key="d9">5</data>
+      <data key="d10">10</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="Scripts_fg/macrostates.py">
+      <data key="d1">macrostates.py</data>
+      <data key="d0">Scripts_fg/macrostates.py</data>
+      <data key="d2">5</data>
+      <data key="d3">310</data>
+      <data key="d12">0.3530379184400193</data>
+      <data key="d13">0.33931250757175274</data>
+      <data key="d7">0.2884156314359898</data>
+      <data key="d14">0.2544843806788145</data>
+      <data key="d15">0.2544843806788145</data>
+      <data key="d16">0.23259878756671334</data>
+      <data key="d17">0.2067544778370785</data>
+      <data key="d9">0</data>
+      <data key="d10">4</data>
+      <data key="d11">4</data>
+    </node>
+    <node id="Scripts_fg/test.py">
+      <data key="d0">Scripts_fg/test.py</data>
+      <data key="d1">test.py</data>
+      <data key="d2">0</data>
+      <data key="d3">0</data>
+      <data key="d9">6</data>
+      <data key="d10">0</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="Scripts_fg/MPT_MCMC_fnc.py">
+      <data key="d0">Scripts_fg/MPT_MCMC_fnc.py</data>
+      <data key="d1">MPT_MCMC_fnc.py</data>
+      <data key="d2">6</data>
+      <data key="d3">338</data>
+      <data key="d18">0.4402107442849151</data>
+      <data key="d19">0.37732349510135577</data>
+      <data key="d4">0.3072681441238164</data>
+      <data key="d20">0.27251141312875693</data>
+      <data key="d13">0.24817811640769785</data>
+      <data key="d5">0.23855275970198772</data>
+      <data key="d21">0.21603320042496973</data>
+      <data key="d9">0</data>
+      <data key="d10">0</data>
+      <data key="d11">6</data>
+    </node>
+    <node id="Scripts_fg/compmat_multiprocessing.py">
+      <data key="d0">Scripts_fg/compmat_multiprocessing.py</data>
+      <data key="d1">compmat_multiprocessing.py</data>
+      <data key="d2">4</data>
+      <data key="d3">43</data>
+      <data key="d22">0.5922921456048237</data>
+      <data key="d23">0.39036604601596886</data>
+      <data key="d24">0.39036604601596886</data>
+      <data key="d25">0.26024403067731255</data>
+      <data key="d26">0.21151795304985005</data>
+      <data key="d9">4</data>
+      <data key="d10">0</data>
+      <data key="d11">5</data>
+    </node>
+    <node id="pathlib">
+      <data key="d1">pathlib</data>
+      <data key="d9">2</data>
+      <data key="d10">4</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="multiprocessing">
+      <data key="d1">multiprocessing</data>
+      <data key="d9">4</data>
+      <data key="d10">1</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="Scripts_fg/compmat_mosaic_clustering.py">
+      <data key="d0">Scripts_fg/compmat_mosaic_clustering.py</data>
+      <data key="d1">compmat_mosaic_clustering.py</data>
+      <data key="d2">4</data>
+      <data key="d3">102</data>
+      <data key="d27">0.6242313847423245</data>
+      <data key="d28">0.3036151273697395</data>
+      <data key="d29">0.22975592759097976</data>
+      <data key="d30">0.2229397802651159</data>
+      <data key="d31">0.2174379140332225</data>
+      <data key="d9">3</data>
+      <data key="d10">0</data>
+      <data key="d11">6</data>
+    </node>
+    <node id="mosaic">
+      <data key="d1">mosaic</data>
+      <data key="d9">3</data>
+      <data key="d10">1</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="matplotlib.pyplot">
+      <data key="d1">matplotlib.pyplot</data>
+      <data key="d9">2</data>
+      <data key="d10">3</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="prettypyplot">
+      <data key="d1">prettypyplot</data>
+      <data key="d9">3</data>
+      <data key="d10">2</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="Scripts_fg/matplotlib/colors">
+      <data key="d1">Scripts_fg/matplotlib/colors</data>
+      <data key="d9">3</data>
+      <data key="d10">2</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="Scripts_fg/compmat.py">
+      <data key="d0">Scripts_fg/compmat.py</data>
+      <data key="d1">compmat.py</data>
+      <data key="d2">4</data>
+      <data key="d3">52</data>
+      <data key="d32">0.565762110305193</data>
+      <data key="d22">0.5252677210913778</data>
+      <data key="d33">0.21010708843655113</data>
+      <data key="d9">5</data>
+      <data key="d10">0</data>
+      <data key="d11">4</data>
+    </node>
+    <node id="Scripts_fg/benchmark_macrostates.py">
+      <data key="d0">Scripts_fg/benchmark_macrostates.py</data>
+      <data key="d1">Scripts_fg/benchmark_macrostates.py</data>
+      <data key="d2">4</data>
+      <data key="d3">138</data>
+      <data key="d32">0.4580796919076774</data>
+      <data key="d34">0.4493540263343391</data>
+      <data key="d35">0.38516059400086206</data>
+      <data key="d12">0.36921845450884067</data>
+      <data key="d36">0.3209671616673851</data>
+      <data key="d9">2</data>
+      <data key="d10">1</data>
+      <data key="d11">5</data>
+    </node>
+    <node id="math">
+      <data key="d1">math</data>
+      <data key="d9">2</data>
+      <data key="d10">1</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="Scripts_fg/process_mpp.py">
+      <data key="d0">Scripts_fg/process_mpp.py</data>
+      <data key="d1">process_mpp.py</data>
+      <data key="d2">6</data>
+      <data key="d3">612</data>
+      <data key="d37">0.39286956076355534</data>
+      <data key="d12">0.2830061651998301</data>
+      <data key="d13">0.2676319653570563</data>
+      <data key="d38">0.26191304050903685</data>
+      <data key="d9">1</data>
+      <data key="d10">0</data>
+      <data key="d11">12</data>
+    </node>
+    <node id="sys">
+      <data key="d1">sys</data>
+      <data key="d9">1</data>
+      <data key="d10">1</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="functools">
+      <data key="d1">functools</data>
+      <data key="d9">1</data>
+      <data key="d10">1</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="matplotlib">
+      <data key="d1">matplotlib</data>
+      <data key="d9">1</data>
+      <data key="d10">1</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="Scripts_fg/matplotlib/cm">
+      <data key="d1">Scripts_fg/matplotlib/cm</data>
+      <data key="d9">1</data>
+      <data key="d10">1</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="Scripts_fg/matplotlib/collections">
+      <data key="d1">Scripts_fg/matplotlib/collections</data>
+      <data key="d9">1</data>
+      <data key="d10">1</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="Scripts_fg/scipy/cluster/hierarchy">
+      <data key="d1">Scripts_fg/scipy/cluster/hierarchy</data>
+      <data key="d9">1</data>
+      <data key="d10">2</data>
+      <data key="d11">0</data>
+    </node>
+    <node id="Scripts_fg/MPT_MCMC.py">
+      <data key="d0">Scripts_fg/MPT_MCMC.py</data>
+      <data key="d1">MPT_MCMC.py</data>
+      <data key="d2">2</data>
+      <data key="d3">187</data>
+      <data key="d4">0.5635371173437952</data>
+      <data key="d5">0.37785080689700434</data>
+      <data key="d6">0.3251175676983434</data>
+      <data key="d7">0.2817685586718976</data>
+      <data key="d9">0</data>
+      <data key="d10">0</data>
+      <data key="d11">6</data>
+    </node>
+    <node id="Scripts_fg/MPT.py">
+      <data key="d0">Scripts_fg/MPT.py</data>
+      <data key="d1">MPT.py</data>
+      <data key="d2">4</data>
+      <data key="d3">164</data>
+      <data key="d4">0.5473904045380861</data>
+      <data key="d7">0.4054743737319156</data>
+      <data key="d6">0.2838320616123409</data>
+      <data key="d5">0.2232195544680679</data>
+      <data key="d39">0.2230109055525536</data>
+      <data key="d13">0.2027371868659578</data>
+      <data key="d9">0</data>
+      <data key="d10">0</data>
+      <data key="d11">6</data>
+    </node>
+    <node id="Scripts_fg/benchmark_its.py">
+      <data key="d0">Scripts_fg/benchmark_its.py</data>
+      <data key="d1">benchmark_its.py</data>
+      <data key="d2">5</data>
+      <data key="d3">169</data>
+      <data key="d40">0.6276130386486767</data>
+      <data key="d41">0.3379454823492874</data>
+      <data key="d34">0.2902315058652745</data>
+      <data key="d35">0.24876986217023533</data>
+      <data key="d42">0.241389630249491</data>
+      <data key="d43">0.241389630249491</data>
+      <data key="d9">2</data>
+      <data key="d10">0</data>
+      <data key="d11">7</data>
+    </node>
+    <edge source="Scripts_fg/MPT_MCMC_peaks.py" target="click" />
+    <edge source="Scripts_fg/MPT_MCMC_peaks.py" target="numpy" />
+    <edge source="Scripts_fg/MPT_MCMC_peaks.py" target="msmhelper" />
+    <edge source="Scripts_fg/MPT_MCMC_peaks.py" target="Scripts_fg/msmhelper/msm" />
+    <edge source="Scripts_fg/MPT_MCMC_peaks.py" target="tqdm" />
+    <edge source="Scripts_fg/MPT_MCMC_peaks.py" target="Scripts_fg/macrostates.py" />
+    <edge source="Scripts_fg/macrostates.py" target="click" />
+    <edge source="Scripts_fg/macrostates.py" target="msmhelper" />
+    <edge source="Scripts_fg/macrostates.py" target="numpy" />
+    <edge source="Scripts_fg/macrostates.py" target="Scripts_fg/scipy/cluster/hierarchy" />
+    <edge source="Scripts_fg/MPT_MCMC_fnc.py" target="click" />
+    <edge source="Scripts_fg/MPT_MCMC_fnc.py" target="numpy" />
+    <edge source="Scripts_fg/MPT_MCMC_fnc.py" target="msmhelper" />
+    <edge source="Scripts_fg/MPT_MCMC_fnc.py" target="Scripts_fg/msmhelper/msm" />
+    <edge source="Scripts_fg/MPT_MCMC_fnc.py" target="tqdm" />
+    <edge source="Scripts_fg/MPT_MCMC_fnc.py" target="Scripts_fg/macrostates.py" />
+    <edge source="Scripts_fg/compmat_multiprocessing.py" target="numpy" />
+    <edge source="Scripts_fg/compmat_multiprocessing.py" target="msmhelper" />
+    <edge source="Scripts_fg/compmat_multiprocessing.py" target="pathlib" />
+    <edge source="Scripts_fg/compmat_multiprocessing.py" target="tqdm" />
+    <edge source="Scripts_fg/compmat_multiprocessing.py" target="multiprocessing" />
+    <edge source="Scripts_fg/compmat_mosaic_clustering.py" target="mosaic" />
+    <edge source="Scripts_fg/compmat_mosaic_clustering.py" target="numpy" />
+    <edge source="Scripts_fg/compmat_mosaic_clustering.py" target="matplotlib.pyplot" />
+    <edge source="Scripts_fg/compmat_mosaic_clustering.py" target="prettypyplot" />
+    <edge source="Scripts_fg/compmat_mosaic_clustering.py" target="Scripts_fg/matplotlib/colors" />
+    <edge source="Scripts_fg/compmat_mosaic_clustering.py" target="tqdm" />
+    <edge source="Scripts_fg/compmat.py" target="numpy" />
+    <edge source="Scripts_fg/compmat.py" target="msmhelper" />
+    <edge source="Scripts_fg/compmat.py" target="pathlib" />
+    <edge source="Scripts_fg/compmat.py" target="tqdm" />
+    <edge source="Scripts_fg/benchmark_macrostates.py" target="numpy" />
+    <edge source="Scripts_fg/benchmark_macrostates.py" target="matplotlib.pyplot" />
+    <edge source="Scripts_fg/benchmark_macrostates.py" target="pathlib" />
+    <edge source="Scripts_fg/benchmark_macrostates.py" target="tqdm" />
+    <edge source="Scripts_fg/benchmark_macrostates.py" target="math" />
+    <edge source="Scripts_fg/process_mpp.py" target="sys" />
+    <edge source="Scripts_fg/process_mpp.py" target="functools" />
+    <edge source="Scripts_fg/process_mpp.py" target="click" />
+    <edge source="Scripts_fg/process_mpp.py" target="msmhelper" />
+    <edge source="Scripts_fg/process_mpp.py" target="numpy" />
+    <edge source="Scripts_fg/process_mpp.py" target="prettypyplot" />
+    <edge source="Scripts_fg/process_mpp.py" target="matplotlib" />
+    <edge source="Scripts_fg/process_mpp.py" target="Scripts_fg/matplotlib/cm" />
+    <edge source="Scripts_fg/process_mpp.py" target="Scripts_fg/matplotlib/collections" />
+    <edge source="Scripts_fg/process_mpp.py" target="Scripts_fg/matplotlib/colors" />
+    <edge source="Scripts_fg/process_mpp.py" target="Scripts_fg/scipy/cluster/hierarchy" />
+    <edge source="Scripts_fg/process_mpp.py" target="tqdm" />
+    <edge source="Scripts_fg/MPT_MCMC.py" target="click" />
+    <edge source="Scripts_fg/MPT_MCMC.py" target="numpy" />
+    <edge source="Scripts_fg/MPT_MCMC.py" target="msmhelper" />
+    <edge source="Scripts_fg/MPT_MCMC.py" target="Scripts_fg/msmhelper/msm" />
+    <edge source="Scripts_fg/MPT_MCMC.py" target="tqdm" />
+    <edge source="Scripts_fg/MPT_MCMC.py" target="Scripts_fg/macrostates.py" />
+    <edge source="Scripts_fg/MPT.py" target="click" />
+    <edge source="Scripts_fg/MPT.py" target="numpy" />
+    <edge source="Scripts_fg/MPT.py" target="msmhelper" />
+    <edge source="Scripts_fg/MPT.py" target="Scripts_fg/msmhelper/msm" />
+    <edge source="Scripts_fg/MPT.py" target="tqdm" />
+    <edge source="Scripts_fg/MPT.py" target="Scripts_fg/macrostates.py" />
+    <edge source="Scripts_fg/benchmark_its.py" target="click" />
+    <edge source="Scripts_fg/benchmark_its.py" target="numpy" />
+    <edge source="Scripts_fg/benchmark_its.py" target="msmhelper" />
+    <edge source="Scripts_fg/benchmark_its.py" target="pathlib" />
+    <edge source="Scripts_fg/benchmark_its.py" target="matplotlib.pyplot" />
+    <edge source="Scripts_fg/benchmark_its.py" target="tqdm" />
+    <edge source="Scripts_fg/benchmark_its.py" target="Scripts_fg/benchmark_macrostates.py" />
+  </graph>
+</graphml>

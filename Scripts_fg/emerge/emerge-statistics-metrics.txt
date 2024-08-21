@@ -1,0 +1,241 @@
+the following statistics were collected in py check
++-------------------------------------+-------------------+
+|                      statistic name | value             |
++-------------------------------------+-------------------+
+|                    scanning_runtime | 00:00:00 + 34 ms  |
+|                       scanned_files | 12                |
+|                       skipped_files | 20                |
+|                        parsing_hits | 71                |
+|              extracted_file_results | 12                |
+|       file_results_creation_runtime | 00:00:00 + 45 ms  |
+|    number-of-methods-metric-runtime | 00:00:00 + 1 ms   |
+| source-lines-of-code-metric-runtime | 00:00:00 + 2 ms   |
+|            t-f-i-d-f-metric-runtime | 00:00:00 + 140 ms |
+|   louvain-modularity-metric-runtime | 00:00:00 + 8 ms   |
+|           fan-in-out-metric-runtime | 00:00:00 + 0 ms   |
+|                       total_runtime | 00:00:00 + 232 ms |
++-------------------------------------+-------------------+
+
+the following overall metrics were collected in py check
++----------------------------------------------+-----------------------------+
+|                                  metric name | value                       |
++----------------------------------------------+-----------------------------+
+|                avg-number-of-methods-in-file | 3.83                        |
+|                             avg-sloc-in-file | 195.0                       |
+|                          total-sloc-in-files | 2340                        |
+|         louvain-communities-dependency-graph | 7                           |
+|          louvain-modularity-dependency-graph | 0.31                        |
+| louvain-biggest-communities-dependency-graph | 0.27, 0.23, 0.17, 0.13, 0.1 |
+|                  avg-fan-in-dependency-graph | 2.23                        |
+|                 avg-fan-out-dependency-graph | 2.23                        |
+|                  max-fan-in-dependency-graph | 11                          |
+|             max-fan-in-name-dependency-graph | numpy                       |
+|                 max-fan-out-dependency-graph | 12                          |
+|            max-fan-out-name-dependency-graph | Scripts_fg/process_mpp.py   |
++----------------------------------------------+-----------------------------+
+
+the following local metrics were collected in py check
++-----------------------------------------+--------------------------------------------------------------+
+|                                  result | local metrics                                                |
++-----------------------------------------+--------------------------------------------------------------+
+|            Scripts_fg/MPT_MCMC_peaks.py | number-of-methods-in-file: 2                                 |
+|                                         | sloc-in-file: 225                                            |
+|                                         | tag_tmat: 0.5493839544078853                                 |
+|                                         | tag_int: 0.34897370400085614                                 |
+|                                         | tag_pop: 0.3169522813891646                                  |
+|                                         | tag_microstates: 0.29582212929655366                         |
+|                                         | tag_probability: 0.22969319479082928                         |
+|                                         | file_result_dependency_graph_louvain-modularity-in-file: 0   |
+|                                         | fan-in-dependency-graph: 0                                   |
+|                                         | fan-out-dependency-graph: 6                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                      Scripts_fg/test.py | number-of-methods-in-file: 0                                 |
+|                                         | sloc-in-file: 0                                              |
+|                                         | file_result_dependency_graph_louvain-modularity-in-file: 6   |
+|                                         | fan-in-dependency-graph: 0                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|              Scripts_fg/MPT_MCMC_fnc.py | number-of-methods-in-file: 6                                 |
+|                                         | sloc-in-file: 338                                            |
+|                                         | tag_exponent: 0.4402107442849151                             |
+|                                         | tag_variance: 0.37732349510135577                            |
+|                                         | tag_tmat: 0.3072681441238164                                 |
+|                                         | tag_distribution: 0.27251141312875693                        |
+|                                         | tag_state: 0.24817811640769785                               |
+|                                         | tag_int: 0.23855275970198772                                 |
+|                                         | tag_fnc: 0.21603320042496973                                 |
+|                                         | file_result_dependency_graph_louvain-modularity-in-file: 0   |
+|                                         | fan-in-dependency-graph: 0                                   |
+|                                         | fan-out-dependency-graph: 6                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|   Scripts_fg/compmat_multiprocessing.py | number-of-methods-in-file: 4                                 |
+|                                         | sloc-in-file: 43                                             |
+|                                         | tag_comparison: 0.5922921456048237                           |
+|                                         | tag_results: 0.39036604601596886                             |
+|                                         | tag_tasks: 0.39036604601596886                               |
+|                                         | tag_pool: 0.26024403067731255                                |
+|                                         | tag_tqdm: 0.21151795304985005                                |
+|                                         | file_result_dependency_graph_louvain-modularity-in-file: 4   |
+|                                         | fan-in-dependency-graph: 0                                   |
+|                                         | fan-out-dependency-graph: 5                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+| Scripts_fg/compmat_mosaic_clustering.py | number-of-methods-in-file: 4                                 |
+|                                         | sloc-in-file: 102                                            |
+|                                         | tag_resolution: 0.6242313847423245                           |
+|                                         | tag_decimals: 0.3036151273697395                             |
+|                                         | tag_clustering: 0.22975592759097976                          |
+|                                         | tag_ticks: 0.2229397802651159                                |
+|                                         | tag_matrix: 0.2174379140332225                               |
+|                                         | file_result_dependency_graph_louvain-modularity-in-file: 3   |
+|                                         | fan-in-dependency-graph: 0                                   |
+|                                         | fan-out-dependency-graph: 6                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                   Scripts_fg/compmat.py | number-of-methods-in-file: 4                                 |
+|                                         | sloc-in-file: 52                                             |
+|                                         | tag_folder: 0.565762110305193                                |
+|                                         | tag_comparison: 0.5252677210913778                           |
+|                                         | tag_macrotrajs: 0.21010708843655113                          |
+|                                         | file_result_dependency_graph_louvain-modularity-in-file: 5   |
+|                                         | fan-in-dependency-graph: 0                                   |
+|                                         | fan-out-dependency-graph: 4                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|     Scripts_fg/benchmark_macrostates.py | number-of-methods-in-file: 4                                 |
+|                                         | sloc-in-file: 138                                            |
+|                                         | tag_folder: 0.4580796919076774                               |
+|                                         | tag_nbins: 0.4493540263343391                                |
+|                                         | tag_axs: 0.38516059400086206                                 |
+|                                         | tag_idx: 0.36921845450884067                                 |
+|                                         | tag_labels: 0.3209671616673851                               |
+|                                         | file_result_dependency_graph_louvain-modularity-in-file: 2   |
+|                                         | fan-in-dependency-graph: 1                                   |
+|                                         | fan-out-dependency-graph: 5                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|               Scripts_fg/process_mpp.py | number-of-methods-in-file: 6                                 |
+|                                         | sloc-in-file: 612                                            |
+|                                         | tag_color: 0.39286956076355534                               |
+|                                         | tag_idx: 0.2830061651998301                                  |
+|                                         | tag_state: 0.2676319653570563                                |
+|                                         | tag_yline: 0.26191304050903685                               |
+|                                         | file_result_dependency_graph_louvain-modularity-in-file: 1   |
+|                                         | fan-in-dependency-graph: 0                                   |
+|                                         | fan-out-dependency-graph: 12                                 |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                  Scripts_fg/MPT_MCMC.py | number-of-methods-in-file: 2                                 |
+|                                         | sloc-in-file: 187                                            |
+|                                         | tag_tmat: 0.5635371173437952                                 |
+|                                         | tag_int: 0.37785080689700434                                 |
+|                                         | tag_pop: 0.3251175676983434                                  |
+|                                         | tag_microstates: 0.2817685586718976                          |
+|                                         | file_result_dependency_graph_louvain-modularity-in-file: 0   |
+|                                         | fan-in-dependency-graph: 0                                   |
+|                                         | fan-out-dependency-graph: 6                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                       Scripts_fg/MPT.py | number-of-methods-in-file: 4                                 |
+|                                         | sloc-in-file: 164                                            |
+|                                         | tag_tmat: 0.5473904045380861                                 |
+|                                         | tag_microstates: 0.4054743737319156                          |
+|                                         | tag_pop: 0.2838320616123409                                  |
+|                                         | tag_int: 0.2232195544680679                                  |
+|                                         | tag_transition: 0.2230109055525536                           |
+|                                         | tag_state: 0.2027371868659578                                |
+|                                         | file_result_dependency_graph_louvain-modularity-in-file: 0   |
+|                                         | fan-in-dependency-graph: 0                                   |
+|                                         | fan-out-dependency-graph: 6                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|               Scripts_fg/macrostates.py | number-of-methods-in-file: 5                                 |
+|                                         | sloc-in-file: 310                                            |
+|                                         | tag_idx: 0.3530379184400193                                  |
+|                                         | tag_state: 0.33931250757175274                               |
+|                                         | tag_microstates: 0.2884156314359898                          |
+|                                         | tag_macrostates: 0.2544843806788145                          |
+|                                         | tag_transitions: 0.2544843806788145                          |
+|                                         | tag_mstate: 0.23259878756671334                              |
+|                                         | tag_pops: 0.2067544778370785                                 |
+|                                         | file_result_dependency_graph_louvain-modularity-in-file: 0   |
+|                                         | fan-in-dependency-graph: 4                                   |
+|                                         | fan-out-dependency-graph: 4                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|             Scripts_fg/benchmark_its.py | number-of-methods-in-file: 5                                 |
+|                                         | sloc-in-file: 169                                            |
+|                                         | tag_its: 0.6276130386486767                                  |
+|                                         | tag_ntimescales: 0.3379454823492874                          |
+|                                         | tag_nbins: 0.2902315058652745                                |
+|                                         | tag_axs: 0.24876986217023533                                 |
+|                                         | tag_sim: 0.241389630249491                                   |
+|                                         | tag_timescales: 0.241389630249491                            |
+|                                         | file_result_dependency_graph_louvain-modularity-in-file: 2   |
+|                                         | fan-in-dependency-graph: 0                                   |
+|                                         | fan-out-dependency-graph: 7                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                                   click | file_result_dependency_graph_louvain-modularity-in-file: 0   |
+|                                         | fan-in-dependency-graph: 7                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                               msmhelper | file_result_dependency_graph_louvain-modularity-in-file: 0   |
+|                                         | fan-in-dependency-graph: 9                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                Scripts_fg/msmhelper/msm | file_result_dependency_graph_louvain-modularity-in-file: 0   |
+|                                         | fan-in-dependency-graph: 4                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                                     sys | file_result_dependency_graph_louvain-modularity-in-file: 1   |
+|                                         | fan-in-dependency-graph: 1                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                               functools | file_result_dependency_graph_louvain-modularity-in-file: 1   |
+|                                         | fan-in-dependency-graph: 1                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                              matplotlib | file_result_dependency_graph_louvain-modularity-in-file: 1   |
+|                                         | fan-in-dependency-graph: 1                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                Scripts_fg/matplotlib/cm | file_result_dependency_graph_louvain-modularity-in-file: 1   |
+|                                         | fan-in-dependency-graph: 1                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|       Scripts_fg/matplotlib/collections | file_result_dependency_graph_louvain-modularity-in-file: 1   |
+|                                         | fan-in-dependency-graph: 1                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|      Scripts_fg/scipy/cluster/hierarchy | file_result_dependency_graph_louvain-modularity-in-file: 1   |
+|                                         | fan-in-dependency-graph: 2                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                                 pathlib | file_result_dependency_graph_louvain-modularity-in-file: 2   |
+|                                         | fan-in-dependency-graph: 4                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                       matplotlib.pyplot | file_result_dependency_graph_louvain-modularity-in-file: 2   |
+|                                         | fan-in-dependency-graph: 3                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                                    math | file_result_dependency_graph_louvain-modularity-in-file: 2   |
+|                                         | fan-in-dependency-graph: 1                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                                  mosaic | file_result_dependency_graph_louvain-modularity-in-file: 3   |
+|                                         | fan-in-dependency-graph: 1                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                            prettypyplot | file_result_dependency_graph_louvain-modularity-in-file: 3   |
+|                                         | fan-in-dependency-graph: 2                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|            Scripts_fg/matplotlib/colors | file_result_dependency_graph_louvain-modularity-in-file: 3   |
+|                                         | fan-in-dependency-graph: 2                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                                   numpy | file_result_dependency_graph_louvain-modularity-in-file: 4   |
+|                                         | fan-in-dependency-graph: 11                                  |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                         multiprocessing | file_result_dependency_graph_louvain-modularity-in-file: 4   |
+|                                         | fan-in-dependency-graph: 1                                   |
+|                                         | fan-out-dependency-graph: 0                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+|                                    tqdm | file_result_dependency_graph_louvain-modularity-in-file: 5   |
+|                                         | fan-in-dependency-graph: 10                                  |
+|                                         | fan-out-dependency-graph: 0                                  |
++-----------------------------------------+--------------------------------------------------------------+
