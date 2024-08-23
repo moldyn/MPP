@@ -280,6 +280,69 @@ def mpp_plus_cut(
     return macrostates, macrostates_assignment
 
 
+def mpp_plus_dyn_cor_(
+    *,
+    macrostates,
+    microstates,
+    n_macrostates,
+    pops,
+    traj,
+    tlag,
+):
+    """Apply MPP+ step2: Dynamically correct minor branches."""
+    # fix dynamically missassigned single-state branches
+    # identify them
+    dyn_corr_macrostates = macrostates[:]
+    for mstate in np.unique(macrostates):
+        idx_sequences = state_sequences(macrostates, mstate)
+        if len(idx_sequences) > 1:
+            highest_pop_sequence = np.argmax([
+                np.sum([
+                    pops[s] for s in microstates[seq]
+                ]) for seq in idx_sequences
+            ])
+            idx_sequences = [
+                seq for idx, seq in enumerate(idx_sequences)
+                if idx != highest_pop_sequence
+            ]
+            for seq in idx_sequences:
+                largest_state = np.max(dyn_corr_macrostates)
+                for newstate, seq_idx in enumerate(
+                    seq,
+                    largest_state + 1,
+                ):
+                    dyn_corr_macrostates[seq_idx] = newstate
+
+    # dynamically reassign all new state to previous macrostates
+    mstates = np.unique(dyn_corr_macrostates)
+    while len(mstates) > n_macrostates:
+        tmat, mstates = mh.msm.estimate_markov_model(
+            mh.shift_data(traj, microstates, dyn_corr_macrostates),
+            lagtime=tlag,
+        )
+
+        # sort new states by increasing metastability
+        qs = np.diag(tmat)[n_macrostates:]
+        idx_sort = np.argsort(qs)
+        newstates = mstates[n_macrostates:][idx_sort]
+
+        deletestate = newstates[0]
+
+        # reassign them
+        idx = np.where(mstates == deletestate)[0][0]
+        idxs_to = np.argsort(tmat[idx])[::-1]
+        for idx_to in idxs_to:
+            if idx_to == idx:
+                continue
+            dyn_corr_macrostates[
+                dyn_corr_macrostates == deletestate
+            ] = mstates[idx_to]
+            break
+
+        mstates = np.unique(dyn_corr_macrostates)
+
+    return dyn_corr_macrostates
+
 def mpp_plus_dyn_cor(
     *,
     macrostates,

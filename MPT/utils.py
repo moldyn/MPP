@@ -168,8 +168,8 @@ def macro_tmat(tmat, macrostate_assignment, pop):
     """
     n_macrostates = macrostate_assignment.shape[0]
     m_tmat = np.zeros((n_macrostates, n_macrostates), dtype=tmat.dtype.type)
-    for i, ms in enumerate(macrostate_assignment.astype(bool)):
-        for j, other_ms in enumerate(macrostate_assignment.astype(bool)):
+    for i, ms in enumerate(macrostate_assignment):
+        for j, other_ms in enumerate(macrostate_assignment):
             m_tmat[i, j] = (tmat[ms][:, other_ms] * np.expand_dims(pop[ms], -1)).sum()
     return m_tmat / m_tmat.sum(axis=0)
 
@@ -237,20 +237,33 @@ def get_microstates_to_reassign(pop, macrostate_assignment):
         for i, s in enumerate(m):
             prev = cur
             cur = s
-            if not prev and cur:
+            if cur:
                 cur_idx.add(i)
-            elif prev and cur:
-                cur_idx.add(i)
-            elif prev and not cur:
-                print(f"pops: current: {pop[list(cur_idx)].sum()} max: {pop[list(max_idx)].sum()}")
+            if (prev and not cur) or (cur and i + 1 == m.shape[0]):
                 if pop[list(cur_idx)].sum() > pop[list(max_idx)].sum():
                     indices_to_exclude.update(max_idx)
                     max_idx = cur_idx
                 else:
                     indices_to_exclude.update(cur_idx)
                 cur_idx = set()
-    print(indices_to_exclude)
+
     return list(indices_to_exclude)
+
+def merge_states(tmat, states, new_state, full_pop):
+    full_pop[new_state] = full_pop[states].sum()
+
+    tmat[new_state] = (
+        tmat[states] * full_pop[states, np.newaxis]
+    ).sum(axis=0) / full_pop[new_state]
+
+    tmat[:, new_state] = tmat[:, states].sum(axis=1)
+
+    tmat[new_state, new_state] = tmat[new_state, states].sum()
+
+    # Set all probabilities that have been merged to 0
+    tmat[new_state, states] = 0
+    tmat[states, new_state] = 0
+    return tmat, full_pop
 
 def get_macrostate_tmat_from_assignment(tmat, pop, macrostate_assignment):
     """
@@ -271,25 +284,8 @@ def get_macrostate_tmat_from_assignment(tmat, pop, macrostate_assignment):
     #macro_pop = np.zeros(tmat.shape[0], pop.dtype.type)
     # full_mask = np.full(dim, False)
     # full_mask[:n_states] = True
-    for i, m in enumerate(macrostate_assignment.astype(bool)):
-        states = np.full(dim, False)
-        states[:n_states][m] = True
-
-        new_state = i + n_states
-        # Calculate population of current macrostate
-        full_pop[new_state] = pop[m].sum()
-
-        full_macro_tmat[new_state] = (
-            full_macro_tmat[states] * full_pop[states, np.newaxis]
-        ).sum(axis=0) / full_pop[new_state]
-
-        full_macro_tmat[:, new_state] = full_macro_tmat[:, states].sum(axis=1)
-
-        full_macro_tmat[new_state, new_state] = full_macro_tmat[new_state, states].sum()
-
-        # Set all probabilities that have been merged to 0
-        full_macro_tmat[new_state, states] = 0
-        full_macro_tmat[states, new_state] = 0
+    for i, m in enumerate(macrostate_assignment):
+        full_macro_tmat, full_pop = merge_states(full_macro_tmat, np.where(m)[0], i + n_states, full_pop)
     return full_macro_tmat[n_states:, n_states:], full_pop
 
 def reassign_states(tmat, pop, macrostate_assignment):
@@ -307,7 +303,7 @@ def reassign_states(tmat, pop, macrostate_assignment):
 
     inter_ma = np.zeros((inter_dim, macrostate_assignment.shape[1]), macrostate_assignment.dtype.type)
     inter_ma[:ma_dim] = macrostate_assignment
-    inter_ma[np.arange(ma_dim, inter_dim), states_to_assign] = 1
+    inter_ma[np.arange(ma_dim, inter_dim), states_to_assign] = True
 
     # print("inter_ma")
     # print(inter_ma)
@@ -318,7 +314,7 @@ def reassign_states(tmat, pop, macrostate_assignment):
         macrostate = np.argmax(inter_tmat[i, :ma_dim])
         # print(macrostate)
         # print(inter_tmat[i, :ma_dim])
-        macrostate_assignment[macrostate, state] = 1
+        macrostate_assignment[macrostate, state] = True
     
     return macrostate_assignment
 

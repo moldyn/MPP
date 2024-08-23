@@ -88,29 +88,8 @@ def cluster(
         else:
             state, target_state, mask = kernel(full_tmat, full_states, mask)
 
-        # Add population for new state
-        full_pop[new_state] = full_pop[state] + full_pop[target_state]
-
-        # Add new state to transition matrix
-        # Set transition probabilities to other states, weighted by population
-        full_tmat[new_state] = (
-                full_tmat[state] * full_pop[state] \
-                + full_tmat[target_state] * full_pop[target_state]
-        ) / full_pop[new_state]
-        # Set transition probabilities to new state, no weighting needed as
-        # this happens only within one state
-        full_tmat[:, new_state] = full_tmat[:, state] + full_tmat[:, target_state]
-
-        # Combine transition probabilities from new state to merged states
-        # to new self transition probability
-        full_tmat[new_state, new_state] = \
-                full_tmat[new_state, state] \
-                + full_tmat[new_state, target_state] #\
-        # Set transition probabilities between new state and merged states to 0
-        full_tmat[new_state, state] = 0
-        full_tmat[new_state, target_state] = 0
-        full_tmat[state, new_state] = 0
-        full_tmat[target_state, new_state] = 0
+        # Merge states in transition matrix
+        full_tmat, full_pop = utils.merge_states(full_tmat, [state, target_state], new_state, full_pop)
 
         # Update state linkage
         full_states[state, 1] = new_state
@@ -135,7 +114,7 @@ def assign_macrostates(Z, full_pop, pop_thr, q_min):
     pop_norm = full_pop / Z[-1, 3]
     macrostates = split(Z, 2 * Z.shape[0], [], pop_norm, [], pop_thr, q_min)
     # macrostate assignment
-    ma = np.zeros((len(macrostates), Z.shape[0]+1), dtype=np.uint8)
+    ma = np.zeros((len(macrostates), Z.shape[0]+1), dtype=bool)
     for macrostate, microstates in enumerate(macrostates[::-1]):
         ma[macrostate, microstates] = 1
     return ma
