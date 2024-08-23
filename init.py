@@ -14,7 +14,7 @@ feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_produc
 multi_feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2")
 
 out_base = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/"
-out = out_base + "img/hp35_n2_1k_its.pdf"
+out = out_base + "img/hp35_dendrogram_det_dc.pdf"
 
 lagtime = 50
 
@@ -30,16 +30,32 @@ mpt = MPT.MPT(traj, lagtime)
 mpt.mpt(mpt_kernel)
 #mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
 mpt.add_feature(feature_traj)
+#mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
 mpt.assign_macrostates(0.005, 0.5)
-mpt.calc_timescales()
-# #mpt.plot(out)
+# mpt.calc_timescales()
+#mpt.plot(out)
 #mpt.plot_tmat(out_base + "img/hp35_det_macrotmat.pdf")
 #mpt.plot_tmat_times(out_base + "img/hp35_det_macrotmat_times.pdf")
+
+# mpt.from_Z(out_base + "hp35_stoch_n2_1k.Z.npy")
+# mpt.add_feature(feature_traj)
+# mpt.assign_macrostates(0.005, 0.5)
+# mpt.calc_timescales()
+
 
 # smpt = MPT.MPT(traj, lagtime)
 # smpt.mpt(smpt_kernel, feature_kernel=feature_kernel, n=10)
 # smpt.add_feature(feature_traj)
 # smpt.assign_macrostates(0.005, 0.5)
 # smpt.calc_timescales()
+
+
+ma = mpt.macrostate_assignment[0]
+o = [l.name for l in mpt.tree[0].leaves]
+ro = np.arange(mpt.n_states)[o]
+ieo = MPT.utils.get_microstates_to_reassign(mpt.full_pop[0], ma[:, o])
+ie = ro[ieo]
+#ma[:, ie] = 0
+#nma, inter_ma, inter_tmat = MPT.utils.reassign_states(mpt.tmat, mpt.full_pop[0, :mpt.n_states], ma)
 
 

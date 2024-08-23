@@ -226,3 +226,99 @@ def Z_to_linkage(Z):
             l[r, :, :2][mask] = row[1]
     l[:, :, :2] += 1
     return l
+
+def get_microstates_to_reassign(pop, macrostate_assignment):
+    indices_to_exclude = set()
+    for mi, m in enumerate(macrostate_assignment):
+        prev = 0
+        cur = 0
+        max_idx = set()
+        cur_idx = set()
+        for i, s in enumerate(m):
+            prev = cur
+            cur = s
+            if not prev and cur:
+                cur_idx.add(i)
+            elif prev and cur:
+                cur_idx.add(i)
+            elif prev and not cur:
+                print(f"pops: current: {pop[list(cur_idx)].sum()} max: {pop[list(max_idx)].sum()}")
+                if pop[list(cur_idx)].sum() > pop[list(max_idx)].sum():
+                    indices_to_exclude.update(max_idx)
+                    max_idx = cur_idx
+                else:
+                    indices_to_exclude.update(cur_idx)
+                cur_idx = set()
+    print(indices_to_exclude)
+    return list(indices_to_exclude)
+
+def get_macrostate_tmat_from_assignment(tmat, pop, macrostate_assignment):
+    """
+    tmat: initial transitition matrix (NxN)
+    pop: microstate population (N)
+    """
+    #dims = (macrostate_assignment.shape[0], macrostate_assignment.shape[0])
+    n_states = tmat.shape[0]
+    dim = sum(macrostate_assignment.shape)
+
+    #macro_tmat = np.zeros(tmat.shape, tmat.dtype.type)
+    #macro_tmat = np.zeros(dims, tmat.dtype.type)
+    full_macro_tmat = np.zeros((dim, dim), tmat.dtype.type)
+    full_macro_tmat[:n_states][:, :n_states] = tmat
+    #macro_pop = np.zeros(macrostate_assignment.shape[0], pop.dtype.type)
+    full_pop = np.zeros(sum(macrostate_assignment.shape), pop.dtype.type)
+    full_pop[:n_states] = pop
+    #macro_pop = np.zeros(tmat.shape[0], pop.dtype.type)
+    # full_mask = np.full(dim, False)
+    # full_mask[:n_states] = True
+    for i, m in enumerate(macrostate_assignment.astype(bool)):
+        states = np.full(dim, False)
+        states[:n_states][m] = True
+
+        new_state = i + n_states
+        # Calculate population of current macrostate
+        full_pop[new_state] = pop[m].sum()
+
+        full_macro_tmat[new_state] = (
+            full_macro_tmat[states] * full_pop[states, np.newaxis]
+        ).sum(axis=0) / full_pop[new_state]
+
+        full_macro_tmat[:, new_state] = full_macro_tmat[:, states].sum(axis=1)
+
+        full_macro_tmat[new_state, new_state] = full_macro_tmat[new_state, states].sum()
+
+        # Set all probabilities that have been merged to 0
+        full_macro_tmat[new_state, states] = 0
+        full_macro_tmat[states, new_state] = 0
+    return full_macro_tmat[n_states:, n_states:], full_pop
+
+def reassign_states(tmat, pop, macrostate_assignment):
+    """
+    tmat: initial transitition matrix (NxN)
+    pop: microstate population (N)
+    macrostate_assignment: (MxN) M: number of macrostates, N: number of
+            microstates; Microstates that are newly assigned have no
+            macrostate here
+    """
+    states_to_assign = np.where(macrostate_assignment.sum(axis=0) == 0)[0]
+    ma_dim = macrostate_assignment.shape[0]
+    sa_dim = states_to_assign.shape[0]
+    inter_dim = ma_dim + sa_dim
+
+    inter_ma = np.zeros((inter_dim, macrostate_assignment.shape[1]), macrostate_assignment.dtype.type)
+    inter_ma[:ma_dim] = macrostate_assignment
+    inter_ma[np.arange(ma_dim, inter_dim), states_to_assign] = 1
+
+    # print("inter_ma")
+    # print(inter_ma)
+
+    inter_tmat, inter_pop = get_macrostate_tmat_from_assignment(tmat, pop, inter_ma)
+
+    for i, state in enumerate(states_to_assign, start=ma_dim):
+        macrostate = np.argmax(inter_tmat[i, :ma_dim])
+        # print(macrostate)
+        # print(inter_tmat[i, :ma_dim])
+        macrostate_assignment[macrostate, state] = 1
+    
+    return macrostate_assignment
+

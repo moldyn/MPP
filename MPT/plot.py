@@ -238,14 +238,12 @@ class BinaryTreeNode(NodeMixin):
     @property
     def x_target(self):
         """The x_target property."""
-        if self._x_target:
-            return self._x_target
-        else:
+        if not self._x_target:
             if not self.is_root:
                 self.x_target = (self.x_origin + self.siblings[0].x_origin) / 2
             else:
                 self.x_target = self.x_origin
-            return self._x_target
+        return self._x_target
     @x_target.setter
     def x_target(self, value):
         self._x_target = value
@@ -427,6 +425,16 @@ def plot_dendrogram(Z, full_pop, traj, feature_traj, ma, out):
     macrostate_assignment.
     """
     root = build_tree(Z, full_pop)
+    add_feature(traj, feature_traj, root)
+    pop_thr = 0.005
+    q_min = 0.5
+    plot_tree(root, ma, out)
+ 
+def plot_dendrogram_root(root, traj, feature_traj, ma, out):
+    """
+    Plot dendrogram from Z matrix, full_pop, trajectory, feature_traj and
+    macrostate_assignment.
+    """
     add_feature(traj, feature_traj, root)
     pop_thr = 0.005
     q_min = 0.5
@@ -1044,11 +1052,11 @@ def report_stochastic(cl, ref, multi_feature, cluster_file, out, frame_length=0.
     kernel = f"\\verb|{cl.kernel}|"
     thr = f"$\\mathrm{{pop}}_\\mathrm{{min}}={cl.pop_thr}$, $q_\\mathrm{{min}}={cl.q_min}$"
     if cl.kernel.method == "n":
-        mode = f"{thr}, n={cl.kernel.param}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
+        mode = f"n={cl.kernel.param}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
     elif cl.kernel.method == "p":
-        mode = f"{thr}, p=\\SI{{{cl.kernel.param*100:.0f}}}{{\\percent}}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
+        mode = f"p=\\SI{{{cl.kernel.param*100:.0f}}}{{\\percent}}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
     else:
-        mode = thr
+        mode = ""
     runs = f"{cl.n_runs} clusterings"
     thresholds = f"pop: \\SI{{{cl.pop_thr*100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
 
@@ -1063,12 +1071,14 @@ def report_stochastic(cl, ref, multi_feature, cluster_file, out, frame_length=0.
 \\newpage
 \\begin{{analysis}}
 \\label{{{label}}}
+\\vspace{{-0.5cm}}
 \\begin{{table}}[H]
 \\centering
 \\begin{{tabular}}{{lll}}
     General & Clustering & Feature \\\\\\midrule
     {lagtime} & {kernel} & {feature_kernel} \\\\
     {traj_length} & {runs} & {feature_params} \\\\
+    & {thr} & \\\\
     & {mode} &
 \\end{{tabular}}
 \\end{{table}}

@@ -696,24 +696,31 @@ def mpp_plus_dyn_cor(
     traj,
     tlag,
 ):
-    """Apply MPP+ step2: Dynamically correct minor branches."""
+    """Apply MPP+ step2: Dynamically correct minor branches.
+    macrostates: len: n_microstates, value: 1-based index of macrostate
+    """
     # fix dynamically missassigned single-state branches
     # identify them
     dyn_corr_macrostates = macrostates[:]
     for mstate in np.unique(macrostates):
         idx_sequences = state_sequences(macrostates, mstate)
         if len(idx_sequences) > 1:
+            # Same macrostate in a row with highest population
             highest_pop_sequence = np.argmax([
                 np.sum([
                     pops[s] for s in microstates[seq]
                 ]) for seq in idx_sequences
             ])
+            # Other rows of the same macrostate
             idx_sequences = [
                 seq for idx, seq in enumerate(idx_sequences)
                 if idx != highest_pop_sequence
             ]
             for seq in idx_sequences:
+                # largest_state means highest macrostate index
                 largest_state = np.max(dyn_corr_macrostates)
+                # Start enumerate counter at highest macrostate index + 1
+                # --> Each microstate is assigned a new macrostate
                 for newstate, seq_idx in enumerate(
                     seq,
                     largest_state + 1,

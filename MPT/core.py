@@ -82,16 +82,11 @@ def cluster(
         new_state = n + i
 
         # Use feature only for determination of target state
-        # full_tmat = feature_kernel * full_tmat
-        # state, target_state, mask = kernel(full_tmat, full_states, mask)
         if feature_kernel != 1:
             state, target_state, mask = kernel(feature_kernel * full_tmat, full_states, mask)
+            feature_kernel.update(state, target_state, new_state)
         else:
             state, target_state, mask = kernel(full_tmat, full_states, mask)
-        # state, target_state, _ = kernel(feature_kernel * full_tmat, full_states, mask.copy())
-        # state, target_state, mask = kernel(np.random.uniform(0.1, 0.9, full_tmat.shape) * full_tmat, full_states, mask)
-        if feature_kernel != 1:
-            feature_kernel.update(state, target_state, new_state)
 
         # Add population for new state
         full_pop[new_state] = full_pop[state] + full_pop[target_state]

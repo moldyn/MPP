@@ -20,20 +20,20 @@ def run(out):
     lagtime = 50
 
     mpt_kernel = MPT.kernel.MPTKernel()
-    #smpt_kernel = MPT.kernel.SMPTKernel(method="n", param=5)
-    # smpt_kernel = MPT.kernel.SMPTKernel(method="p", param=1, c=0.0)
-    # feature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05)
-    kl_kernel = MPT.kernel.KLKernel()
+    # smpt_kernel = MPT.kernel.SMPTKernel(method="n", param=5)
+    smpt_kernel = MPT.kernel.SMPTKernel(method="p", param=1, c=0.15)
+    feature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05)
+    # kl_kernel = MPT.kernel.KLKernel()
 
     mpt = MPT.MPT(traj, lagtime)
     mpt.mpt(mpt_kernel)
     mpt.add_feature(feature_traj)
-    mpt.assign_macrostates(0.005, 0.5)
+    mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
 
     smpt = MPT.MPT(traj, lagtime)
-    smpt.mpt(kl_kernel)
+    smpt.mpt(smpt_kernel, feature_kernel=feature_kernel, n=3)
     smpt.add_feature(feature_traj)
-    smpt.assign_macrostates(0.02, 0.5)
+    smpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
     
     # smpt = MPT.MPT(traj, lagtime)
     # smpt.mpt(smpt_kernel, feature_kernel=feature_kernel, n=10)
@@ -41,7 +41,8 @@ def run(out):
     # smpt.add_feature(feature_traj)
     # smpt.assign_macrostates(0.005, 0.5)
 
-    MPT.plot.report_1v1(smpt, mpt, multi_feature_traj, cluster_file, out)
+    #MPT.plot.report_1v1(smpt, mpt, multi_feature_traj, cluster_file, out)
+    MPT.plot.report_stochastic(smpt, mpt, multi_feature_traj, cluster_file, out)
 
     return mpt, smpt
 
@@ -293,7 +294,7 @@ def main():
     #out = out_base + "img/hp35_smpt_1k_p50_feature_s10_report"
     #out = out_base + "img/hp35_smpt_1k_n5_feature_s10_report"
     #out = out_base + "img/hp35_smpt_1k_p90_feature_s05_c15_report"
-    out = out_base + "img/hp35_mpt_kl_report"
+    out = out_base + "img/hp35_smpt_10_c15_dc_report"
     start = time.time()
     ret = run(out)
     execution_time = time.time() - start

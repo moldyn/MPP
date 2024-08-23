@@ -57,6 +57,7 @@ class MPT(object):
         self.timescales = None
         self._linkage = None
         self._macro_pop = None
+        self._tree = None
 
     # TODO:
     # doublecheck annotation
@@ -107,7 +108,7 @@ class MPT(object):
         for i in range(self.n_states):
             self.feature[i] = self.feature_traj[self.traj == i+1].mean()
 
-    def assign_macrostates(self, pop_thr, q_min, macrotraj_type=np.uint8):
+    def assign_macrostates(self, pop_thr, q_min, dyn_correct=False, macrotraj_type=np.uint8):
         self.pop_thr = pop_thr
         self.q_min = q_min
         self.macrostate_feature = []
@@ -116,10 +117,20 @@ class MPT(object):
         self.macro_tmat = []
         self.macrotraj = np.zeros((self.traj.shape[0], self.n_runs), dtype=macrotraj_type)
         self.n_macrostates = []
+        self.microstate_order = np.zeros((self.n_runs, self.n_states), dtype=np.uint16)
 
         print("Assigning macrostates ...")
         for n_i in tqdm(range(self.n_runs)):
             ma = core.assign_macrostates(self.Z[n_i], self.full_pop[n_i], self.pop_thr, self.q_min)
+            # TODO:
+            # Optional: dynamically correct macrostate assignment here
+            if dyn_correct:
+                self.microstate_order[n_i] = [leaf.name for leaf in self.tree[n_i].leaves]
+                reorder = np.arange(self.n_states)[self.microstate_order[n_i]]
+                indices_to_exclude_order = utils.get_microstates_to_reassign(self.full_pop[n_i], ma[:, self.microstate_order[n_i]])
+                indices_to_exclude = reorder[indices_to_exclude_order]
+                ma[:, indices_to_exclude] = 0
+                ma = utils.reassign_states(self.tmat, self.full_pop[n_i, :self.n_states], ma)
             macrostate_feature = np.zeros(ma.shape[0], dtype=self.feature_traj.dtype.type)
             pop = self.full_pop[n_i, :self.n_states]
             # Order macrostates by feature
@@ -145,10 +156,19 @@ class MPT(object):
                 self.micro_feature[mb, i] = mf[j]
 
 
-    def plot(self, out: str, n_i: int = 0):
+    def plot_(self, out: str, n_i: int = 0):
         plot_dendrogram(
             self.Z[n_i],
             self.full_pop[n_i],
+            self.traj,
+            self.feature_traj,
+            self.macrostate_assignment[n_i],
+            out,
+        )
+    
+    def plot(self, out: str, n_i: int = 0):
+        plot.plot_dendrogram_root(
+            self.tree[n_i],
             self.traj,
             self.feature_traj,
             self.macrostate_assignment[n_i],
@@ -190,14 +210,6 @@ class MPT(object):
                     S[1, i, n_i] = max(S[1, i, n_i], intersect / (ref_ma[i] * ref.full_pop[0, :ref.n_states]).sum())
                     # clustering
                     S[2, i, n_i] = max(S[2, i, n_i], intersect / (sto_ma[j] * ref.full_pop[0, :ref.n_states]).sum())
-                    # intersect = np.logical_and(ref_ma[i], sto_ma[j]).sum()
-                    # union = np.logical_or(ref_ma[i], sto_ma[j]).sum()
-                    # # union
-                    # S[0, i, n_i] = max(S[0, i, n_i], intersect / union)
-                    # # reference
-                    # S[1, i, n_i] = max(S[1, i, n_i], intersect / ref_ma[i].sum())
-                    # # clustering
-                    # S[2, i, n_i] = max(S[2, i, n_i], intersect / sto_ma[j].sum())
         return ref, sto, S
 
     def __mul__(self, other):
@@ -312,11 +324,20 @@ class MPT(object):
         """The macro_pop property."""
         if self._macro_pop == None:
             self._macro_pop = []
-            for ma in self.macrostate_assignment:
-                self._macro_pop.append(np.zeros(ma.shape[0]), dtype=self.full_pop.dtype.type)
+            for j, ma in enumerate(self.macrostate_assignment):
+                self._macro_pop.append(np.zeros(ma.shape[0], dtype=self.full_pop.dtype.type))
                 for i, m in enumerate(ma):
-                    self._macro_pop[-1][i] = self.full_pop[:self.n_states][m.astype(bool)].sum()
+                    self._macro_pop[-1][i] = self.full_pop[j, :self.n_states][m.astype(bool)].sum()
         return self._macro_pop
+
+    @property
+    def tree(self):
+        """The tree property."""
+        if self._tree == None:
+            self._tree = []
+            for z, pop in zip(self.Z, self.full_pop):
+                self._tree.append(plot.build_tree(z, pop))
+        return self._tree
 
     def plot_graph(self, out, n_i=0, u=0, f=0):
         #draw_knetwork(self.macrotraj[:, n_i], self.tlag, self.macrostate_feature[n_i], out)
