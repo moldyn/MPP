@@ -14,6 +14,7 @@ from numba import njit
 from itertools import combinations
 from typing import List
 from numpy.typing import NDArray
+import msmhelper as mh
 
 @njit
 def feature_mean(traj: np.ndarray, feature: np.ndarray):
@@ -288,7 +289,7 @@ def get_macrostate_tmat_from_assignment(tmat, pop, macrostate_assignment):
         full_macro_tmat, full_pop = merge_states(full_macro_tmat, np.where(m)[0], i + n_states, full_pop)
     return full_macro_tmat[n_states:, n_states:], full_pop
 
-def reassign_states(tmat, pop, macrostate_assignment):
+def reassign_states(tmat, pop, macrostate_assignment, traj):
     """
     tmat: initial transitition matrix (NxN)
     pop: microstate population (N)
@@ -309,12 +310,67 @@ def reassign_states(tmat, pop, macrostate_assignment):
     # print(inter_ma)
 
     inter_tmat, inter_pop = get_macrostate_tmat_from_assignment(tmat, pop, inter_ma)
+    print((inter_tmat > 0).astype(int))
 
-    for i, state in enumerate(states_to_assign, start=ma_dim):
-        macrostate = np.argmax(inter_tmat[i, :ma_dim])
-        # print(macrostate)
-        # print(inter_tmat[i, :ma_dim])
-        macrostate_assignment[macrostate, state] = True
+    full_inter_pop = np.zeros(inter_dim + sa_dim, dtype=inter_pop.dtype.type)
+    full_inter_pop[:inter_dim] = inter_pop[-inter_dim:]
+
+    full_inter_tmat = np.zeros((inter_dim + sa_dim, inter_dim + sa_dim), dtype=inter_tmat.dtype.type)
+    # full_inter_tmat[:inter_dim][:, :inter_dim] = inter_tmat[-inter_dim:][:, -inter_dim]
+    full_inter_tmat[:inter_dim][:, :inter_dim] = inter_tmat
+    print((full_inter_tmat > 0).astype(int))
+
+    # microstate index
+    merge_order = np.argsort(np.diag(tmat[states_to_assign]))
+
+    # full_inter_tmat index
+    merging_states = np.argsort(np.diag(full_inter_tmat)[ma_dim:inter_dim]) + ma_dim
+    tmat_mask = np.full(inter_dim + sa_dim, False)
+    tmat_mask[:ma_dim] = True
+
+    macrostate_order = np.arange(ma_dim)
+    for i, (state, state_to_merge) in enumerate(zip(states_to_assign[merge_order], merging_states), start=inter_dim):
+        # # 1-based macrostates
+        # ma = np.array([np.where(inter_ma[:, j])[0][0] for j in range(macrostate_assignment.shape[1])])
+        # f_tmat, mstates = mh.msm.estimate_markov_model(
+        #     mh.shift_data(traj, np.arange(macrostate_assignment.shape[1]), ma),
+        #     lagtime=50,
+        # )
+        #
+        # state = np.argsort(np.diag(f_tmat[ma_dim:]))[0]
+        # target = np.argsort(f_tmat[state, :ma_dim])[-1]
+        # macrostate_assignment[target, states_to_assign[state]] = True
+
+
+        # state_to_merge = np.argsort(np.diag(full_inter_tmat)[ma_dim:inter_dim])[0] + ma_dim
+        # Only states to merge
+        s = np.argsort((full_inter_tmat * ~np.diag(np.full(inter_dim + sa_dim, True)))[state_to_merge, tmat_mask])
+        print(f"sorting: {s}")
+        print(f"{np.sort(full_inter_tmat[state_to_merge, tmat_mask])}")
+        target = s[-1] + (~tmat_mask[:s[-1]]).sum()
+        # NOTE:
+        # Mind the order of macrostate indices
+        print(f"target: {target}")
+        macrostate_assignment[s[-1], state] = True
+        full_inter_tmat, full_inter_pop = merge_states(full_inter_tmat, [state_to_merge, target], i, full_inter_pop)
+        tmat_mask[s[-1]] = False
+        tmat_mask[i] = True
+        # print(tmat_mask.astype(np.uint8))
+
+
+    # # 1-based macrostates
+    # ma = np.array([np.where(macrostate_assignment[:, i])[0][0]+1 for i in range(macrostate_assignment.shape[1])])
+    # tmat, mstates = mh.msm.estimate_markov_model(
+    #     mh.shift_data(traj, microstates, ma),
+    #     lagtime=50,
+    # )
+
+
+    # for i, state in enumerate(states_to_assign, start=ma_dim):
+    #     macrostate = np.argmax(inter_tmat[i, :ma_dim])
+    #     # print(macrostate)
+    #     # print(inter_tmat[i, :ma_dim])
+    #     macrostate_assignment[macrostate, state] = True
     
     return macrostate_assignment
 

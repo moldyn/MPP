@@ -130,7 +130,7 @@ class MPT(object):
                 indices_to_exclude_order = utils.get_microstates_to_reassign(self.full_pop[n_i][self.microstate_order[n_i]], ma[:, self.microstate_order[n_i]])
                 indices_to_exclude = reorder[indices_to_exclude_order]
                 ma[:, indices_to_exclude] = False
-                ma = utils.reassign_states(self.tmat, self.full_pop[n_i, :self.n_states], ma)
+                ma = utils.reassign_states(self.tmat, self.full_pop[n_i, :self.n_states], ma, self.traj)
             macrostate_feature = np.zeros(ma.shape[0], dtype=self.feature_traj.dtype.type)
             pop = self.full_pop[n_i, :self.n_states]
             # Order macrostates by feature
