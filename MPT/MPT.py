@@ -126,11 +126,20 @@ class MPT(object):
             # Optional: dynamically correct macrostate assignment here
             if dyn_correct:
                 self.microstate_order[n_i] = [leaf.name for leaf in self.tree[n_i].leaves]
-                reorder = np.arange(self.n_states)[self.microstate_order[n_i]]
+                ro = np.zeros(self.n_states, dtype=np.uint32)
+                ro[self.microstate_order[n_i]] = np.arange(self.n_states)
                 indices_to_exclude_order = utils.get_microstates_to_reassign(self.full_pop[n_i][self.microstate_order[n_i]], ma[:, self.microstate_order[n_i]])
-                indices_to_exclude = reorder[indices_to_exclude_order]
-                ma[:, indices_to_exclude] = False
-                ma = utils.reassign_states(self.tmat, self.full_pop[n_i, :self.n_states], ma, self.traj)
+                indices_to_exclude = self.microstate_order[n_i][indices_to_exclude_order]
+                # ma[:, indices_to_exclude] = False
+                # ma = utils.reassign_states_(
+                #     self.tmat,
+                #     self.full_pop[n_i, :self.n_states][self.microstate_order[n_i]],
+                #     ma[:, self.microstate_order[n_i]]
+                # )[:, ro]
+
+                macros = np.array([np.where(ma[:, i])[0][0]+1 for i in range(547)])[self.microstate_order[n_i]]
+                ma = utils.reassign_states(self.tmat, self.full_pop[n_i, :self.n_states][self.microstate_order[n_i]], ma[:, self.microstate_order[n_i]], self.traj, macros)
+                ma = ma[:, ro]
             macrostate_feature = np.zeros(ma.shape[0], dtype=self.feature_traj.dtype.type)
             pop = self.full_pop[n_i, :self.n_states]
             # Order macrostates by feature

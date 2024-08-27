@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import msmhelper as mh
+from Scripts_fg.macrostates import mpp_plus_dyn_cor
 
 import MPT
 
@@ -87,7 +88,7 @@ def state_sequences(macrostates, state):
         np.nonzero(idx_jump)[0] + 1,
     )
 
-def mpp_plus_dyn_cor(
+def mpp_plus_dyn_cor_(
     *,
     macrostates,
     microstates,
@@ -203,10 +204,11 @@ pops = mpt.full_pop[0][:mpt.n_states][o]
 dcm = mpp_plus_dyn_cor(macrostates=ma, microstates=mi, n_macrostates=n_macrostates, pops=pops, traj=traj, tlag=lagtime)
 print(dcm)
 
-mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
-mpt.calc_timescales()
-print(mpt.timescales[0])
-madc = np.array([np.where(mpt.macrostate_assignment[0][:, i])[0][0]+1 for i in range(547)])[o]
+mmpt = mpt
+mmpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
+mmpt.calc_timescales()
+print(mmpt.timescales[0])
+madc = np.array([np.where(mmpt.macrostate_assignment[0][:, i])[0][0]+1 for i in range(547)])[o]
 print(madc)
 
 # mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
