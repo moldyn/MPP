@@ -218,15 +218,40 @@ def sparse_to_matrix(sparse):
     a[o[0], o[1]] = a[o[1], o[0]] = sparse
     return a
 
-@njit
+# @njit
+# def Z_to_linkage(Z):
+#     l = Z[:, :, :3].copy()
+#     for r, z in enumerate(l):
+#         for i, row in enumerate(z):
+#             mask = np.where(l[r, :, :2]==i+Z.shape[1]+1)
+#             l[r, :, :2][mask] = row[1]
+#     l[:, :, :2] += 1
+#     return l
 def Z_to_linkage(Z):
-    l = Z[:, :, :3].copy()
-    for r, z in enumerate(l):
-        for i, row in enumerate(z):
-            mask = np.where(l[r, :, :2]==i+Z.shape[1]+1)
-            l[r, :, :2][mask] = row[1]
-    l[:, :, :2] += 1
+    l = Z[:, :3].copy()
+    for i, row in enumerate(l):
+        mask = np.where(l[:, :2]==i+Z.shape[0]+1)
+        l[:, :2][mask] = row[1]
+    l[:, :2] += 1
     return l
+
+def linkage_to_Z(linkage, pop):
+    linkage = np.array(linkage)
+    n_states = linkage.shape[0] + 1
+    Z = np.zeros((linkage.shape[0], 4))
+    Z[:, :3] = linkage[:, :3]
+    Z[:, :2] -= 1
+
+    full_pop = np.zeros(2 * n_states - 1, dtype=pop.dtype.type)
+    full_pop[:n_states] = pop
+    for i, l in enumerate(linkage[:-1]):
+        new_state = n_states + i
+        old_state = Z[i, 1]
+        full_pop[new_state] = full_pop[[Z[i, 0].astype(int), int(old_state)]].sum()
+        Z[i+1:, :2][np.where(Z[i+1:, :2] == old_state)] = new_state
+    full_pop[-1] = full_pop[Z[i+1, :2].astype(int)].sum()
+    Z[:, 3] = full_pop[n_states:]
+    return Z, full_pop
 
 def get_microstates_to_reassign(pop, macrostate_assignment):
     indices_to_exclude = set()

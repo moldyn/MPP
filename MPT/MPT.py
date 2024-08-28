@@ -11,7 +11,7 @@ from collections.abc import Iterable
 
 import MPT.core as core
 import MPT.utils as utils
-import MPT.kernel as kernel
+import MPT.kernel as kernel_module
 from graph import draw_knetwork
 
 # import core
@@ -66,7 +66,7 @@ class MPT(object):
         kernel: Callable[
             [NDArray[np.float_], NDArray[np.int_], NDArray[np.bool_]],
             [np.int_, np.int_, NDArray[np.bool_]]
-        ]=kernel.MPTKernel(),
+        ]=kernel_module.MPTKernel(),
         feature_kernel = 1,
         n: int = 1,
     ) -> (NDArray[np.float_], NDArray[np.int_]):
@@ -95,12 +95,21 @@ class MPT(object):
         self.full_pop = np.zeros((self.n_runs, 2*self.n_states-1), dtype=np.uint32)
         print("Clustering ...")
         for i in tqdm(range(self.n_runs)):
-            self.Z[i], self.full_pop[i] = core.cluster(
-                self.tmat,
-                pop,
-                kernel=self.kernel,
-                feature_kernel=self.feature_kernel
-            )
+            if isinstance(kernel, kernel_module.MPTKernel):
+                self.Z[i], self.full_pop[i] = core.cluster(
+                    self.tmat,
+                    pop,
+                    kernel=self.kernel,
+                    feature_kernel=self.feature_kernel
+                )
+            else:
+                self.Z[i], self.full_pop[i] = core.cluster_mpt_mcmc(
+                    self.tmat,
+                    pop,
+                    self.traj,
+                    kernel=self.kernel,
+                    feature_kernel=self.feature_kernel
+                )
 
     def add_feature(self, feature_traj: NDArray[np.float_], feature_type=np.float32):
         self.feature_traj = feature_traj.astype(feature_type)
@@ -121,7 +130,18 @@ class MPT(object):
 
         print("Assigning macrostates ...")
         for n_i in tqdm(range(self.n_runs)):
-            ma = core.assign_macrostates(self.Z[n_i], self.full_pop[n_i], self.pop_thr, self.q_min)
+            # default
+            #ma = core.assign_macrostates(self.Z[n_i], self.full_pop[n_i], self.pop_thr, self.q_min)
+            # using macrotraj_calc
+            ma = core.assign_macrostates_mcalc(
+                self.Z[n_i],
+                self.full_pop[n_i],
+                self.pop_thr,
+                self.q_min,
+                self.tlag,
+                self.traj,
+                self.feature_traj,
+            )
             # TODO:
             # Optional: dynamically correct macrostate assignment here
             if dyn_correct:

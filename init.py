@@ -186,30 +186,32 @@ mpt.calc_timescales()
 print(mpt.timescales[0])
 #mpt.plot(out)
 
-o = [l.name for l in mpt.tree[0].leaves]
-ma = mpt.macrostate_assignment[0][:, o]
-ro = np.arange(mpt.n_states)[o]
-ieo = MPT.utils.get_microstates_to_reassign(mpt.full_pop[0], ma)
-ie = ro[ieo]
+# o = [l.name for l in mpt.tree[0].leaves]
+# ma = mpt.macrostate_assignment[0][:, o]
+# ro = np.arange(mpt.n_states)[o]
+# ieo = MPT.utils.get_microstates_to_reassign(mpt.full_pop[0], ma)
+# ie = ro[ieo]
 
 
 
 #ma[:, ie] = 0
 #nma, inter_ma, inter_tmat = MPT.utils.reassign_states(mpt.tmat, mpt.full_pop[0, :mpt.n_states], ma)
 
-n_macrostates = mpt.n_macrostates[0]
-ma = np.array([np.where(mpt.macrostate_assignment[0][:, i])[0][0]+1 for i in range(547)])[o]
-mi = np.arange(0, 547)
-pops = mpt.full_pop[0][:mpt.n_states][o]
-dcm = mpp_plus_dyn_cor(macrostates=ma, microstates=mi, n_macrostates=n_macrostates, pops=pops, traj=traj, tlag=lagtime)
-print(dcm)
 
-mmpt = mpt
-mmpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
-mmpt.calc_timescales()
-print(mmpt.timescales[0])
-madc = np.array([np.where(mmpt.macrostate_assignment[0][:, i])[0][0]+1 for i in range(547)])[o]
-print(madc)
+# n_macrostates = mpt.n_macrostates[0]
+# ma = np.array([np.where(mpt.macrostate_assignment[0][:, i])[0][0]+1 for i in range(547)])[o]
+# mi = np.arange(0, 547)
+# pops = mpt.full_pop[0][:mpt.n_states][o]
+# dcm = mpp_plus_dyn_cor(macrostates=ma, microstates=mi, n_macrostates=n_macrostates, pops=pops, traj=traj, tlag=lagtime)
+# print(dcm)
+#
+# mmpt = mpt
+# mmpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
+# mmpt.calc_timescales()
+# print(mmpt.timescales[0])
+# madc = np.array([np.where(mmpt.macrostate_assignment[0][:, i])[0][0]+1 for i in range(547)])[o]
+# print(madc)
+
 
 # mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
 # mpt.plot("/home/fg149/Dokumente/data_production/tmp_dev/with_dc.pdf")

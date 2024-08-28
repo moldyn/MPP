@@ -15,6 +15,8 @@ from numpy.typing import NDArray
 
 import MPT.utils as utils
 import MPT.kernel as kern
+from MPT.macrostates import macrotraj_calc
+from MPT.MPT_MCMC_fnc import MPT_MCMC, q_of_states
 
 def cluster(
         tmat: NDArray[np.float_],
@@ -104,6 +106,41 @@ def cluster(
 
     return Z, full_pop
 
+def cluster_mpt_mcmc(
+        tmat: NDArray[np.float_],
+        pop: NDArray[np.int_],
+        traj,
+        kernel: Callable[
+            [NDArray[np.float_], NDArray[np.int_], NDArray[np.bool_]],
+            [np.int_, np.int_, NDArray[np.bool_]]
+        ]=kern.MPTKernel(),
+        feature_kernel = 1,
+    ) -> (NDArray[np.float_], NDArray[np.int_]):
+    if feature_kernel == 1:
+        sigma = 0.13
+        b = 0
+    else:
+        sigma = feature_kernel.sigma
+        b = feature_kernel.b
+
+    c = kernel.c
+    q_of_t = feature_kernel.full_feature[:tmat.shape[0]]
+    q_states = q_of_states(traj, feature_kernel.feature_traj)
+
+    pop_norm = pop.sum()
+    pop = pop / pop_norm
+
+    linkage = MPT_MCMC(
+        tmat,
+        pop,
+        sigma,
+        b,
+        c,
+        q_states,
+    )
+    Z, full_pop = utils.linkage_to_Z(linkage, pop)
+    return Z, full_pop * pop_norm
+
 def assign_macrostates(Z, full_pop, pop_thr, q_min):
     """
     Z: Z matrix
@@ -119,7 +156,14 @@ def assign_macrostates(Z, full_pop, pop_thr, q_min):
         ma[macrostate, microstates] = 1
     return ma
 
-
+def assign_macrostates_mcalc(Z, full_pop, pop_thr, q_min, tlag, traj, q_of_t):
+    linkage = utils.Z_to_linkage(Z)
+    microstates, dc_macrostates, macrotraj = macrotraj_calc(
+        linkage, tlag, pop_thr, q_min, traj, q_of_t,
+    )
+    ma = np.zeros((dc_macrostates.max(), dc_macrostates.shape[0]), dtype=bool)
+    ma[dc_macrostates-1, microstates-1] = True
+    return ma
 
 def split(Z, state, macrostates, full_pop, overflow: list, pop_thr, q_min):
     """
