@@ -1,142 +1,9 @@
-import click
 import numpy as np
 from numpy import random
 import msmhelper as mh
 from msmhelper.msm import row_normalize_matrix as normalize
 from tqdm import tqdm
 from MPT.macrostates import macrotraj_calc
-
-
-@click.command(no_args_is_help='-h')
-@click.option(
-    '--tlag',
-    required=True,
-    type=click.IntRange(min=1),
-    help='Lagtime in frames',
-)
-@click.option(
-    '--cut-params',
-    default=(0.005, 0.2),
-    type=click.FloatRange(min=0, max=0.99),
-    nargs=2,
-    help='Tuple defining the cut parameters, (pop, q) both in [0, 1).',
-)
-@click.option(
-    '--state-traj',
-    'state_traj',
-    required=True,
-    type=click.Path(exists=True),
-    help='Used to apply MPP+ automated lumping.',
-)
-@click.option(
-    '--fraction-of-native-contacts',
-    'qtraj',
-    required=True,
-    type=click.Path(exists=True),
-    help='File of holding fraction of native contacts Q.',
-)
-@click.option(
-    '--iterations',
-    default=1,
-    type=click.IntRange(min=1),
-    help='Iteration count of MCMC Clusterings'
-)
-@click.option(
-    '--variance',
-    default=0.05,
-    type=click.FloatRange(min=0),
-    help='Variance of distribution for FNC'
-)
-@click.option(
-    '--exponent',
-    default=0,
-    type=click.IntRange(min=0),
-    help='Exponent of distribution for FNC, default is no scoring'
-)
-@click.option(
-    '--cut-prob',
-    default=1.0,
-    type=click.FloatRange(max=1.0),
-    help='cut for probabilities, default is for deterministic clustering'
-)
-def MPT_MCMC_Macrostates(
-    state_traj,
-    tlag,
-    iterations,
-    cut_params,
-    qtraj,
-    variance,
-    exponent,
-    cut_prob,
-):
-    """Run stochastic MPT Algorithm from trajectory
-
-    Args:
-        traj_dir (str): directory of trajectory
-        lagtime (int): lagtime of directory
-        iterations (int): number of clusterings
-        cut_params (_type_): cut parameters qpop, qmin to identify macrostates
-        qtraj (str): fraction of native contacts trajectory
-        variance (float): variance of FNC distribution
-        exponent (int): exponent of FNC distribution
-        cut_prob (float): cutoff for low probabilities
-
-    Returns:
-        None
-    """
-    traj = np.loadtxt(state_traj, dtype=int, comments='#')
-    q_of_t = np.loadtxt(qtraj, dtype=float, comments='#')
-    pop_thr, qmin_thr = cut_params
-    q_of_t_states = q_of_states(traj, q_of_t)
-
-    matrix, permutation = mh.msm.estimate_markov_model(traj, tlag)
-    tmat = normalize(matrix)
-    states, pop = np.unique(traj, return_counts=True)
-    pop = pop/np.sum(pop)
-
-    formats = ['%d', '%d', '%.15f']
-    for i in tqdm(range(iterations)):
-        transitions = MPT_MCMC(
-            tmat,
-            pop,
-            variance,
-            exponent,
-            cut_prob,
-            q_of_t_states,
-        )
-        decimals = len(str(iterations))
-
-        if cut_prob == 1.0 and exponent == 0:
-            linkage_file = state_traj + '_linkage.dat'
-        elif cut_prob == 1.0 and exponent != 0:
-            linkage_file = state_traj + f'_var{variance:.2f}'\
-                f'_exp{exponent}_linkage.dat'
-        else:
-            linkage_file = state_traj + f'_MCMC_{i:0>{decimals}}_var'\
-                f'{variance:.2f}_exp{exponent}_cut{cut_prob:.2f}_linkage.dat'
-
-        macros_file = f'{linkage_file}_q.pop{pop_thr:.3f}_qmin{qmin_thr:.2f}'
-        (
-            microstates,
-            dyn_corr_macrostates,
-            macrotraj
-        ) = macrotraj_calc(transitions, tlag, pop_thr, qmin_thr, traj, q_of_t)
-
-        np.savetxt(linkage_file, transitions, delimiter=' ', fmt=formats)
-
-        np.savetxt(
-            macros_file + '.macrotraj',
-            macrotraj,
-            header='macrostates',
-            fmt='%.0f'
-        )
-
-        np.savetxt(
-            macros_file + '.macrostates',
-            np.array([microstates, dyn_corr_macrostates]).T,
-            header='microstates macrostates',
-            fmt='%.0f'
-        )
 
 
 def get_qmin(tmat: np.array, pop: int):
@@ -156,11 +23,11 @@ def get_qmin(tmat: np.array, pop: int):
         (
             merge_idx_min_pop
         ) = np.where(np.amin(pop[merge_idx]) == pop[merge_idx])[0]
-        print(merge_idx, merge_idx_min_pop, merge_idx_min_pop[0])
         merge_idx = merge_idx[merge_idx_min_pop[0]]
-        print(merge_idx)
-    qmin = stabilities[int(merge_idx)]
-    return int(merge_idx), qmin
+    else:
+        merge_idx = merge_idx[0]
+    qmin = stabilities[merge_idx]
+    return merge_idx, qmin
 
 
 def q_of_states(traj, q_of_t):
@@ -173,10 +40,9 @@ def q_of_states(traj, q_of_t):
     Returns:
         list[list]: lists of all fraction of native contacts of each microstate
     """
-    q_of_t_states = []
-    for state in np.unique(traj):
-        q_of_t_states.append([q_of_t[traj == state]])
-    return q_of_t_states
+    return np.array([
+        q_of_t[traj == state].mean() for state in np.unique(traj)
+    ])
 
 
 def q_macrostates(state, merged_states, target_states, q_of_t_states):
@@ -193,13 +59,8 @@ def q_macrostates(state, merged_states, target_states, q_of_t_states):
     """
     idx_micros_cluster = np.where(target_states == state)[0]
     micros_cluster = [merged_states[idx] for idx in idx_micros_cluster]
-    if state not in micros_cluster:
-        micros_cluster.append(state)
-    q_of_t_state = []
-    for idx in micros_cluster:
-        q_of_t_state.extend(q_of_t_states[idx][0])
-    q_state = np.mean(q_of_t_state)
-    return q_state
+    micros_cluster.append(state)
+    return q_of_t_states[micros_cluster].mean()
 
 
 def modify_prob(prob_distr, merge_idx, q_states, variance, exponent):
@@ -215,11 +76,12 @@ def modify_prob(prob_distr, merge_idx, q_states, variance, exponent):
     Returns:
         list: FNC scored probability distribution
     """
-    weighting_factors = np.array([
-        np.exp(-(abs(q_states[merge_idx] - q_state)**exponent)/(2*variance**2))
-        for q_state in q_states])
-    prob_distr_mod = np.array(prob_distr.copy()) * weighting_factors
+    weighting_factors = np.exp(
+        -(abs(q_states[merge_idx] - q_states)**exponent)/(2*variance**2)
+    )
+    prob_distr_mod = prob_distr * weighting_factors
     return prob_distr_mod / np.sum(prob_distr_mod)
+    # return prob_distr
 
 
 def trans_states_MCMC(
@@ -250,7 +112,7 @@ def trans_states_MCMC(
     """
     merged_state = microstates[merge_idx]
     prob_distr = tmat[merge_idx].copy()
-    prob_distr[merge_idx] = 0.0
+    prob_distr[merge_idx] = 0
 
     if exponent != 0:
         prob_distr_mod = modify_prob(
@@ -263,20 +125,23 @@ def trans_states_MCMC(
     else:
         prob_distr_mod = prob_distr
 
-    if cut_prob < 1.0:
-        prob_distr_mod = np.where(
-            prob_distr_mod > cut_prob * np.max(prob_distr_mod),
-            prob_distr_mod, 0.0
-        )
+    if cut_prob < 1:
+        prob_distr_mod[prob_distr_mod <= cut_prob * np.max(prob_distr_mod)] = 0
 
-        csum = np.cumsum(prob_distr_mod / np.sum(prob_distr_mod))
-        random_number = random.rand()
-        if csum[-1] > random_number:
-            target_idx = np.where(
-                csum-random_number > 0, csum-random_number, np.inf
-            ).argmin()
-        else:
-            target_idx = np.argmax(csum)
+        # csum = np.cumsum(prob_distr_mod / np.sum(prob_distr_mod))
+        # random_number = random.rand()
+        # if csum[-1] > random_number:
+        #     target_idx = np.where(
+        #         csum-random_number > 0, csum-random_number, np.inf
+        #     ).argmin()
+        # else:
+        #     target_idx = np.argmax(csum)
+
+        prob_distr_mod = np.nan_to_num(prob_distr_mod)
+        target_idx = np.random.choice(
+            np.arange(prob_distr_mod.shape[0]),
+            p=prob_distr_mod / np.sum(prob_distr_mod)
+        )
     else:
         target_idx = np.argmax(prob_distr_mod)
 
@@ -375,18 +240,3 @@ def MPT_MCMC(tmat, init_pop, variance, exponent, cut_prob, q_of_t_states):
         raise TypeError('Matrix is not fully reducible in n-1 steps')
     return transitions
 
-
-if __name__ == '__main__':
-    fnc_dir = '/data/MPP_MC/Lukas/Datasets/HP35_reference_data/'\
-        'hp35.mindists2.gaussian10f.q'
-    traj_dir = '/data/MPP_MC/Lukas/Datasets/HP35_reference_data/'\
-        'hp35.selected_contacts.gaussian10f_microstates_pcs5_p153'
-    tlag = 50
-    pop_thr, qmin_thr = cut_params = 0.005, 0.50
-
-    iterations = 1
-    cut_prob = 1.0
-    variance = 0.05
-    exponent = 2
-
-    MPT_MCMC_Macrostates()

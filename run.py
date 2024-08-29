@@ -25,15 +25,19 @@ def run(out):
     feature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05)
     # kl_kernel = MPT.kernel.KLKernel()
 
-    mpt = MPT.MPT(traj, lagtime)
-    mpt.mpt(mpt_kernel)
+    use_old = False
+    mpt = MPT.MPT(traj, lagtime, use_old)
+    # mpt.mpt(mpt_kernel)
+    mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
     mpt.add_feature(feature_traj)
-    mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
+    mpt.assign_macrostates(0.005, 0.5)
+    # mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
 
-    smpt = MPT.MPT(traj, lagtime)
+    smpt = MPT.MPT(traj, lagtime, use_old)
     smpt.mpt(smpt_kernel, feature_kernel=feature_kernel, n=10)
     smpt.add_feature(feature_traj)
-    smpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
+    smpt.assign_macrostates(0.005, 0.5)
+    # smpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
     
     # smpt = MPT.MPT(traj, lagtime)
     # smpt.mpt(smpt_kernel, feature_kernel=feature_kernel, n=10)
@@ -299,7 +303,7 @@ def main():
     ret = run(out)
     execution_time = time.time() - start
     source_code = inspect.getsource(run)
-    with open(out + '.code', 'w') as f:
+    with open(out + f'/{os.path.basename(out)}.code', 'w') as f:
         # Write the file location as a comment
         f.write(f'# File location: {os.path.abspath(out)}\n')
         # Write the current timestamp as a comment

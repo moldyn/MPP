@@ -29,14 +29,27 @@ class MPTKernel(object):
     mask (np.ndarray (m)): mask for states that are not yet merged
     params (dict): parameters for the kernel
     """
-    def __call__(self, full_tmat, states_not_merged, mask):
+    def __init__(self):
+        self.c = 1
+
+    def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=1):
         # Select state with least self transition probability
         mask_state = np.argsort(np.diag(full_tmat)[mask])[0]
         # Get correct state index
         state = states_not_merged[mask][mask_state][0]
         mask[state] = False
+        
+        if feature_kernel != 1:
+            tmat = (feature_kernel * full_tmat)[state][mask]
+            # tmat = full_tmat[state][mask]
+            # tmat = feature_kernel.apply(tmat, state)
+            # tmat = feature_kernel.apply(full_tmat[state], state)[mask]
+        else:
+            tmat = full_tmat[state][mask]
+
         # Select state with highest transition probability as target state.
-        mask_target_state = np.argsort(full_tmat[state][mask])[-1]
+        # mask_target_state = np.argsort(full_tmat[state][mask])[-1]
+        mask_target_state = np.argsort(tmat)[-1]
         target_state = states_not_merged[mask][mask_target_state][0]
         return state, target_state, mask
 
@@ -60,14 +73,26 @@ class SMPTKernel(object):
         self.param = param
         self.c = c
 
-    def __call__(self, full_tmat, states_not_merged, mask):
+    def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=1):
         # Select state with least self transition probability
         mask_state = np.argsort(np.diag(full_tmat)[mask])[0]
         # Get correct state index
         state = states_not_merged[mask][mask_state][0]
         mask[state] = False
-     
-        tmat = full_tmat[state][mask]
+    
+        if feature_kernel != 1:
+            # tmat = (feature_kernel * full_tmat)[state][mask]
+            # tmat = full_tmat[state][mask]
+            # tmat = feature_kernel.apply(tmat, state)
+            # tmat = feature_kernel.apply(full_tmat[state], state)[mask]
+            tmat = feature_kernel.apply(full_tmat[state], state)[mask]
+            print(full_tmat[state])
+            print(tmat)
+            print()
+        else:
+            # tmat = full_tmat[state][mask]
+            tmat = full_tmat[state][mask]
+        # tmat = full_tmat[state][mask]
 
         # Apply cutoff as suggested by Lukas (report 8)
         if self.c > 0 and self.c < 1:
@@ -167,19 +192,24 @@ class FeatureKernel(object):
     
     def _init_feature(self, microstate_traj):
         states, pop = np.unique(microstate_traj, return_counts=True)
-        n_states = states.shape[0]
+        self.n_states = states.shape[0]
         # Mark which states have not yet been merged
-        self.states_not_merged = np.full(2*n_states-1, False)
-        self.states_not_merged[:n_states] = True
+        self.states_not_merged = np.full(2*self.n_states-1, False)
+        self.states_not_merged[:self.n_states] = True
         # Populations for all states incl intermediate states
-        self.full_pop = np.zeros(2*n_states-1, dtype=np.uint32)
-        self.full_pop[:n_states] = pop
+        self.full_pop = np.zeros(2*self.n_states-1, dtype=np.uint32)
+        self.full_pop[:self.n_states] = pop
         # corresponding feature values
-        self.full_feature = np.zeros((2*n_states-1, self.feature_traj.shape[1]), dtype=self.feature_traj.dtype.type)
-        for i in range(n_states):
+        self.full_feature = np.zeros((2*self.n_states-1, self.feature_traj.shape[1]), dtype=self.feature_traj.dtype.type)
+        for i in range(self.n_states):
             self.full_feature[i] = self.feature_traj[
                 microstate_traj == i+1
             ].mean(axis=0)
+
+    def reset(self):
+        self.states_not_merged[:self.n_states] = True
+        self.full_pop[self.n_states:] = 0
+        self.full_feature[self.n_states] = 0
 
     def weighting_function(self, dq):
         # NOTE:
@@ -202,28 +232,25 @@ class FeatureKernel(object):
         feature = self.full_feature[self.states_not_merged]
         return scy.spatial.distance_matrix(feature, feature).astype(self.full_feature.dtype.type)
 
-    def apply(self, tmat):
+    def apply(self, tmat, state=None):
         # NOTE:
         # Here are still some commented lines
+        # Normalize resulting matrix
         m = self.states_not_merged
-        if tmat.shape[0] == m.sum():
+        if len(tmat.shape) == 1:
+            feature = self.full_feature[m]
+            dq = (feature - self.full_feature[state]).mean(axis=1)
+            if tmat.shape[0] > m.sum():
+                tmat[m] = tmat[m] * self.weighting_function(dq)
+                return tmat
+            else:
+                return tmat * self.weighting_function(dq)
+        elif tmat.shape[0] == m.sum():
             return tmat * self.weighting_function(self.dq)
             # return tmat * np.random.uniform(0, 1, self.dq.shape)
         elif tmat.shape[0] == m.shape[0]:
-            # if self.states_not_merged.sum()%100 == 0:
-            #     least_stable = np.argsort(np.diag(tmat[m][:, m]))[0]
-            #     lt = tmat[m][:, m][least_stable]
-            #     w = self.weighting_function(self.dq[least_stable])
-            #     order1 = np.argsort(lt)[::-1][:5]
-            #     order2 = np.argsort(lt * w)[::-1][:5]
-            #     print(f"w min: {w.min()}")
-            #     print(order1)
-            #     print(order2)
-
             tmat[m][:, m] = tmat[m][:, m] \
                     * self.weighting_function(self.dq)
-            # tmat[m][:, m] = tmat[m][:, m] \
-            #         * np.random.uniform(0, 1, self.dq.shape)
             return tmat
         else:
             raise ValueError(

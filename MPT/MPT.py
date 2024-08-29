@@ -43,7 +43,7 @@ __all__ = [
 ]
 
 class MPT(object):
-    def __init__(self, traj: NDArray[np.int_], tlag: int):
+    def __init__(self, traj: NDArray[np.int_], tlag: int, use_old=False):
         if traj.max() < 2**8:
             traj_type = np.uint8
         elif traj.max() < 2**16:
@@ -53,6 +53,7 @@ class MPT(object):
 
         self.traj = traj.astype(traj_type)
         self.tlag = tlag
+        self.use_old = use_old
 
         self.timescales = None
         self._linkage = None
@@ -95,7 +96,8 @@ class MPT(object):
         self.full_pop = np.zeros((self.n_runs, 2*self.n_states-1), dtype=np.uint32)
         print("Clustering ...")
         for i in tqdm(range(self.n_runs)):
-            if isinstance(kernel, kernel_module.MPTKernel):
+            if not self.use_old:
+            # if isinstance(kernel, kernel_module.MPTKernel):
                 self.Z[i], self.full_pop[i] = core.cluster(
                     self.tmat,
                     pop,
@@ -104,6 +106,7 @@ class MPT(object):
                 )
             else:
                 self.Z[i], self.full_pop[i] = core.cluster_mpt_mcmc(
+                # self.Z[i], self.full_pop[i] = core.cluster(
                     self.tmat,
                     pop,
                     self.traj,
@@ -150,16 +153,17 @@ class MPT(object):
                 ro[self.microstate_order[n_i]] = np.arange(self.n_states)
                 indices_to_exclude_order = utils.get_microstates_to_reassign(self.full_pop[n_i][self.microstate_order[n_i]], ma[:, self.microstate_order[n_i]])
                 indices_to_exclude = self.microstate_order[n_i][indices_to_exclude_order]
-                # ma[:, indices_to_exclude] = False
-                # ma = utils.reassign_states_(
-                #     self.tmat,
-                #     self.full_pop[n_i, :self.n_states][self.microstate_order[n_i]],
-                #     ma[:, self.microstate_order[n_i]]
-                # )[:, ro]
 
-                macros = np.array([np.where(ma[:, i])[0][0]+1 for i in range(547)])[self.microstate_order[n_i]]
-                ma = utils.reassign_states(self.tmat, self.full_pop[n_i, :self.n_states][self.microstate_order[n_i]], ma[:, self.microstate_order[n_i]], self.traj, macros)
-                ma = ma[:, ro]
+                ma[:, indices_to_exclude] = False
+                ma = utils.reassign_states_(
+                    self.tmat,
+                    self.full_pop[n_i, :self.n_states][self.microstate_order[n_i]],
+                    ma[:, self.microstate_order[n_i]]
+                )[:, ro]
+
+                # macros = np.array([np.where(ma[:, i])[0][0]+1 for i in range(547)])[self.microstate_order[n_i]]
+                # ma = utils.reassign_states(self.tmat, self.full_pop[n_i, :self.n_states][self.microstate_order[n_i]], ma[:, self.microstate_order[n_i]], self.traj, macros)
+                # ma = ma[:, ro]
             macrostate_feature = np.zeros(ma.shape[0], dtype=self.feature_traj.dtype.type)
             pop = self.full_pop[n_i, :self.n_states]
             # Order macrostates by feature
