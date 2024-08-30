@@ -79,8 +79,8 @@ def cluster(
     # i: Z[i, 0] and Z[i, 1] are combined to cluster n + i
     Z = np.zeros((n-1, 4), dtype=np.float32)
 
-    if feature_kernel != 1:
-        feature_kernel.reset()
+    # if feature_kernel != 1:
+    #     feature_kernel.reset()
     for i in range(n-1):
         # Index of new state
         new_state = n + i
@@ -135,7 +135,7 @@ def cluster_mpt_mcmc(
     else:
         q_states = q_of_states(traj, feature_kernel.feature_traj)
 
-    linkage = MPT_MCMC(
+    linkage, feature = MPT_MCMC(
         tmat,
         pop,
         sigma,
@@ -143,6 +143,8 @@ def cluster_mpt_mcmc(
         c,
         q_states,
     )
+    feature_kernel.full_feature[:len(linkage) + 1, 0] = q_states
+    feature_kernel.full_feature[len(linkage) + 1:, 0] = feature
     Z, full_pop = utils.linkage_to_Z(linkage, pop)
     return Z, full_pop * pop_norm
 

@@ -81,18 +81,15 @@ class SMPTKernel(object):
         mask[state] = False
     
         if feature_kernel != 1:
-            # tmat = (feature_kernel * full_tmat)[state][mask]
-            # tmat = full_tmat[state][mask]
+            tmat = (feature_kernel * full_tmat)[state][mask]
             # tmat = feature_kernel.apply(tmat, state)
             # tmat = feature_kernel.apply(full_tmat[state], state)[mask]
-            tmat = feature_kernel.apply(full_tmat[state], state)[mask]
-            print(full_tmat[state])
-            print(tmat)
-            print()
+            # tmat = feature_kernel.apply(full_tmat[state], state)[mask]
+            # print(full_tmat[state])
+            # print(tmat)
+            # print()
         else:
-            # tmat = full_tmat[state][mask]
             tmat = full_tmat[state][mask]
-        # tmat = full_tmat[state][mask]
 
         # Apply cutoff as suggested by Lukas (report 8)
         if self.c > 0 and self.c < 1:
@@ -170,7 +167,7 @@ class KLKernel(object):
 ### FEATURE KERNEL ###########################################################
 
 class FeatureKernel(object):
-    def __init__(self, feature_traj, microstate_traj, sigma=0.13, b=2, feature_type=np.float32, traj_type=np.uint16):
+    def __init__(self, feature_traj, microstate_traj, sigma=0.13, b=2, feature_type=np.float64, traj_type=np.uint16):
         """
         feature_traj: either N or NxM, N being the number of frames and M the
                 number of features
@@ -208,8 +205,9 @@ class FeatureKernel(object):
 
     def reset(self):
         self.states_not_merged[:self.n_states] = True
+        self.states_not_merged[self.n_states:] = False
         self.full_pop[self.n_states:] = 0
-        self.full_feature[self.n_states] = 0
+        self.full_feature[self.n_states:] = 0
 
     def weighting_function(self, dq):
         # NOTE:
@@ -273,6 +271,8 @@ class FeatureKernel(object):
             self.full_feature[origin] * self.full_pop[origin] \
             + self.full_feature[target] * self.full_pop[target]
         ) / self.full_pop[new_state]
+        # print(self.full_feature[new_state])
+        # print(f"{origin} {target}")
         # self.full_feature[self.new_state] = self.full_feature[
         #     [origin, target]
         # ].sum(axis=0)
@@ -504,3 +504,10 @@ class Linear:
 
     def __call__(self, dq):
         return np.clip(1 - np.abs(dq) * self.m + self.offset)
+
+
+### TMAT #####################################################################
+
+class TMAT:
+    def __init__(self):
+        pass

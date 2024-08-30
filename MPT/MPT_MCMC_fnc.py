@@ -128,20 +128,20 @@ def trans_states_MCMC(
     if cut_prob < 1:
         prob_distr_mod[prob_distr_mod <= cut_prob * np.max(prob_distr_mod)] = 0
 
-        # csum = np.cumsum(prob_distr_mod / np.sum(prob_distr_mod))
-        # random_number = random.rand()
-        # if csum[-1] > random_number:
-        #     target_idx = np.where(
-        #         csum-random_number > 0, csum-random_number, np.inf
-        #     ).argmin()
-        # else:
-        #     target_idx = np.argmax(csum)
+        csum = np.cumsum(prob_distr_mod / np.sum(prob_distr_mod))
+        random_number = random.rand()
+        if csum[-1] > random_number:
+            target_idx = np.where(
+                csum-random_number > 0, csum-random_number, np.inf
+            ).argmin()
+        else:
+            target_idx = np.argmax(csum)
 
-        prob_distr_mod = np.nan_to_num(prob_distr_mod)
-        target_idx = np.random.choice(
-            np.arange(prob_distr_mod.shape[0]),
-            p=prob_distr_mod / np.sum(prob_distr_mod)
-        )
+        # prob_distr_mod = np.nan_to_num(prob_distr_mod)
+        # target_idx = np.random.choice(
+        #     np.arange(prob_distr_mod.shape[0]),
+        #     p=prob_distr_mod / np.sum(prob_distr_mod)
+        # )
     else:
         target_idx = np.argmax(prob_distr_mod)
 
@@ -201,7 +201,8 @@ def MPT_MCMC(tmat, init_pop, variance, exponent, cut_prob, q_of_t_states):
         q_of_t_states
     ) for state in microstates]
 
-    for _ in range(len(tmat) - 1):
+    feature = np.zeros(len(tmat) - 1)
+    for i in range(len(tmat) - 1):
         merge_idx, qmin = get_qmin(tmat, init_pop)
 
         (
@@ -229,6 +230,11 @@ def MPT_MCMC(tmat, init_pop, variance, exponent, cut_prob, q_of_t_states):
             target_states,
             q_of_t_states
         )
+        if i == 0:
+            print(f"target_state: {target_state}\nmerged_states: {merged_states}\ntarget_states: {target_states}\nq target state: {q_states[target_idx]}")
+        feature[i] = q_states[target_idx]
+        # print(f"{merged_state} {target_state}")
+        # print(q_states[target_idx])
         q_states = np.delete(q_states, merge_idx)
 
         merged_states.append(merged_state)
@@ -238,5 +244,5 @@ def MPT_MCMC(tmat, init_pop, variance, exponent, cut_prob, q_of_t_states):
         microstates = np.delete(microstates, merge_idx)
     if len(tmat) != 1:
         raise TypeError('Matrix is not fully reducible in n-1 steps')
-    return transitions
+    return transitions, feature
 

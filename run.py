@@ -27,8 +27,8 @@ def run(out):
 
     use_old = False
     mpt = MPT.MPT(traj, lagtime, use_old)
-    # mpt.mpt(mpt_kernel)
-    mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
+    mpt.mpt(mpt_kernel)
+    # mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
     mpt.add_feature(feature_traj)
     mpt.assign_macrostates(0.005, 0.5)
     # mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)

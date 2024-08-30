@@ -114,7 +114,7 @@ class MPT(object):
                     feature_kernel=self.feature_kernel
                 )
 
-    def add_feature(self, feature_traj: NDArray[np.float_], feature_type=np.float32):
+    def add_feature(self, feature_traj: NDArray[np.float_], feature_type=np.float64):
         self.feature_traj = feature_traj.astype(feature_type)
         self.feature = np.zeros(self.n_states, dtype=feature_type)
         for i in range(self.n_states):
@@ -134,7 +134,7 @@ class MPT(object):
         print("Assigning macrostates ...")
         for n_i in tqdm(range(self.n_runs)):
             # default
-            #ma = core.assign_macrostates(self.Z[n_i], self.full_pop[n_i], self.pop_thr, self.q_min)
+            # ma = core.assign_macrostates(self.Z[n_i], self.full_pop[n_i], self.pop_thr, self.q_min)
             # using macrotraj_calc
             ma = core.assign_macrostates_mcalc(
                 self.Z[n_i],
