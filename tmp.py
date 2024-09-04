@@ -1,21 +1,31 @@
+#!/usr/bin/env python
+
+import os
+import time
+import inspect
+
 import numpy as np
-import msmhelper as mh
+import matplotlib.pyplot as plt
 
 import MPT
 
-traj = np.array([int(i) for i in "112225555566664422331122255252111445231231234444441121222222"])
+traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.selected_contacts.gaussian10f_microstates_pcs5_p153", dtype=np.uint16)
+feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2.gaussian10f.q")
+multi_feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2")
 
-tmat, states = mh.msm.estimate_markov_model(traj, lagtime=1)
-_, pop = np.unique(traj, return_counts=True)
+out_base = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/"
+out = out_base + "img/hp35_dendrogram_det_dc.pdf"
+ob = "/home/fg149/Dokumente/data_production/rep_lukas_fnc/fnc_weighting_function/"
 
-traj12 = mh.shift_data(traj, np.arange(1, 7), [0, 0, 1, 2, 3, 4])
-tmat12, states12 = mh.msm.estimate_markov_model(traj12, lagtime=1)
+lagtime = 50
 
-tmat_mpt = np.zeros((7, 7))
-tmat_mpt[:-1][:, :-1] = tmat
-tmat_mpt, pop_mpt = MPT.utils.merge_states(tmat_mpt, [0, 1], -1, pop.copy())
-o = [6, 2, 3, 4, 5]
-tmat_mpto = tmat_mpt[o][:, o]
+mpt_kernel = MPT.kernel.MPTKernel()
+smpt_kernel = MPT.kernel.SMPTKernel(method="p", param=1, c=0.15)
+feature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05)
+lfeature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05)
 
-print(tmat12)
-print(tmat_mpto)
+use_old = False
+mpt = MPT.MPT(traj, lagtime, use_old)
+mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
+mpt.add_feature(feature_traj)
+mpt.assign_macrostates(0.005, 0.5)

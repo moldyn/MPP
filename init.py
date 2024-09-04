@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import msmhelper as mh
-from Scripts_fg.macrostates import mpp_plus_dyn_cor
+from MPT.MPT_MCMC_fnc import q_macrostates
 
 import MPT
 
@@ -79,87 +79,10 @@ def ra(pop, macrostate_assignment):
     print(f"indices to exclude: {indices_to_exclude}")
     return list(indices_to_exclude)
 
-def state_sequences(macrostates, state):
-    """Get continuous index sequences of macrostate in mstate assignment."""
-    state_idx = np.where(macrostates == state)[0]
-    idx_jump = state_idx[1:] - state_idx[:-1] != 1
-    return np.array_split(
-        state_idx,
-        np.nonzero(idx_jump)[0] + 1,
-    )
-
-def mpp_plus_dyn_cor_(
-    *,
-    macrostates,
-    microstates,
-    n_macrostates,
-    pops,
-    traj,
-    tlag,
-):
-    """Apply MPP+ step2: Dynamically correct minor branches."""
-    # fix dynamically missassigned single-state branches
-    # identify them
-    dyn_corr_macrostates = macrostates.copy()
-    for mstate in np.unique(macrostates):
-        idx_sequences = state_sequences(macrostates, mstate)
-        if len(idx_sequences) > 1:
-            highest_pop_sequence = np.argmax([
-                np.sum([
-                    pops[s] for s in microstates[seq]
-                ]) for seq in idx_sequences
-            ])
-            idx_sequences = [
-                seq for idx, seq in enumerate(idx_sequences)
-                if idx != highest_pop_sequence
-            ]
-            for seq in idx_sequences:
-                largest_state = np.max(dyn_corr_macrostates)
-                for newstate, seq_idx in enumerate(
-                    seq,
-                    largest_state + 1,
-                ):
-                    print(f"seq: {seq_idx}; newstate: {newstate}")
-                    dyn_corr_macrostates[seq_idx] = newstate
-    print(dyn_corr_macrostates)
-
-    # dynamically reassign all new state to previous macrostates
-    mstates = np.unique(dyn_corr_macrostates)
-    # while len(mstates) > n_macrostates:
-    for _ in range(len(mstates) - n_macrostates):
-        tmat, mstates = mh.msm.estimate_markov_model(
-            mh.shift_data(traj, microstates, dyn_corr_macrostates),
-            lagtime=tlag,
-        )
-
-        # sort new states by increasing metastability
-        qs = np.diag(tmat)[n_macrostates:]
-        deletestate = mstates[n_macrostates:][np.argsort(qs)[0]]
-        # deletestate = n_macrostates + np.argsort(qs)[0] + 1
-        # idx_sort = np.argsort(qs)
-        # newstates = mstates[n_macrostates:][idx_sort]
-        # deletestate = newstates[0]
-
-        # reassign them
-        idx = np.where(mstates == deletestate)[0][0]
-        # idx = deletestate - 1
-        print(f"delstate: {deletestate}; mstates: {mstates}")
-        idxs_to = np.argsort(tmat[idx])[::-1]
-
-        # for idx_to in idxs_to:
-        #     if idx_to == idx:
-        #         continue
-        #     dyn_corr_macrostates[
-        #         dyn_corr_macrostates == deletestate
-        #     ] = mstates[idx_to]
-        #     break
-        dyn_corr_macrostates[
-            dyn_corr_macrostates == deletestate
-        ] = idxs_to[1] + 1 if idx == idxs_to[0] else idxs_to[0] + 1
-
-        # mstates = np.unique(dyn_corr_macrostates)
-
-    return dyn_corr_macrostates
+def merge_states(f, p, states):
+    return (
+        f[states] * p[states]
+    ) / p[states].sum()
 
 
 traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.selected_contacts.gaussian10f_microstates_pcs5_p153", dtype=np.uint16)
@@ -193,10 +116,11 @@ lmpt.mpt(mpt_kernel, feature_kernel=lfeature_kernel)
 lmpt.add_feature(feature_traj)
 #mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
 lmpt.assign_macrostates(0.005, 0.5)
+lmpt.plot(ob + "hp35_det_lukas_updated.pdf")
 
 f = feature_kernel.full_feature[mpt.n_states:]
 fl = lfeature_kernel.full_feature[mpt.n_states:]
-print(f[:10] - fl[:10])
+# print(f[:10] - fl[:10])
 
 # o = [l.name for l in mpt.tree[0].leaves]
 # ma = mpt.macrostate_assignment[0][:, o]

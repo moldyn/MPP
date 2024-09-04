@@ -45,7 +45,7 @@ def q_of_states(traj, q_of_t):
     ])
 
 
-def q_macrostates(state, merged_states, target_states, q_of_t_states):
+def q_macrostates_(state, merged_states, target_states, q_of_t_states):
     """Generate fraction of native contacts values for macrostates
 
     Args:
@@ -61,6 +61,25 @@ def q_macrostates(state, merged_states, target_states, q_of_t_states):
     micros_cluster = [merged_states[idx] for idx in idx_micros_cluster]
     micros_cluster.append(state)
     return q_of_t_states[micros_cluster].mean()
+
+def q_macrostates(state, merged_states, target_states, q_of_t_states, pop):
+    """Generate fraction of native contacts values for macrostates
+
+    Args:
+        state (int): microstate to calculate FNC for
+        merged_states (list[int]): list of all merged states
+        target_states (list[int]): list of all taregt states
+        q_of_t_states (list): lists of all FNC of each state
+
+    Returns:
+        float: fraction of native contacts of state
+    """
+    # state = target_state
+    idx_micros_cluster = np.where(target_states == state)[0]
+    micros_cluster = [merged_states[idx] for idx in idx_micros_cluster]
+    micros_cluster.append(state)
+    q_ma =  (q_of_t_states[micros_cluster] * pop[micros_cluster]).sum() / pop[micros_cluster].sum()
+    return q_ma
 
 
 def modify_prob(prob_distr, merge_idx, q_states, variance, exponent):
@@ -188,6 +207,8 @@ def MPT_MCMC(tmat, init_pop, variance, exponent, cut_prob, q_of_t_states):
     Returns:
         list: linkages in form of a n-1 by 3 matrix
     """
+    popi = init_pop.copy()
+
     microstates = np.arange(0, len(tmat))
     transitions = []
 
@@ -198,7 +219,8 @@ def MPT_MCMC(tmat, init_pop, variance, exponent, cut_prob, q_of_t_states):
         state,
         merged_states,
         target_states,
-        q_of_t_states
+        q_of_t_states,
+        popi,
     ) for state in microstates]
 
     feature = np.zeros(len(tmat) - 1)
@@ -224,11 +246,15 @@ def MPT_MCMC(tmat, init_pop, variance, exponent, cut_prob, q_of_t_states):
             qmin
         ])
 
+        merged_states.append(merged_state)
+        target_states.append(target_state)
+
         q_states[target_idx] = q_macrostates(
             target_state,
             merged_states,
             target_states,
-            q_of_t_states
+            q_of_t_states,
+            popi,
         )
         if i == 0:
             print(f"target_state: {target_state}\nmerged_states: {merged_states}\ntarget_states: {target_states}\nq target state: {q_states[target_idx]}")
@@ -237,8 +263,8 @@ def MPT_MCMC(tmat, init_pop, variance, exponent, cut_prob, q_of_t_states):
         # print(q_states[target_idx])
         q_states = np.delete(q_states, merge_idx)
 
-        merged_states.append(merged_state)
-        target_states.append(target_state)
+        # merged_states.append(merged_state)
+        # target_states.append(target_state)
         tmat, red_pop = reduction(tmat, init_pop, merge_idx, target_idx)
         init_pop = red_pop
         microstates = np.delete(microstates, merge_idx)

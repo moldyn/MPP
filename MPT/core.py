@@ -143,8 +143,9 @@ def cluster_mpt_mcmc(
         c,
         q_states,
     )
-    feature_kernel.full_feature[:len(linkage) + 1, 0] = q_states
-    feature_kernel.full_feature[len(linkage) + 1:, 0] = feature
+    if feature_kernel != 1:
+        feature_kernel.full_feature[:len(linkage) + 1, 0] = q_states
+        feature_kernel.full_feature[len(linkage) + 1:, 0] = feature
     Z, full_pop = utils.linkage_to_Z(linkage, pop)
     return Z, full_pop * pop_norm
 

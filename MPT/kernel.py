@@ -40,7 +40,11 @@ class MPTKernel(object):
         mask[state] = False
         
         if feature_kernel != 1:
-            tmat = (feature_kernel * full_tmat)[state][mask]
+            #tmat = (feature_kernel * full_tmat)[state][mask]
+            ftmat = full_tmat.copy()
+            m = feature_kernel.states_not_merged
+            ftmat[m][:, m] *= feature_kernel.weighting_function(feature_kernel.dq)
+            tmat = ftmat[state][mask]
             # tmat = full_tmat[state][mask]
             # tmat = feature_kernel.apply(tmat, state)
             # tmat = feature_kernel.apply(full_tmat[state], state)[mask]
@@ -247,8 +251,13 @@ class FeatureKernel(object):
             return tmat * self.weighting_function(self.dq)
             # return tmat * np.random.uniform(0, 1, self.dq.shape)
         elif tmat.shape[0] == m.shape[0]:
-            tmat[m][:, m] = tmat[m][:, m] \
+            # tmat[m][:, m] = tmat[m][:, m] \
+            #         * self.weighting_function(self.dq)
+            tmat[np.ix_(m, m)] = tmat[m][:, m] \
                     * self.weighting_function(self.dq)
+            # t = tmat.copy()
+            # tmat[m][:, m] *= self.weighting_function(self.dq)
+            # t[m][:, m] = t[m][:, m] * self.weighting_function(self.dq)
             return tmat
         else:
             raise ValueError(
