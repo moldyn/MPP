@@ -256,8 +256,6 @@ def MPT_MCMC(tmat, init_pop, variance, exponent, cut_prob, q_of_t_states):
             q_of_t_states,
             popi,
         )
-        if i == 0:
-            print(f"target_state: {target_state}\nmerged_states: {merged_states}\ntarget_states: {target_states}\nq target state: {q_states[target_idx]}")
         feature[i] = q_states[target_idx]
         # print(f"{merged_state} {target_state}")
         # print(q_states[target_idx])

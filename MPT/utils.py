@@ -83,38 +83,6 @@ def get_micro(
         microstates = get_micro(Z, r - Z.shape[0] - 1, microstates)
     return microstates
 
-# def macrostates_from_Z(
-#         Z: NDArray[np.float_],
-#         n_macrostates: int
-#     ) -> (NDArray[np.int_], List[List[np.int_]]):
-#     """
-#     macrostates_from_Z
-#     ------------------
-#     Create map for microstates and macrostates. Index corresponds to state
-#     index.
-#
-#     Z (NDArray[np.float_]): Z matrix as of cluster
-#     n_macrostates (int): Number of macrostates to create.
-#
-#     returns two maps: micro -> macro, macro -> micro
-#     """
-#     n = Z.shape[0] + 1
-#     macrostate_map = np.zeros(n, dtype=int)
-#     Z_macro_flat = Z[-n_macrostates+1:, :2].flatten()
-#     macrostate_roots = np.sort(Z_macro_flat)[:n_macrostates]
-#     macrostates = []
-#     for macrostate in macrostate_roots:
-#         if macrostate < n:
-#             macrostates.append([int(macrostate)])
-#         else:
-#             macrostates.append(get_micro(Z[:, :2].astype(int), int(macrostate-n), []))
-#
-#     for i, microstates in enumerate(macrostates):
-#         for microstate in microstates:
-#             macrostate_map[microstate] = i
-#
-#     return macrostate_map, macrostates
-
 def translate_traj(
         traj: NDArray[np.int_],
         map: NDArray[np.int_]
@@ -446,7 +414,7 @@ def reassign_states_(tmat, pop, macrostate_assignment):
     # print(inter_tmat.shape)
 
     # microstate index
-    merge_order = np.argsort(np.diag(tmat[states_to_assign]))
+    merge_order = np.argsort(np.diag(tmat)[states_to_assign])
     states_to_assign_ordered = states_to_assign[merge_order]
 
     tmp_tmat = np.zeros((inter_dim+1, inter_dim+1))

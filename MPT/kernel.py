@@ -40,11 +40,11 @@ class MPTKernel(object):
         mask[state] = False
         
         if feature_kernel != 1:
-            #tmat = (feature_kernel * full_tmat)[state][mask]
-            ftmat = full_tmat.copy()
-            m = feature_kernel.states_not_merged
-            ftmat[m][:, m] *= feature_kernel.weighting_function(feature_kernel.dq)
-            tmat = ftmat[state][mask]
+            tmat = (feature_kernel * full_tmat)[state][mask]
+            # ftmat = full_tmat.copy()
+            # m = feature_kernel.states_not_merged
+            # ftmat[m][:, m] *= feature_kernel.weighting_function(feature_kernel.dq)
+            # tmat = ftmat[state][mask]
             # tmat = full_tmat[state][mask]
             # tmat = feature_kernel.apply(tmat, state)
             # tmat = feature_kernel.apply(full_tmat[state], state)[mask]
@@ -217,15 +217,8 @@ class FeatureKernel(object):
         # NOTE:
         # Function changed here
         a = 1 / (2 * self.sigma ** 2)
-        # return np.exp(-a * np.abs(dq) ** self.b)
         f = np.exp(-a * np.abs(dq) ** self.b)
-        # if self.states_not_merged.sum() <= 5:
-        #     print(dq)
-        #     print(f)
         return f
-        # return np.exp(-a * dq-1 ** self.b)
-        # return np.random.uniform(0.1, 0.9, dq.shape)
-        # return -dq
 
     @property
     def dq(self):
@@ -251,14 +244,10 @@ class FeatureKernel(object):
             return tmat * self.weighting_function(self.dq)
             # return tmat * np.random.uniform(0, 1, self.dq.shape)
         elif tmat.shape[0] == m.shape[0]:
-            # tmat[m][:, m] = tmat[m][:, m] \
-            #         * self.weighting_function(self.dq)
-            tmat[np.ix_(m, m)] = tmat[m][:, m] \
+            t = tmat.copy()
+            t[np.ix_(m, m)] = t[m][:, m] \
                     * self.weighting_function(self.dq)
-            # t = tmat.copy()
-            # tmat[m][:, m] *= self.weighting_function(self.dq)
-            # t[m][:, m] = t[m][:, m] * self.weighting_function(self.dq)
-            return tmat
+            return t
         else:
             raise ValueError(
                 "Mismatch in tmat shape. Did you update this kernel?"

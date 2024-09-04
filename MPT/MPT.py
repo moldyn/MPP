@@ -134,31 +134,35 @@ class MPT(object):
         print("Assigning macrostates ...")
         for n_i in tqdm(range(self.n_runs)):
             # default
-            # ma = core.assign_macrostates(self.Z[n_i], self.full_pop[n_i], self.pop_thr, self.q_min)
+            if not self.use_old:
+                ma = core.assign_macrostates(self.Z[n_i], self.full_pop[n_i], self.pop_thr, self.q_min)
             # using macrotraj_calc
-            ma = core.assign_macrostates_mcalc(
-                self.Z[n_i],
-                self.full_pop[n_i],
-                self.pop_thr,
-                self.q_min,
-                self.tlag,
-                self.traj,
-                self.feature_traj,
-            )
+            else:
+                ma = core.assign_macrostates_mcalc(
+                    self.Z[n_i],
+                    self.full_pop[n_i],
+                    self.pop_thr,
+                    self.q_min,
+                    self.tlag,
+                    self.traj,
+                    self.feature_traj,
+                )
             # TODO:
             # Optional: dynamically correct macrostate assignment here
             if dyn_correct:
                 self.microstate_order[n_i] = [leaf.name for leaf in self.tree[n_i].leaves]
+                micro_order = self.microstate_order[n_i]
+                ma_order = ma[:, micro_order]
                 ro = np.zeros(self.n_states, dtype=np.uint32)
-                ro[self.microstate_order[n_i]] = np.arange(self.n_states)
-                indices_to_exclude_order = utils.get_microstates_to_reassign(self.full_pop[n_i][self.microstate_order[n_i]], ma[:, self.microstate_order[n_i]])
-                indices_to_exclude = self.microstate_order[n_i][indices_to_exclude_order]
+                ro[micro_order] = np.arange(self.n_states)
+                indices_to_exclude_order = utils.get_microstates_to_reassign(self.full_pop[n_i][micro_order], ma_order)
 
-                ma[:, indices_to_exclude] = False
+                ma_order[:, indices_to_exclude_order] = False
                 ma = utils.reassign_states_(
-                    self.tmat,
-                    self.full_pop[n_i, :self.n_states][self.microstate_order[n_i]],
-                    ma[:, self.microstate_order[n_i]]
+                    # self.tmat,
+                    self.tmat[micro_order][:, micro_order],
+                    self.full_pop[n_i, :self.n_states][micro_order],
+                    ma_order
                 )[:, ro]
 
                 # macros = np.array([np.where(ma[:, i])[0][0]+1 for i in range(547)])[self.microstate_order[n_i]]

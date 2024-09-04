@@ -102,12 +102,13 @@ lfeature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05)
 
 use_old = False
 mpt = MPT.MPT(traj, lagtime, use_old)
-# mpt.mpt(mpt_kernel)
-mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
+mpt.mpt(mpt_kernel)
+# mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
 mpt.add_feature(feature_traj)
-#mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
-mpt.assign_macrostates(0.005, 0.5)
+mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
+# mpt.assign_macrostates(0.005, 0.5)
 # mpt.plot(ob + "ld_det.pdf")
+mpt.plot(ob + "fg_fnc_det_no_dc.pdf")
 
 use_old = True
 lmpt = MPT.MPT(traj, lagtime, use_old)
@@ -179,92 +180,3 @@ fl = lfeature_kernel.full_feature[mpt.n_states:]
 #
 #
 
-
-
-# (base) [fg149@bmd13 tools]$ python -i init.py 
-# Clustering ...
-# 100%|██████████████████████████████████████████████████████████████████████| 1/1 [00:01<00:00,  1.30s/it]
-# Assigning macrostates ...
-# 100%|██████████████████████████████████████████████████████████████████████| 1/1 [00:01<00:00,  1.04s/it]
-# Clustering ...
-#   0%|                                                                              | 0/1 [00:00<?, ?it/s]target_state: 11
-# merged_states: []
-# target_states: []
-# q target state: 0.42812195144900267
-# 100%|██████████████████████████████████████████████████████████████████████| 1/1 [00:01<00:00,  1.60s/it]
-# Assigning macrostates ...
-# 100%|██████████████████████████████████████████████████████████████████████| 1/1 [00:03<00:00,  3.39s/it]
-# [[ 5.28137135e-03]
-#  [ 9.92017766e-05]
-#  [ 5.87318959e-05]
-#  [-3.46659397e-03]
-#  [ 2.25667549e-03]
-#  [-2.12983265e-02]
-#  [ 4.37382206e-02]
-#  [ 1.38164614e-02]
-#  [-7.95953697e-03]
-#  [ 8.27920698e-03]]
-# >>> f[0]
-# array([0.43340332])
-# >>> fl[0]
-# array([0.42812195])
-# >>> f1 = feature_kernel.full_feature[[272, 11]]
-# >>> f1
-# array([[0.4737269 ],
-#        [0.42812195]])
-# >>> p1 = feature_kernel.full_pop[[272, 11]]
-# >>> p
-# Traceback (most recent call last):
-#   File "<stdin>", line 1, in <module>
-# NameError: name 'p' is not defined. Did you mean: 'np'?
-# >>> p1
-# array([ 696, 5314], dtype=uint32)
-# >>> p1 = feature_kernel.full_pop[[272, 11]][:, 0]
-# Traceback (most recent call last):
-#   File "<stdin>", line 1, in <module>
-# IndexError: too many indices for array: array is 1-dimensional, but 2 were indexed
-# >>> p1
-# array([ 696, 5314], dtype=uint32)
-# >>> f1 = feature_kernel.full_feature[[272, 11]][:, 0]
-# >>> f1
-# array([0.4737269 , 0.42812195])
-# >>> (f1 * p1}.sum() / p1.sum()
-#   File "<stdin>", line 1
-#     (f1 * p1}.sum() / p1.sum()
-#             ^
-# SyntaxError: closing parenthesis '}' does not match opening parenthesis '('
-# >>> (f1 * p1).sum() / p1.sum()
-# 0.4334033227953411
-# >>> lp1 = lfeature_kernel.full_pop[[272, 11]]
-# >>> lf1 = lfeature_kernel.full_feature[[272, 11]][:, 0]
-# >>> (lf1 * lp1).sum() / lp1.sum()
-# 0.4334033227953411
-# >>> lf1.mean()
-# 0.45092442400036337
-# >>> qs = feature_kernel.full_feature[:547]
-# >>> from MPT.MPT_MCMC_fnc import q_macrostates
-# >>> qs = feature_kernel.full_feature[:547].copy()
-# >>> q_macrostates(11, [], [], qs)
-# 0.42812195144900267
-# >>> (feature_kernel.full_feature[:547] - qs).sum()
-# 0.0
-# >>> np.where([] == 11)[0]
-# <stdin>:1: DeprecationWarning: Calling nonzero on 0d arrays is deprecated, as it behaves surprisingly. Use `atleast_1d(cond).nonzero()` if the old behavior was intended. If the context of this warning is of the form `arr[nonzero(cond)]`, just use `arr[cond]`.
-# array([], dtype=int64)
-# >>> state = 11
-# >>> merged_states = []
-# >>> target_states = []
-# >>> q_macrostates(state, merged_states, target_states, qs)
-# 0.42812195144900267
-# >>> np.where(target_states == state)[0]
-# array([], dtype=int64)
-# >>> [merged_states[i] for i in np.where(target_states == state)[0]]
-# []
-# >>> id_mi_cl = np.where(target_states == state)[0]
-# >>> [merged_states[i] for i in id_mi_cl]
-# []
-# >>> mi_cl = [merged_states[i] for i in id_mi_cl]
-# >>> mi_cl.append(state)
-# >>> mi_cl
-# [11]
-# >>> 

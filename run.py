@@ -30,14 +30,13 @@ def run(out):
     mpt.mpt(mpt_kernel)
     # mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
     mpt.add_feature(feature_traj)
-    mpt.assign_macrostates(0.005, 0.5)
-    # mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
+    mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
 
     smpt = MPT.MPT(traj, lagtime, use_old)
     smpt.mpt(smpt_kernel, feature_kernel=feature_kernel, n=10)
     smpt.add_feature(feature_traj)
-    smpt.assign_macrostates(0.005, 0.5)
-    # smpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
+    # smpt.assign_macrostates(0.005, 0.5)
+    smpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
     
     # smpt = MPT.MPT(traj, lagtime)
     # smpt.mpt(smpt_kernel, feature_kernel=feature_kernel, n=10)
