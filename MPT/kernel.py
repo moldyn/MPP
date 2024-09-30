@@ -39,7 +39,13 @@ class MPTKernel(object):
         state = states_not_merged[mask][mask_state][0]
         mask[state] = False
         
-        if feature_kernel != 1:
+        if feature_kernel != 1 and feature_kernel.b != 0:
+            # with open("/home/fg149/Dokumente/data_production/rep_lukas_fnc/debug/fg/trans", "a") as f:
+            #     np.savetxt(f, full_tmat[state])
+            #
+            # wf = feature_kernel.weighting_function(feature_kernel.dq[mask_state])
+            # with open("/home/fg149/Dokumente/data_production/rep_lukas_fnc/debug/fg/wf", "a") as f:
+            #     np.savetxt(f, wf)
             tmat = (feature_kernel * full_tmat)[state][mask]
             # ftmat = full_tmat.copy()
             # m = feature_kernel.states_not_merged
@@ -54,6 +60,9 @@ class MPTKernel(object):
         # Select state with highest transition probability as target state.
         # mask_target_state = np.argsort(full_tmat[state][mask])[-1]
         mask_target_state = np.argsort(tmat)[-1]
+        # print(f"{np.sort(tmat)[::-1][:3]}")
+        # with open("/home/fg149/Dokumente/data_production/rep_lukas_fnc/debug/fg/trans", "a") as f:
+        #     np.savetxt(f, tmat / tmat.sum())
         target_state = states_not_merged[mask][mask_target_state][0]
         return state, target_state, mask
 
@@ -72,7 +81,7 @@ class SMPTKernel(object):
     mask (np.ndarray (m)): mask for states that are not yet merged
     params (dict): parameters for the kernel
     """
-    def __init__(self, method="n", param=2, c=0.1):
+    def __init__(self, method="n", param=2, c=0):
         self.method = method
         self.param = param
         self.c = c
@@ -84,7 +93,7 @@ class SMPTKernel(object):
         state = states_not_merged[mask][mask_state][0]
         mask[state] = False
     
-        if feature_kernel != 1:
+        if feature_kernel != 1 and feature_kernel.b != 0:
             tmat = (feature_kernel * full_tmat)[state][mask]
             # tmat = feature_kernel.apply(tmat, state)
             # tmat = feature_kernel.apply(full_tmat[state], state)[mask]
@@ -218,6 +227,7 @@ class FeatureKernel(object):
         # Function changed here
         a = 1 / (2 * self.sigma ** 2)
         f = np.exp(-a * np.abs(dq) ** self.b)
+
         return f
 
     @property

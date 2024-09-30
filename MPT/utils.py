@@ -252,11 +252,13 @@ def merge_states(tmat, states, new_state, full_pop):
 
     tmat[:, new_state] = tmat[:, states].sum(axis=1)
 
-    tmat[new_state, new_state] = tmat[new_state, states].sum()
+    # tmat[new_state, new_state] = tmat[new_state, states].sum()
 
     # Set all probabilities that have been merged to 0
-    tmat[new_state, states] = 0
-    tmat[states, new_state] = 0
+    # tmat[new_state, states] = 0
+    # tmat[states, new_state] = 0
+    tmat[:, states] = 0
+    tmat[states, :] = 0
     return tmat, full_pop
 
 def merge_states_(tmat, states, new_state, full_pop, traj):
@@ -586,3 +588,25 @@ def reassign_states(
     # new_ma[np.arange(dyn_corr_macrostates.shape[0]), new_macro] = True
     return new_ma
 
+def dim(n):
+    return int(n * (n+3) / 2)
+
+def ld_tmat(Z, pop, tmat):
+    linkage = Z_to_linkage(Z)
+    tm = tmat.copy()
+    po = pop.copy()
+
+    mask = np.full(pop.shape, True)
+    n = pop.shape[0]
+    dims = np.zeros(n, dtype=int)
+    dims[1:] = np.arange(n, 1, -1)
+    c_dims = np.cumsum(dims)
+    tps = np.zeros(dim(n-1))
+
+    for i, (o, t) in enumerate(linkage[:, :2].astype(int)):
+        tps[c_dims[i]:c_dims[i+1]] = tm[o-1][mask]
+        tm, po = merge_states(tm, [o-1, t-1], t-1, po)
+        print(tm.sum())
+        mask[o-1] = False
+
+    return tm, po, tps

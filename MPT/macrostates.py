@@ -128,6 +128,9 @@ def macrotraj_calc(transitions, tlag, pop_thr, qmin_thr, traj, q_of_t):
     macrostates = macrostates[dendrogram_dict['leaves']]
     microstates = microstates[dendrogram_dict['leaves']]
 
+    # NOTE:
+    # Here is dyn cor disabled
+    #
     # apply dynamical correction of minor branches
     dyn_corr_macrostates = mpp_plus_dyn_cor(
         macrostates=macrostates,
@@ -137,6 +140,7 @@ def macrotraj_calc(transitions, tlag, pop_thr, qmin_thr, traj, q_of_t):
         traj=traj,
         tlag=tlag,
     )
+    # dyn_corr_macrostates = macrostates
 
     # rename macrostates by fraction of native contacts
     macrotraj = mh.shift_data(traj, microstates, dyn_corr_macrostates)
@@ -182,18 +186,25 @@ def _transitions_to_linkage(trans, *, qmin=0.0):
 
     """
     transitions = np.copy(trans)
-    states = np.unique(transitions[:, :2].astype(int))
 
+    # Already sorted !!!
     # sort by merging qmin level
-    transitions = transitions[
-        np.argsort(transitions[:, 2])
-    ]
+#    transitions = transitions[
+#        np.argsort(transitions[:, 2])
+#    ]
 
+
+    # qmin is 0, thus, a full True array
     # create linkage matrix
     mask_qmin = transitions[:, 2] > qmin
-    nstates_qmin = np.count_nonzero(mask_qmin) + 1
-    linkage_mat = np.zeros((nstates_qmin - 1, 4))
 
+    # Since mask_qmin is full True, this is number of microstates
+    nstates_qmin = np.count_nonzero(mask_qmin) + 1
+    # much easier possible
+    linkage_mat = np.zeros((nstates_qmin - 1, 4))
+#    linkage_mat = np.zeros((transitions.shape[0], 4))
+
+    # Effectively, subtract one from state indices to match matrix indices (1 based to 0 based index)
     # replace state names by their indices
     transitions_idx, states_idx = mh.rename_by_index(
         transitions[:, :2][mask_qmin].astype(int),
@@ -213,6 +224,10 @@ def _transitions_to_linkage(trans, *, qmin=0.0):
         ]
         for idx, state in enumerate(states_idx)
     }
+    # ... has the same effect as
+#    states_idx_to_microstates = {i: j for i, j in enumerate(states_idx)}
+
+    # ... thus, the indices in the lists of the following dict are just 1 lower (0 based instead of 1 based)
     states_idx_to_rootstates = {
         idx: [idx]
         for idx, _ in enumerate(states_idx)
@@ -237,6 +252,7 @@ def _transitions_to_linkage(trans, *, qmin=0.0):
                 linkage_mat[idx + 1:, :2] == state
             ] = nextstate
 
+    # Attention: linkage_mat state ids are shifted by one to make array ids!!!
     return (
         linkage_mat,
         states_idx_to_microstates,
@@ -277,6 +293,7 @@ def mpp_plus_cut(
     """Apply MPP+ step1: Identify branches."""
     nstates = len(linkage_mat) + 1
 
+    # Dude, what're you doing??
     macrostates_set = [
         set(states_idx_to_rootstates[2 * (nstates - 1)]),
     ]
@@ -284,7 +301,11 @@ def mpp_plus_cut(
         set(states_idx_to_microstates[2 * (nstates - 1)]),
     ]
     for state_i, state_j, qmin in reversed(linkage_mat[:, :3]):
-        if pops[state_i] > pop_thr and qmin > qmin_thr:
+        # NOTE:
+        # add population condition for other branch
+
+        # if pops[state_i] > pop_thr and qmin > qmin_thr:
+        if pops[state_i] > pop_thr and pops[state_j] > pop_thr and qmin > qmin_thr:
             mstate_i = set(states_idx_to_rootstates[state_i])
             macrostates_set = [
                 mstate - mstate_i

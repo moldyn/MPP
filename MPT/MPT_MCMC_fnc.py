@@ -75,11 +75,53 @@ def q_macrostates(state, merged_states, target_states, q_of_t_states, pop):
         float: fraction of native contacts of state
     """
     # state = target_state
-    idx_micros_cluster = np.where(target_states == state)[0]
-    micros_cluster = [merged_states[idx] for idx in idx_micros_cluster]
-    micros_cluster.append(state)
+    # NOTE:
+    # If both, merge state and target state are already compound states, not all microstates are considered
+    # e. g. in merge 36, microstate 199 is not considered
+    # >>> l = MPT.utils.Z_to_linkage(mpt.Z[0])
+    # >>> ll = MPT.utils.Z_to_linkage(lmpt.Z[0])
+    # >>> l[:37, :2].astype(int)[[10, 17, 24, 36]]
+    # array([[ 89,  38],
+    #        [200,  27],
+    #        [106,  38],
+    #        [ 27,  38]])
+    # >>> ll[:37, :2].astype(int)[[10, 17, 24, 36]]
+    # array([[ 89,  38],
+    #        [200,  27],
+    #        [106,  38],
+    #        [ 27,  38]])
+    # >>> z[:37, :2].astype(int)[[10, 17, 24, 36]]
+    # array([[ 88,  37],
+    #        [199,  26],
+    #        [105, 557],
+    #        [564, 571]])
+    
+    # idx_micros_cluster = np.where(target_states == state)[0]
+    # micros_cluster = [merged_states[idx] for idx in idx_micros_cluster]
+    # micros_cluster.append(state)
+
+    micros_cluster = find_states(state, merged_states, target_states)
     q_ma =  (q_of_t_states[micros_cluster] * pop[micros_cluster]).sum() / pop[micros_cluster].sum()
+    # print(f"target state: {state}")
+    # print(merged_states)
+    # print(target_states)
+    # print(micros_cluster)
+    # print()
+    #
     return q_ma
+
+def find_states(state, ms, ts):
+    state_list = list(set(rec(state, np.array(ms), np.array(ts), [])))
+    state_list.append(state)
+    # print(len(state_list))
+    return state_list
+
+def rec(state, ms, ts, states):
+    mss = list(ms[ts == state])
+    states += mss
+    for s in mss:
+        states = list(set(states + rec(s, ms, ts, states)))
+    return states
 
 
 def modify_prob(prob_distr, merge_idx, q_states, variance, exponent):
@@ -98,6 +140,10 @@ def modify_prob(prob_distr, merge_idx, q_states, variance, exponent):
     weighting_factors = np.exp(
         -(abs(q_states[merge_idx] - q_states)**exponent)/(2*variance**2)
     )
+    # with open("/home/fg149/Dokumente/data_production/rep_lukas_fnc/debug/ld/trans", "a") as f:
+    #     np.savetxt(f, prob_distr)
+    # with open("/home/fg149/Dokumente/data_production/rep_lukas_fnc/debug/ld/wf", "a") as f:
+    #     np.savetxt(f, weighting_factors)
     prob_distr_mod = prob_distr * weighting_factors
     return prob_distr_mod / np.sum(prob_distr_mod)
     # return prob_distr
@@ -144,6 +190,7 @@ def trans_states_MCMC(
     else:
         prob_distr_mod = prob_distr
 
+    # print(f"ld: {np.sort(prob_distr_mod)[::-1][:3]}")
     if cut_prob < 1:
         prob_distr_mod[prob_distr_mod <= cut_prob * np.max(prob_distr_mod)] = 0
 
@@ -164,6 +211,8 @@ def trans_states_MCMC(
     else:
         target_idx = np.argmax(prob_distr_mod)
 
+    # with open("/home/fg149/Dokumente/data_production/rep_lukas_fnc/debug/ld/trans", "a") as f:
+    #     np.savetxt(f, prob_distr_mod[np.delete(np.arange(len(prob_distr_mod)), merge_idx)])
     target_state = microstates[target_idx]
     return merged_state, target_state, target_idx
 

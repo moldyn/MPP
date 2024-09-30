@@ -92,35 +92,59 @@ multi_feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_
 out_base = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/"
 out = out_base + "img/hp35_dendrogram_det_dc.pdf"
 ob = "/home/fg149/Dokumente/data_production/rep_lukas_fnc/fnc_weighting_function/"
+toy = "/home/fg149/Dokumente/data_production/rep_lukas_fnc/toy1/"
 
 lagtime = 50
 
+# traj = np.loadtxt(toy + "traj")
+# feature_traj = np.loadtxt(toy + "feature_traj")
+# lagtime = 1
+
 mpt_kernel = MPT.kernel.MPTKernel()
+lmpt_kernel = MPT.kernel.MPTKernel()
 smpt_kernel = MPT.kernel.SMPTKernel(method="p", param=1, c=0.15)
-feature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05)
-lfeature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05)
+feature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05, b=2)
+lfeature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05, b=2)
 
 use_old = False
 mpt = MPT.MPT(traj, lagtime, use_old)
-mpt.mpt(mpt_kernel)
-# mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
+# mpt.mpt(mpt_kernel)
+mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
 mpt.add_feature(feature_traj)
-mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
+mpt.assign_macrostates(0.005, 0.5, dyn_correct=False)
+mpt.calc_timescales()
 # mpt.assign_macrostates(0.005, 0.5)
 # mpt.plot(ob + "ld_det.pdf")
-mpt.plot(ob + "fg_fnc_det_no_dc.pdf")
+# mpt.plot(ob + "fg_fnc_det_no_dc.pdf")
+
+# use_old = False
+# rmpt = MPT.MPT(traj, lagtime, use_old)
+# rmpt.mpt(mpt_kernel)
+# rmpt.add_feature(feature_traj)
+# rmpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
 
 use_old = True
 lmpt = MPT.MPT(traj, lagtime, use_old)
 # mpt.mpt(mpt_kernel)
-lmpt.mpt(mpt_kernel, feature_kernel=lfeature_kernel)
+lmpt.mpt(lmpt_kernel, feature_kernel=lfeature_kernel)
 lmpt.add_feature(feature_traj)
 #mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
 lmpt.assign_macrostates(0.005, 0.5)
-lmpt.plot(ob + "hp35_det_lukas_updated.pdf")
+lmpt.calc_timescales()
+# lmpt.plot(ob + "hp35_det_lukas_updated.pdf")
 
 f = feature_kernel.full_feature[mpt.n_states:]
 fl = lfeature_kernel.full_feature[mpt.n_states:]
+
+l = MPT.utils.Z_to_linkage(mpt.Z[0])
+ll = MPT.utils.Z_to_linkage(lmpt.Z[0])
+# lr = MPT.utils.Z_to_linkage(rmpt.Z[0])
+li = l[:, :2].astype(int)
+lli = ll[:, :2].astype(int)
+# lri = lr[:, :2].astype(int)
+
+merge_states_l = [10, 17, 24, 36]
+
 # print(f[:10] - fl[:10])
 
 # o = [l.name for l in mpt.tree[0].leaves]
@@ -180,3 +204,33 @@ fl = lfeature_kernel.full_feature[mpt.n_states:]
 #
 #
 
+p = np.arange(1, 6) / 5
+t = np.random.randint(0, 5, (5, 5))
+t = t / np.expand_dims(t.sum(axis=1), -1)
+ft = np.zeros((9, 9))
+fp = np.zeros((9, ))
+ft[:5][:, :5] = t
+fp[:5] = p
+
+states = [2, 3]
+
+o = "/home/fg149/Dokumente/data_production/rep_lukas_fnc/debug/"
+t_fg = np.loadtxt(o + "fg/trans")
+t_ld = np.loadtxt(o + "ld/trans")
+
+def get_list(t):
+    l = []
+    n = int(np.sqrt(t.shape[0] * 2))
+    cs0 = 0
+    cs1 = n
+    for i in range(1, n + 1):
+        l.append(np.array(t[cs0:cs1]))
+        cs0 = cs1
+        cs1 += n - i
+    return l
+
+def compare_lists(l1, l2):
+    s = []
+    for i in range(len(l1)):
+        s.append(np.allclose(np.sort(l1[i]), np.sort(l2[i])))
+    return np.array(s)

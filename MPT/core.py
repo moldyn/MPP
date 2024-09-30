@@ -93,6 +93,7 @@ def cluster(
         else:
             state, target_state, mask = kernel(full_tmat, full_states, mask)
 
+        metastability = full_tmat[state, state]
         # Merge states in transition matrix
         full_tmat, full_pop = utils.merge_states(full_tmat, [state, target_state], new_state, full_pop)
 
@@ -101,7 +102,7 @@ def cluster(
         full_states[target_state, 1] = new_state
         full_states[new_state:, 0] = new_state
 
-        Z[i] = [state, target_state, full_tmat[state, state], full_pop[new_state]]
+        Z[i] = [state, target_state, metastability, full_pop[new_state]]
 
         # Update mask
         mask[new_state] = True

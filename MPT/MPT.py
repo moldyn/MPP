@@ -87,10 +87,10 @@ class MPT(object):
         self.feature_kernel = feature_kernel
         # n: number of macrostates
         tmat, states = mh.msm.estimate_markov_model(self.traj, self.tlag)
-        self.tmat = tmat.astype(np.float32)
+        self.tmat = tmat.astype(np.float64)
         _, pop = np.unique(self.traj, return_counts=True)
         self.n_states = len(states)
-        self.Z = np.zeros((self.n_runs, self.n_states-1, 4), dtype=np.float32)
+        self.Z = np.zeros((self.n_runs, self.n_states-1, 4), dtype=np.float64)
         # NOTE:
         # Type changed to int
         self.full_pop = np.zeros((self.n_runs, 2*self.n_states-1), dtype=np.uint32)
