@@ -79,8 +79,8 @@ def cluster(
     # i: Z[i, 0] and Z[i, 1] are combined to cluster n + i
     Z = np.zeros((n-1, 4), dtype=np.float32)
 
-    # if feature_kernel != 1:
-    #     feature_kernel.reset()
+    if feature_kernel != 1:
+        feature_kernel.reset()
     for i in range(n-1):
         # Index of new state
         new_state = n + i
@@ -165,10 +165,10 @@ def assign_macrostates(Z, full_pop, pop_thr, q_min):
         ma[macrostate, microstates] = 1
     return ma
 
-def assign_macrostates_mcalc(Z, full_pop, pop_thr, q_min, tlag, traj, q_of_t):
+def assign_macrostates_mcalc(Z, full_pop, pop_thr, q_min, tlag, traj, q_of_t, dyn_corr=True):
     linkage = utils.Z_to_linkage(Z)
     microstates, dc_macrostates, macrotraj = macrotraj_calc(
-        linkage, tlag, pop_thr, q_min, traj, q_of_t,
+        linkage, tlag, pop_thr, q_min, traj, q_of_t, dyn_corr,
     )
     ma = np.zeros((dc_macrostates.max(), dc_macrostates.shape[0]), dtype=bool)
     ma[dc_macrostates-1, microstates-1] = True
@@ -179,7 +179,7 @@ def split(Z, state, macrostates, full_pop, overflow: list, pop_thr, q_min):
     Z: Z matrix
     state: state that is to split
     macrostates: list of macrostates (list of lists of microstates)
-    full_pop: full population list incl indermediate states
+    full_pop: full population list incl intermediate states
     overflow: list of microstates that remain in macrostate
     pop_thr: population threshold
     q_min: self transition probability threshold
@@ -191,12 +191,14 @@ def split(Z, state, macrostates, full_pop, overflow: list, pop_thr, q_min):
     # both states greater than population threshold
     if ( full_pop[a] > pop_thr ) & ( full_pop[b] > pop_thr ) & q_condition:
         # first process smaller state
-        if full_pop[a] < full_pop[b]:
-            c = a
-            d = b
-        else:
-            c = b
-            d = a
+        # if full_pop[a] < full_pop[b]:
+        #     c = a
+        #     d = b
+        # else:
+        #     c = b
+        #     d = a
+        c = a
+        d = b
 
         # distinguish microstates from intermediate states
         if c < n_states:
@@ -217,11 +219,13 @@ def split(Z, state, macrostates, full_pop, overflow: list, pop_thr, q_min):
         else:
             c = b
             d = a
+        # c = a
+        # d = b
 
         # distinguish microstates from intermediate states
         if c < n_states:
             overflow.append(c)
-        else:
+        elif full_pop[c]:
             overflow += utils.get_micro(Z, c - n_states, [])
         if d < n_states:
             macrostates.append([d] + overflow)

@@ -426,7 +426,11 @@ def reassign_states_(tmat, pop, macrostate_assignment):
     tmp_pop[:-1] = inter_pop
 
     for state in merge_order:
-        target = np.argsort(inter_tmat[state + n_macrostates, :n_macrostates])[-1]
+        target = np.argsort(tmp_tmat[state + n_macrostates, :n_macrostates])[-1]
+        # print(tmp_tmat[state + n_macrostates, state + n_macrostates])
+        # print(tmp_tmat[state + n_macrostates, target])
+        # print(tmp_tmat[target, target])
+        # print()
         tmp_tmat, tmp_pop = merge_states(tmp_tmat, [state + n_macrostates, target], -1, tmp_pop)
         tmp_tmat[target] = tmp_tmat[-1]
         tmp_tmat[:, target] = tmp_tmat[:, -1]

@@ -120,7 +120,7 @@ class MPT(object):
         for i in range(self.n_states):
             self.feature[i] = self.feature_traj[self.traj == i+1].mean()
 
-    def assign_macrostates(self, pop_thr, q_min, dyn_correct=False, macrotraj_type=np.uint8):
+    def assign_macrostates(self, pop_thr, q_min, dyn_correct=True, macrotraj_type=np.uint8):
         self.pop_thr = pop_thr
         self.q_min = q_min
         self.macrostate_feature = []
@@ -146,10 +146,10 @@ class MPT(object):
                     self.tlag,
                     self.traj,
                     self.feature_traj,
+                    dyn_correct,
                 )
-            # TODO:
-            # Optional: dynamically correct macrostate assignment here
-            if dyn_correct:
+
+            if dyn_correct and not self.use_old:
                 self.microstate_order[n_i] = [leaf.name for leaf in self.tree[n_i].leaves]
                 micro_order = self.microstate_order[n_i]
                 ma_order = ma[:, micro_order]
@@ -322,6 +322,13 @@ class MPT(object):
         else:
             out += ".Z.npy"
 
+        if os.path.exists(out):
+            if input("File exists. Overwrite? [y|n] ") == "y":
+                os.remove(out)
+            else:
+                print("Z matrix not saved.")
+                return None
+
         if n_i == "all":
             np.save(out, self.Z)
         elif isinstance(n_i, Iterable):
@@ -342,7 +349,8 @@ class MPT(object):
         self.n_runs = self.Z.shape[0]
         # n: number of macrostates
         tmat, states = mh.msm.estimate_markov_model(self.traj, self.tlag)
-        self.tmat = tmat.astype(np.float32)
+        # self.tmat = tmat.astype(np.float32)
+        self.tmat = tmat.astype(np.float_)
         _, pop = np.unique(self.traj, return_counts=True)
         self.n_states = len(states)
         self.full_pop = np.zeros((self.n_runs, 2*self.n_states-1), dtype=np.uint32)

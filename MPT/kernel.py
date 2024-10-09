@@ -150,12 +150,17 @@ class KLKernel(object):
     mask (np.ndarray (m)): mask for states that are not yet merged
     params (dict): parameters for the kernel
     """
-    def __call__(self, full_tmat, states_not_merged, mask):
+    def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=1):
         # Select state with least self transition probability
         mask_state = np.argsort(np.diag(full_tmat)[mask])[0]
         # Get correct state index
         state = states_not_merged[mask][mask_state][0]
         mask[state] = False
+        
+        if feature_kernel != 1 and feature_kernel.b != 0:
+            tmat = (feature_kernel * full_tmat)[state][mask]
+        else:
+            tmat = full_tmat[state][mask]
 
         state_transitions = full_tmat[state][mask]
 
@@ -241,6 +246,8 @@ class FeatureKernel(object):
         # NOTE:
         # Here are still some commented lines
         # Normalize resulting matrix
+        # if self.states_not_merged[-1]:
+        #     self.reset()
         m = self.states_not_merged
         if len(tmat.shape) == 1:
             feature = self.full_feature[m]

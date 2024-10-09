@@ -82,7 +82,7 @@ def macrotraj(
     )
 
 
-def macrotraj_calc(transitions, tlag, pop_thr, qmin_thr, traj, q_of_t):
+def macrotraj_calc(transitions, tlag, pop_thr, qmin_thr, traj, q_of_t, dyn_corr=True):
     (
         linkage_mat,
         states_idx_to_microstates,
@@ -129,18 +129,20 @@ def macrotraj_calc(transitions, tlag, pop_thr, qmin_thr, traj, q_of_t):
     microstates = microstates[dendrogram_dict['leaves']]
 
     # NOTE:
-    # Here is dyn cor disabled
+    # Here dyn cor is disabled
     #
     # apply dynamical correction of minor branches
-    dyn_corr_macrostates = mpp_plus_dyn_cor(
-        macrostates=macrostates,
-        microstates=microstates,
-        n_macrostates=n_macrostates,
-        pops=pops,
-        traj=traj,
-        tlag=tlag,
-    )
-    # dyn_corr_macrostates = macrostates
+    if dyn_corr:
+        dyn_corr_macrostates = mpp_plus_dyn_cor(
+            macrostates=macrostates,
+            microstates=microstates,
+            n_macrostates=n_macrostates,
+            pops=pops,
+            traj=traj,
+            tlag=tlag,
+        )
+    else:
+        dyn_corr_macrostates = macrostates
 
     # rename macrostates by fraction of native contacts
     macrotraj = mh.shift_data(traj, microstates, dyn_corr_macrostates)
@@ -302,7 +304,7 @@ def mpp_plus_cut(
     ]
     for state_i, state_j, qmin in reversed(linkage_mat[:, :3]):
         # NOTE:
-        # add population condition for other branch
+        # population condition for other branch added
 
         # if pops[state_i] > pop_thr and qmin > qmin_thr:
         if pops[state_i] > pop_thr and pops[state_j] > pop_thr and qmin > qmin_thr:
@@ -387,10 +389,15 @@ def mpp_plus_dyn_cor(
 
         # reassign them
         idx = np.where(mstates == deletestate)[0][0]
-        idxs_to = np.argsort(tmat[idx])[::-1]
+        # idxs_to = np.argsort(tmat[idx])[::-1]
+        idxs_to = np.argsort(tmat[idx, :n_macrostates])[::-1]
         for idx_to in idxs_to:
             if idx_to == idx:
                 continue
+            # print(tmat[idx, idx])
+            # print(tmat[idx, idx_to])
+            # print(tmat[idx_to, idx_to])
+            # print()
             dyn_corr_macrostates[
                 dyn_corr_macrostates == deletestate
             ] = mstates[idx_to]

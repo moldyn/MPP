@@ -32,7 +32,7 @@ def run(out):
     mpt.add_feature(feature_traj)
     mpt.assign_macrostates(0.005, 0.5, dyn_correct=True)
 
-    use_old = True
+    use_old = False
     smpt = MPT.MPT(traj, lagtime, use_old)
     # smpt.mpt(smpt_kernel, n=1000)
     smpt.mpt(smpt_kernel, feature_kernel=feature_kernel, n=100)
@@ -55,8 +55,8 @@ def main():
     out_base = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/"
     #out = out_base + "img/hp35_det_KL_thr_similarity_89_t.pdf"
     
-    out = out_base + "img/hp35_smpt_c15_s05_b2_ld_corrected"
-    # out = out_base + "img/hp35_smpt_c15_s05_b2_fg_2"
+    # out = out_base + "img/hp35_smpt_c15_s05_b2_ld_corrected_b"
+    out = out_base + "img/hp35_smpt_c15_s05_b2_fg_2"
     start = time.time()
     ret = run(out)
     execution_time = time.time() - start
