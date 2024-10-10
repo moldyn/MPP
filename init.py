@@ -38,16 +38,10 @@ lfeature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05, b=2)
 kfeature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05, b=2)
 
 mpt = MPT.MPT(traj, lagtime)
-mpt.mpt(mpt_kernel)
+mpt.mpt(mpt_kernel, n=1)
 mpt.add_feature(feature_traj)
 mpt.assign_macrostates(0.005, 0.5)
 mpt.calc_timescales()
-
-mpt_nd = MPT.MPT(traj, lagtime)
-mpt_nd.mpt(mpt_kernel)
-mpt_nd.add_feature(feature_traj)
-mpt_nd.assign_macrostates(0.005, 0.5, dyn_correct=False)
-mpt_nd.calc_timescales()
 
 mpt_fnc = MPT.MPT(traj, lagtime)
 mpt_fnc.mpt(mpt_kernel, feature_kernel=feature_kernel)
@@ -55,3 +49,4 @@ mpt_fnc.add_feature(feature_traj)
 mpt_fnc.assign_macrostates(0.005, 0.5)
 mpt_fnc.calc_timescales()
 
+print(mpt_fnc.timescales[0, 0] / mpt.timescales[0, 0])

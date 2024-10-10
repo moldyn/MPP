@@ -20,8 +20,6 @@ from matplotlib.colors import to_hex, Normalize, LinearSegmentedColormap, LogNor
 from matplotlib import colors
 from matplotlib.cbook import boxplot_stats
 import matplotlib.patches as patches
-from anytree import NodeMixin
-from anytree.iterators import PreOrderIter
 import networkx as nx
 import msmhelper as mh
 from msmhelper._cli.contact_rep import load_clusters
@@ -31,261 +29,6 @@ import MPT.utils as utils
 
 ### DENDROGRAM ###############################################################
 
-class BinaryTreeNode(NodeMixin):
-    def __init__(self, name, population=0, q=0, feature=0, parent=None, left=None, right=None, is_macrostate=False):
-        """
-        This class is used to plot dendrograms.
-
-        prameters:
-        ----------
-
-        name (str): name of the node
-        population (float): population of the node
-        q (float): value at which the node is merged
-        feature (float): some feature used for coloring
-        parent: parent node
-        left: left node
-        right: right node
-        """
-        self.name = name
-        self._population = population  # Base population, used if the node is a leaf
-        self._q = q
-        self._feature = feature
-        self._parent = parent
-        self._left = left
-        self._right = right
-        self._is_macrostate = is_macrostate
-
-        self._x_origin = None
-        self._x_target = None
-        self._y_origin = None
-
-        if left:
-            self.add_left(left)
-        if right:
-            self.add_right(right)
-
-    @property
-    def population(self):
-        """Population of state."""
-        if self.is_leaf:
-            return self._population
-        else:
-            return (self.left.population if self.left else 0) \
-                + (self.right.population if self.right else 0)
-    @population.setter
-    def population(self, value):
-        if not self.is_leaf:
-            pass
-        elif 0 <= value <= 1:
-            self._population = value
-        else:
-            # NOTE:
-            # population currently is the count of frames in that state
-            raise ValueError("population must be 0 <= population <= 1")
-
-    @property
-    def q(self):
-        """Q, e. g. self transition probability at which states were merged."""
-        return self._q
-    @q.setter
-    def q(self, value):
-        if 0 <= value <= 1:
-            self._q = value
-        else:
-            raise ValueError("q must be 0 <= q <= 1")
-    
-    @property
-    def feature(self):
-        """
-        Feature for states (e. g. fraction of native contacts). Is forwarded
-        weighted by population
-        """
-        if self.is_leaf:
-            return self._feature
-        else:
-            return ((self.left.feature * self.left.population if self.left else 0) \
-                + (self.right.feature * self.right.population if self.right else 0)) / self.population
-    @feature.setter
-    def feature(self, value):
-        if 0 <= value <= 1:
-            self._feature = value
-        else:
-            raise ValueError("feature must be 0 <= feature <= 1")
-
-    @property
-    def left(self):
-        return self._left
-    @left.setter
-    def left(self, node):
-        if node is not None and node.parent is not None:
-            raise ValueError("Node already has a parent")
-        if self._left is not None:
-            self._left.parent = None
-        self._left = node
-        if node is not None:
-            node.parent = self
-
-    @property
-    def right(self):
-        return self._right
-    @right.setter
-    def right(self, node):
-        if node is not None and node.parent is not None:
-            raise ValueError("Node already has a parent")
-        if self._right is not None:
-            self._right.parent = None
-        self._right = node
-        if node is not None:
-            node.parent = self
-
-    def add_left(self, node):
-        self.left = node
-
-    def add_right(self, node):
-        self.right = node
-
-    def add_node(self, node):
-        if not self.left:
-            self.left = node
-        elif not self.right:
-            self.right = node
-        else:
-            raise ValueError(f"{self.name} has already two nodes")
-
-    @property
-    def children(self):
-        """Return the two child nodes."""
-        children = []
-        if self.left is not None:
-            children.append(self.left)
-        if self.right is not None:
-            children.append(self.right)
-        return children
-
-    @property
-    def is_leaf(self):
-        """Check if this node is leaf node."""
-        return not (self.left or self.right)
-
-    @property
-    def is_macrostate(self):
-        """Mark macrostates using this flag."""
-        return self._is_macrostate
-    @is_macrostate.setter
-    def is_macrostate(self, value):
-        if isinstance(value, bool):
-            self._is_macrostate = value
-        else:
-            raise ValueError("is_macrostate must be boolean")
-
-    @property
-    def macrostates(self):
-        """Returns all macrostate nodes."""
-        return tuple(PreOrderIter(self, filter_=lambda node: node.is_macrostate))
-
-    @property
-    def color(self):
-        """Color according to feature."""
-        steps = 10
-        cmap = plt.get_cmap('plasma_r', steps)
-        colors = [cmap(idx) for idx in range(cmap.N)]
-        feature_norm = np.linalg.norm(self.feature)
-
-        bins = np.linspace(0, 1, steps + 1)
-        for color, rlower, rhigher in zip(colors, bins[:-1], bins[1:]):
-            if rlower <= feature_norm <= rhigher:
-                return color
-
-        return "k"
-
-    @property
-    def edge_width(self):
-        """Edge width from population."""
-        return 6 * self.population / self.root.population
-
-    @property
-    def macrostate(self):
-        """
-        Macrostate this state belongs to. None if no macrostates are found
-        above in tree.
-        """
-        node = self
-        while not node.is_macrostate and node.parent:
-            node = node.parent
-        if node.is_macrostate:
-            return node
-        else:
-            return None
-
-
-    @property
-    def x(self):
-        """X coordinates for dandrogram for this node"""
-        return np.array([self.x_origin, self.x_origin, self.x_target])
-
-    @property
-    def x_origin(self):
-        """The x_origin property."""
-        if not self.is_leaf:
-            if not self._x_origin:
-                self.x_origin = self.children[0].x_target
-        return self._x_origin
-    @x_origin.setter
-    def x_origin(self, value):
-        self._x_origin = value
-
-    @property
-    def x_target(self):
-        """The x_target property."""
-        if not self._x_target:
-            if not self.is_root:
-                self.x_target = (self.x_origin + self.siblings[0].x_origin) / 2
-            else:
-                self.x_target = self.x_origin
-        return self._x_target
-    @x_target.setter
-    def x_target(self, value):
-        self._x_target = value
-
-    @property
-    def y(self):
-        """Y coordinates for dandrogram for this node"""
-        return np.array([self.y_origin, self.y_target, self.y_target])
-
-    @property
-    def y_origin(self):
-        """The y_origin property."""
-        if self.is_leaf:
-            return 0
-        else:
-            if not self._y_origin:
-                self.y_origin = self.children[0].y_target
-            return self._y_origin
-    @y_origin.setter
-    def y_origin(self, value):
-        self._y_origin = value
-
-    @property
-    def y_target(self):
-        """The y_target property."""
-        if self.parent:
-            return self.parent.q
-        else:
-            return 1
-
-    def plot(self, ax):
-        for c in self.children:
-            ax = c.plot(ax)
-        # Remove this condition if root should be plotted as well.
-        if not self.is_root:
-            ax.plot(self.x, self.y, color=self.color, linewidth=self.edge_width if self.edge_width > 0.15 else 0.15)
-        return ax
-
-    def plot_tree(self, ax):
-        for i, leaf in enumerate(self.leaves):
-            leaf.x_origin = i
-        return self.plot(ax)
 
 def plot_tree(root, macrostate_assignment, output_file):
     """
@@ -380,65 +123,6 @@ def plot_tree(root, macrostate_assignment, output_file):
             axes.set_xticklabels([], minor=True)
 
     pplt.savefig(output_file)
-
-def build_tree(Z, full_pop):
-    """
-    Build tree of BinaryTreeNode from a given Z matrix and the corresponding
-    populations.
-    """
-    n = Z.shape[0]  + 1
-    nodes = {}
-    for i, (state, target_state, q, pop) in enumerate(Z):
-        state = int(state)
-        target_state = int(target_state)
-        if state not in nodes:
-            nodes[state] = BinaryTreeNode(state, population=full_pop[state], q=q)
-        if target_state not in nodes:
-            nodes[target_state] = BinaryTreeNode(target_state, population=full_pop[target_state], q=q)
-        nodes[n + i] = BinaryTreeNode(n + i, q=q)
-        nodes[n + i].left = nodes[state]
-        nodes[n + i].right = nodes[target_state]
-    return nodes[n + i]
-
-def add_feature(traj, feature_traj, root):
-    """
-    Add a feature (e. g. fraction of native contacts) to the leaves of a tree.
-    """
-    if len(feature_traj.shape) == 2:
-        state_features = np.array([feature_traj[traj == i+1].mean(axis=0) for i in range(len(root.leaves))])
-        norm_features = np.linalg.norm(state_features, axis=1)
-        sn = norm_features - norm_features.min()
-        norm_feature = 1 - sn / sn.max()
-        for leave in root.leaves:
-            leave.feature = norm_feature[leave.name]
-        return root
-    elif len(feature_traj.shape) == 1:
-        for leave in root.leaves:
-            leave.feature = feature_traj[traj == leave.name+1].mean()
-        return root
-    else:
-        raise ValueError("feature_traj must be 1 D or 2 D.")
- 
-def plot_dendrogram(Z, full_pop, traj, feature_traj, ma, out):
-    """
-    Plot dendrogram from Z matrix, full_pop, trajectory, feature_traj and
-    macrostate_assignment.
-    """
-    root = build_tree(Z, full_pop)
-    add_feature(traj, feature_traj, root)
-    pop_thr = 0.005
-    q_min = 0.5
-    plot_tree(root, ma, out)
- 
-def plot_dendrogram_root(root, traj, feature_traj, ma, out):
-    """
-    Plot dendrogram from Z matrix, full_pop, trajectory, feature_traj and
-    macrostate_assignment.
-    """
-    add_feature(traj, feature_traj, root)
-    pop_thr = 0.005
-    q_min = 0.5
-    plot_tree(root, ma, out)
 
 
 ### SIMILARITY ###############################################################
@@ -641,7 +325,6 @@ def plot_tmat(a, out, title="Transition Matrix", color_thr=0.01):
     # Create a custom colormap for off-diagonal values including light gray
     colors_list = plt.cm.viridis(np.linspace(0, 1, 256))
     gray = np.array([0.9, 0.9, 0.9, 1.0])
-    #colors_list[:int(threshold / off_diag_values.max() * 256)] = gray
     colors_list[:int(color_thr * 256)] = gray
     custom_off_diag_cmap = colors.ListedColormap(colors_list)
 
@@ -658,11 +341,10 @@ def plot_tmat(a, out, title="Transition Matrix", color_thr=0.01):
                 color = diag_cmap_custom(diag_norm(value))
             else:
                 color = gray if value < threshold else custom_off_diag_cmap(off_diag_norm(value))
-        
+
             ax.add_patch(patches.Rectangle((j - 0.5, i - 0.5), 1, 1, color=color))
-        
+
             # Add text with transition probabilities
-            # print(np.array(color[:3]))
             if value != 0:
                 grayscale = np.sum(np.array(color[:3]) * np.array([0.299, 0.587, 0.114]))
                 text_color = 'white' if grayscale < 0.5 else 'black'
@@ -850,15 +532,12 @@ def add_ref(macrostate_assignment, macrostate_feature, ax, color="r", label="Ref
             weights = 1
         else:
             weights = weights / weights.sum()
-        #y = [1e-9, (ma * weights).sum() / weights.sum() * 1e-3]
         y = [1e-9, (ma * weights).sum() / weights.sum() * 1e-3]
         if b:
-            #ax.plot(x, y, c=color, label=label + " / 1000")
             ax.plot(x, y, c=color, label=label + " / 1000")
             b = False
         else:
             ax.plot(x, y, c=color)
-#        ax.text(mf + 0.005, ma.sum() * 0.9, f"{i:.0f}", c=color, backgroundcolor="w")
         pplt.text(
             mf + 0.015,
             y[1] * 0.82,
@@ -892,7 +571,6 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid):
     )
 
     # load files
-    #contacts = mh.opentxt(contact_file, dtype=np.float64)
     states = np.unique(state_traj)
     clusters = load_clusters(cluster_file)
 

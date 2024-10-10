@@ -13,10 +13,351 @@ import numpy as np
 from typing import Callable, List
 from numpy.typing import NDArray
 
+from anytree import NodeMixin
+from anytree.iterators import PreOrderIter
+
 import MPT.utils as utils
 import MPT.kernel as kern
-from MPT.macrostates import macrotraj_calc
-from MPT.MPT_MCMC_fnc import MPT_MCMC, q_of_states
+
+
+class BinaryTreeNode(NodeMixin):
+    def __init__(
+            self,
+            name,
+            tmat,
+            population=0,
+            q=0,
+            feature=0,
+            macrostate_thresholds=(0.005, 0.5),
+            parent=None,
+            left=None,
+            right=None
+    ):
+        """
+        This class is used to plot dendrograms.
+
+        prameters:
+        ----------
+
+        name (str): name of the node
+        population (float): population of the node
+        q (float): value at which the node is merged
+        feature (float): some feature used for coloring
+        parent: parent node
+        left: left node
+        right: right node
+        """
+        self._left = None
+        self._right = None
+        self._is_macrostate = None
+        self._macrostates = None
+        self._all_macrostates = None
+        self._parent_macrostate = None
+        self._assigned_macrostate = None
+
+        self.name = name
+        self.tmat = tmat
+        self.n_states = int((self.tmat.shape[0] + 1) / 2)
+        self.population = population  # Base population, used if the node is a leaf
+        self.q = q
+        self.feature = feature
+        self.pop_thr, self.q_min = macrostate_thresholds
+        self.parent = parent
+        self.left = left
+        self.right = right
+
+        self._x_origin = None
+        self._x_target = None
+        self._y_origin = None
+
+    @property
+    def population(self):
+        """Population of state."""
+        if self.is_leaf:
+            return self._population
+        else:
+            return (self.left.population if self.left else 0) \
+                + (self.right.population if self.right else 0)
+    @population.setter
+    def population(self, value):
+        if not self.is_leaf:
+            pass
+        else:
+            self._population = value
+        # elif 0 <= value <= 1:
+        #     self._population = value
+        # else:
+        #     # NOTE:
+        #     # population currently is the count of frames in that state
+        #     raise ValueError("population must be 0 <= population <= 1")
+
+    @property
+    def q(self):
+        """Q, e. g. self transition probability at which states were merged."""
+        return self._q
+    @q.setter
+    def q(self, value):
+        if 0 <= value <= 1:
+            self._q = value
+        else:
+            raise ValueError("q must be 0 <= q <= 1")
+    
+    @property
+    def feature(self):
+        """
+        Feature for states (e. g. fraction of native contacts). Is forwarded
+        weighted by population
+        """
+        if self.is_leaf:
+            return self._feature
+        else:
+            return ((self.left.feature * self.left.population if self.left else 0) \
+                + (self.right.feature * self.right.population if self.right else 0)) / self.population
+    @feature.setter
+    def feature(self, value):
+        if 0 <= value <= 1:
+            self._feature = value
+        else:
+            raise ValueError("feature must be 0 <= feature <= 1")
+
+    @property
+    def left(self):
+        return self._left
+    @left.setter
+    def left(self, node):
+        if node is not None and node.parent is not None:
+            raise ValueError("Node already has a parent")
+        if self._left is not None:
+            self._left.parent = None
+        self._left = node
+        if node is not None:
+            node.parent = self
+
+    @property
+    def right(self):
+        return self._right
+    @right.setter
+    def right(self, node):
+        if node is not None and node.parent is not None:
+            raise ValueError("Node already has a parent")
+        if self._right is not None:
+            self._right.parent = None
+        self._right = node
+        if node is not None:
+            node.parent = self
+
+    def add_left(self, node):
+        self.left = node
+
+    def add_right(self, node):
+        self.right = node
+
+    def add_node(self, node):
+        if not self.left:
+            self.left = node
+        elif not self.right:
+            self.right = node
+        else:
+            raise ValueError(f"{self.name} has already two nodes")
+
+    @property
+    def children(self):
+        """Return the two child nodes."""
+        children = []
+        if self.left is not None:
+            children.append(self.left)
+        if self.right is not None:
+            children.append(self.right)
+        return children
+
+    @property
+    def is_leaf(self):
+        """Check if this node is leaf node."""
+        return not (self.left or self.right)
+
+    @property
+    def is_macrostate(self):
+        """Mark macrostates using this flag."""
+        if self._is_macrostate is None:
+            if self.parent is not None \
+                and self.parent.q >= self.q_min \
+                and self.population >= self.root.population * self.pop_thr \
+                and self.siblings[0].population >= self.root.population * self.pop_thr:
+                self._is_macrostate = True
+                self.siblings[0].is_macrostate = True
+            elif self.parent is None:
+                self._is_macrostate = True
+            else:
+                self.is_macrostate = False
+        return self._is_macrostate
+    @is_macrostate.setter
+    def is_macrostate(self, value):
+        if isinstance(value, bool):
+            self._is_macrostate = value
+        else:
+            raise ValueError("is_macrostate must be boolean")
+
+    @property
+    def macrostates(self):
+        """Returns all macrostate nodes."""
+        if self._macrostates is None:
+            true_macrostates = []
+            for macrostate in self.all_macrostates:
+                if len(macrostate.all_macrostates) == 1:
+                    true_macrostates.append(macrostate)
+            self._macrostates = tuple(true_macrostates)
+        return self._macrostates
+
+    @property
+    def all_macrostates(self):
+        """Returns all macrostate nodes."""
+        if self._all_macrostates is None:
+            self._all_macrostates = tuple(PreOrderIter(self, filter_=lambda node: node.is_macrostate))
+        return self._all_macrostates
+
+    @property
+    def parent_macrostate(self):
+        """The parent_macrostate property."""
+        if self._parent_macrostate is None:
+            parent = self.parent
+            while parent is not None and not parent.is_macrostate:
+                parent = parent.parent
+            self._parent_macrostate = parent
+        return self._parent_macrostate
+
+    @property
+    def assigned_macrostate(self):
+        """The assigned_macrostate property."""
+        if self._assigned_macrostate is None:
+            if self.is_leaf:
+                if self.is_macrostate:
+                    self._assigned_macrostate = self
+                else:
+                    if len(self.parent_macrostate.macrostates) == 1:
+                        self._assigned_macrostate = self.parent_macrostate
+                    else:
+                        macrostates = []
+                        n_leaves = 2
+                        trans_probs = []
+                        for m in self.parent_macrostate.macrostates:
+                            macrostate = np.array([(s.name, s.population) for s in m.leaves])
+                            indices = list(macrostate[:, 0])
+                            indices.append(self.name)
+                            indices.append(self.name)
+                            tmp_tmat = self.tmat[np.ix_(indices, indices)].copy()
+                            pops = list(macrostate[:, 1])
+                            pops.append(self.population)
+                            pops.append(self.population)
+                            tmp_tmat, pops = utils.merge_states(tmp_tmat, list(range(macrostate.shape[0])), -1, np.array(pops))
+                            trans_probs.append(tmp_tmat[-2, -1])
+                        self._assigned_macrostate = self.parent_macrostate.macrostates[np.argmax(trans_probs)]
+            else:
+                self._assigned_macrostate = None
+        return self._assigned_macrostate
+
+    @property
+    def color(self):
+        """Color according to feature."""
+        steps = 10
+        cmap = plt.get_cmap('plasma_r', steps)
+        colors = [cmap(idx) for idx in range(cmap.N)]
+        feature_norm = np.linalg.norm(self.feature)
+
+        bins = np.linspace(0, 1, steps + 1)
+        for color, rlower, rhigher in zip(colors, bins[:-1], bins[1:]):
+            if rlower <= feature_norm <= rhigher:
+                return color
+
+        return "k"
+
+    @property
+    def edge_width(self):
+        """Edge width from population."""
+        return 6 * self.population / self.root.population
+
+    @property
+    def macrostate(self):
+        """
+        Macrostate this state belongs to. None if no macrostates are found
+        above in tree.
+        """
+        node = self
+        while not node.is_macrostate and node.parent:
+            node = node.parent
+        if node.is_macrostate:
+            return node
+        else:
+            return None
+
+
+    @property
+    def x(self):
+        """X coordinates for dandrogram for this node"""
+        return np.array([self.x_origin, self.x_origin, self.x_target])
+
+    @property
+    def x_origin(self):
+        """The x_origin property."""
+        if not self.is_leaf:
+            if not self._x_origin:
+                self.x_origin = self.children[0].x_target
+        return self._x_origin
+    @x_origin.setter
+    def x_origin(self, value):
+        self._x_origin = value
+
+    @property
+    def x_target(self):
+        """The x_target property."""
+        if not self._x_target:
+            if not self.is_root:
+                self.x_target = (self.x_origin + self.siblings[0].x_origin) / 2
+            else:
+                self.x_target = self.x_origin
+        return self._x_target
+    @x_target.setter
+    def x_target(self, value):
+        self._x_target = value
+
+    @property
+    def y(self):
+        """Y coordinates for dandrogram for this node"""
+        return np.array([self.y_origin, self.y_target, self.y_target])
+
+    @property
+    def y_origin(self):
+        """The y_origin property."""
+        if self.is_leaf:
+            return 0
+        else:
+            if not self._y_origin:
+                self.y_origin = self.children[0].y_target
+            return self._y_origin
+    @y_origin.setter
+    def y_origin(self, value):
+        self._y_origin = value
+
+    @property
+    def y_target(self):
+        """The y_target property."""
+        if self.parent:
+            return self.parent.q
+        else:
+            return 1
+
+    def plot(self, ax):
+        for c in self.children:
+            ax = c.plot(ax)
+        # Remove this condition if root should be plotted as well.
+        if not self.is_root:
+            ax.plot(self.x, self.y, color=self.color, linewidth=self.edge_width if self.edge_width > 0.15 else 0.15)
+        return ax
+
+    def plot_tree(self, ax):
+        for i, leaf in enumerate(self.leaves):
+            leaf.x_origin = i
+        return self.plot(ax)
+
 
 def cluster(
         tmat: NDArray[np.float_],
@@ -110,138 +451,5 @@ def cluster(
 
     return Z, full_pop
 
-def cluster_mpt_mcmc(
-        tmat: NDArray[np.float_],
-        pop: NDArray[np.int_],
-        traj,
-        kernel: Callable[
-            [NDArray[np.float_], NDArray[np.int_], NDArray[np.bool_]],
-            [np.int_, np.int_, NDArray[np.bool_]]
-        ]=kern.MPTKernel(),
-        feature_kernel = 1,
-    ) -> (NDArray[np.float_], NDArray[np.int_]):
-    if feature_kernel == 1:
-        sigma = 0.13
-        b = 0
-    else:
-        sigma = feature_kernel.sigma
-        b = feature_kernel.b
 
-    c = kernel.c
 
-    pop_norm = pop.sum()
-    pop = pop / pop_norm
-    if feature_kernel == 1:
-        q_states = np.ones(pop.shape)
-    else:
-        q_states = q_of_states(traj, feature_kernel.feature_traj)
-
-    linkage, feature = MPT_MCMC(
-        tmat,
-        pop,
-        sigma,
-        b,
-        c,
-        q_states,
-    )
-    if feature_kernel != 1:
-        feature_kernel.full_feature[:len(linkage) + 1, 0] = q_states
-        feature_kernel.full_feature[len(linkage) + 1:, 0] = feature
-    Z, full_pop = utils.linkage_to_Z(linkage, pop)
-    return Z, full_pop * pop_norm
-
-def assign_macrostates(Z, full_pop, pop_thr, q_min):
-    """
-    Z: Z matrix
-    full_pop: populations for all states incl intermediate states
-    pop_thr: minimum population per macrostate (0 ... 1)
-    q_min: minimum self transition probability for that state
-    """
-    pop_norm = full_pop / Z[-1, 3]
-    macrostates = split(Z, 2 * Z.shape[0], [], pop_norm, [], pop_thr, q_min)
-    # macrostate assignment
-    ma = np.zeros((len(macrostates), Z.shape[0]+1), dtype=bool)
-    for macrostate, microstates in enumerate(macrostates[::-1]):
-        ma[macrostate, microstates] = 1
-    return ma
-
-def assign_macrostates_mcalc(Z, full_pop, pop_thr, q_min, tlag, traj, q_of_t, dyn_corr=True):
-    linkage = utils.Z_to_linkage(Z)
-    microstates, dc_macrostates, macrotraj = macrotraj_calc(
-        linkage, tlag, pop_thr, q_min, traj, q_of_t, dyn_corr,
-    )
-    ma = np.zeros((dc_macrostates.max(), dc_macrostates.shape[0]), dtype=bool)
-    ma[dc_macrostates-1, microstates-1] = True
-    return ma
-
-def split(Z, state, macrostates, full_pop, overflow: list, pop_thr, q_min):
-    """
-    Z: Z matrix
-    state: state that is to split
-    macrostates: list of macrostates (list of lists of microstates)
-    full_pop: full population list incl intermediate states
-    overflow: list of microstates that remain in macrostate
-    pop_thr: population threshold
-    q_min: self transition probability threshold
-    """
-    n_states = Z.shape[0] + 1
-    q_condition = Z[state - n_states, 2] > q_min
-    a, b = Z[state - n_states, :2].astype(int)
-
-    # both states greater than population threshold
-    if ( full_pop[a] > pop_thr ) & ( full_pop[b] > pop_thr ) & q_condition:
-        # first process smaller state
-        # if full_pop[a] < full_pop[b]:
-        #     c = a
-        #     d = b
-        # else:
-        #     c = b
-        #     d = a
-        c = a
-        d = b
-
-        # distinguish microstates from intermediate states
-        if c < n_states:
-            macrostates.append([c])
-        else:
-            macrostates = split(Z, c, macrostates, full_pop, [], pop_thr, q_min)
-        if d < n_states:
-            macrostates.append([d] + overflow)
-        else:
-            macrostates = split(Z, d, macrostates, full_pop, overflow, pop_thr, q_min)
-
-    # one state greater than population threshold
-    elif (( full_pop[a] > pop_thr ) ^ ( full_pop[b] > pop_thr )) & q_condition:
-        # first process smaller state
-        if full_pop[a] < full_pop[b]:
-            c = a
-            d = b
-        else:
-            c = b
-            d = a
-        # c = a
-        # d = b
-
-        # distinguish microstates from intermediate states
-        if c < n_states:
-            overflow.append(c)
-        elif full_pop[c]:
-            overflow += utils.get_micro(Z, c - n_states, [])
-        if d < n_states:
-            macrostates.append([d] + overflow)
-        else:
-            macrostates = split(Z, d, macrostates, full_pop, overflow, pop_thr, q_min)
-
-    # both states smaller than population threshold
-    else:
-        # distinguish microstates from intermediate states
-        if a < n_states:
-            overflow.append(a)
-        else:
-            overflow += utils.get_micro(Z, a - n_states, [])
-        if b < n_states:
-            overflow.append(b)
-        else:
-            overflow += utils.get_micro(Z, b - n_states, [])
-        macrostates.append(overflow)
-    return macrostates

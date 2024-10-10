@@ -34,35 +34,18 @@ class MPTKernel(object):
 
     def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=1):
         # Select state with least self transition probability
-        mask_state = np.argsort(np.diag(full_tmat)[mask])[0]
+        mask_state = np.argmin(np.diag(full_tmat)[mask])
         # Get correct state index
         state = states_not_merged[mask][mask_state][0]
         mask[state] = False
         
         if feature_kernel != 1 and feature_kernel.b != 0:
-            # with open("/home/fg149/Dokumente/data_production/rep_lukas_fnc/debug/fg/trans", "a") as f:
-            #     np.savetxt(f, full_tmat[state])
-            #
-            # wf = feature_kernel.weighting_function(feature_kernel.dq[mask_state])
-            # with open("/home/fg149/Dokumente/data_production/rep_lukas_fnc/debug/fg/wf", "a") as f:
-            #     np.savetxt(f, wf)
             tmat = (feature_kernel * full_tmat)[state][mask]
-            # ftmat = full_tmat.copy()
-            # m = feature_kernel.states_not_merged
-            # ftmat[m][:, m] *= feature_kernel.weighting_function(feature_kernel.dq)
-            # tmat = ftmat[state][mask]
-            # tmat = full_tmat[state][mask]
-            # tmat = feature_kernel.apply(tmat, state)
-            # tmat = feature_kernel.apply(full_tmat[state], state)[mask]
         else:
             tmat = full_tmat[state][mask]
 
         # Select state with highest transition probability as target state.
-        # mask_target_state = np.argsort(full_tmat[state][mask])[-1]
-        mask_target_state = np.argsort(tmat)[-1]
-        # print(f"{np.sort(tmat)[::-1][:3]}")
-        # with open("/home/fg149/Dokumente/data_production/rep_lukas_fnc/debug/fg/trans", "a") as f:
-        #     np.savetxt(f, tmat / tmat.sum())
+        mask_target_state = np.argmax(tmat)
         target_state = states_not_merged[mask][mask_target_state][0]
         return state, target_state, mask
 
@@ -88,19 +71,13 @@ class SMPTKernel(object):
 
     def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=1):
         # Select state with least self transition probability
-        mask_state = np.argsort(np.diag(full_tmat)[mask])[0]
+        mask_state = np.argmin(np.diag(full_tmat)[mask])
         # Get correct state index
         state = states_not_merged[mask][mask_state][0]
         mask[state] = False
     
         if feature_kernel != 1 and feature_kernel.b != 0:
             tmat = (feature_kernel * full_tmat)[state][mask]
-            # tmat = feature_kernel.apply(tmat, state)
-            # tmat = feature_kernel.apply(full_tmat[state], state)[mask]
-            # tmat = feature_kernel.apply(full_tmat[state], state)[mask]
-            # print(full_tmat[state])
-            # print(tmat)
-            # print()
         else:
             tmat = full_tmat[state][mask]
 
@@ -109,9 +86,7 @@ class SMPTKernel(object):
             p_max_i = np.where(tmat.max() == tmat)
             p_max = tmat.max()
             cutoff_mask = tmat > p_max * self.c
-            # print(f"{mask.sum()}: {cutoff_mask.sum()}")
             tmat = tmat[cutoff_mask]
-            # print(tmat)
      
         # transitions contains indices for masked tmat
         transitions = np.argsort(tmat)[::-1]
@@ -152,7 +127,7 @@ class KLKernel(object):
     """
     def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=1):
         # Select state with least self transition probability
-        mask_state = np.argsort(np.diag(full_tmat)[mask])[0]
+        mask_state = np.argmin(np.diag(full_tmat)[mask])
         # Get correct state index
         state = states_not_merged[mask][mask_state][0]
         mask[state] = False
@@ -259,7 +234,6 @@ class FeatureKernel(object):
                 return tmat * self.weighting_function(dq)
         elif tmat.shape[0] == m.sum():
             return tmat * self.weighting_function(self.dq)
-            # return tmat * np.random.uniform(0, 1, self.dq.shape)
         elif tmat.shape[0] == m.shape[0]:
             t = tmat.copy()
             t[np.ix_(m, m)] = t[m][:, m] \
@@ -286,29 +260,7 @@ class FeatureKernel(object):
             self.full_feature[origin] * self.full_pop[origin] \
             + self.full_feature[target] * self.full_pop[target]
         ) / self.full_pop[new_state]
-        # print(self.full_feature[new_state])
-        # print(f"{origin} {target}")
-        # self.full_feature[self.new_state] = self.full_feature[
-        #     [origin, target]
-        # ].sum(axis=0)
     
-    def _update_bak(self, origin, target):
-        # Doesn't work for more than one run since new_state simply counts on
-        self.states_not_merged[[origin, target]] = False
-        self.states_not_merged[self.new_state] = True
-        self.full_pop[self.new_state] = self.full_pop[[origin, target]].sum()
-        # NOTE:
-        # Here, things have been adapted
-        # Here's needs adaption
-        self.full_feature[self.new_state] = (
-            self.full_feature[origin] * self.full_pop[origin] \
-            + self.full_feature[target] * self.full_pop[target]
-        ) / self.full_pop[self.new_state]
-        # self.full_feature[self.new_state] = self.full_feature[
-        #     [origin, target]
-        # ].sum(axis=0)
-        self.new_state += 1
-
 class PCAFeatureKernel(object):
     def __init__(self, feature_traj, microstate_traj, sigma=0.13, b=2, n_PCs=3):
         """

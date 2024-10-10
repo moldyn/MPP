@@ -14,11 +14,6 @@ import MPT.utils as utils
 import MPT.kernel as kernel_module
 from graph import draw_knetwork
 
-# import core
-# import utils
-# import kernel
-
-from MPT.plot import plot_dendrogram, plot_macro_feature#, graph
 import MPT.plot as plot
 
 __doc__ = """
@@ -43,7 +38,7 @@ __all__ = [
 ]
 
 class MPT(object):
-    def __init__(self, traj: NDArray[np.int_], tlag: int, use_old=False):
+    def __init__(self, traj: NDArray[np.int_], tlag: int, macrostate_thresholds: tuple = (0.005, 0.5)):
         if traj.max() < 2**8:
             traj_type = np.uint8
         elif traj.max() < 2**16:
@@ -53,7 +48,7 @@ class MPT(object):
 
         self.traj = traj.astype(traj_type)
         self.tlag = tlag
-        self.use_old = use_old
+        self.macrostate_thresholds = macrostate_thresholds
 
         self.timescales = None
         self._linkage = None
@@ -91,28 +86,15 @@ class MPT(object):
         _, pop = np.unique(self.traj, return_counts=True)
         self.n_states = len(states)
         self.Z = np.zeros((self.n_runs, self.n_states-1, 4), dtype=np.float64)
-        # NOTE:
-        # Type changed to int
         self.full_pop = np.zeros((self.n_runs, 2*self.n_states-1), dtype=np.uint32)
         print("Clustering ...")
         for i in tqdm(range(self.n_runs)):
-            if not self.use_old:
-            # if isinstance(kernel, kernel_module.MPTKernel):
-                self.Z[i], self.full_pop[i] = core.cluster(
-                    self.tmat,
-                    pop,
-                    kernel=self.kernel,
-                    feature_kernel=self.feature_kernel
-                )
-            else:
-                self.Z[i], self.full_pop[i] = core.cluster_mpt_mcmc(
-                # self.Z[i], self.full_pop[i] = core.cluster(
-                    self.tmat,
-                    pop,
-                    self.traj,
-                    kernel=self.kernel,
-                    feature_kernel=self.feature_kernel
-                )
+            self.Z[i], self.full_pop[i] = core.cluster(
+                self.tmat,
+                pop,
+                kernel=self.kernel,
+                feature_kernel=self.feature_kernel
+            )
 
     def add_feature(self, feature_traj: NDArray[np.float_], feature_type=np.float64):
         self.feature_traj = feature_traj.astype(feature_type)
@@ -120,7 +102,7 @@ class MPT(object):
         for i in range(self.n_states):
             self.feature[i] = self.feature_traj[self.traj == i+1].mean()
 
-    def assign_macrostates(self, pop_thr, q_min, dyn_correct=True, macrotraj_type=np.uint8):
+    def assign_macrostates(self, pop_thr, q_min, macrotraj_type=np.uint8):
         self.pop_thr = pop_thr
         self.q_min = q_min
         self.macrostate_feature = []
@@ -129,62 +111,20 @@ class MPT(object):
         self.macro_tmat = []
         self.macrotraj = np.zeros((self.traj.shape[0], self.n_runs), dtype=macrotraj_type)
         self.n_macrostates = []
-        self.microstate_order = np.zeros((self.n_runs, self.n_states), dtype=np.uint16)
+        pop = self.full_pop[0, :self.n_states]
 
         print("Assigning macrostates ...")
         for n_i in tqdm(range(self.n_runs)):
-            # default
-            if not self.use_old:
-                ma = core.assign_macrostates(self.Z[n_i], self.full_pop[n_i], self.pop_thr, self.q_min)
-            # using macrotraj_calc
-            else:
-                ma = core.assign_macrostates_mcalc(
-                    self.Z[n_i],
-                    self.full_pop[n_i],
-                    self.pop_thr,
-                    self.q_min,
-                    self.tlag,
-                    self.traj,
-                    self.feature_traj,
-                    dyn_correct,
-                )
-
-            if dyn_correct and not self.use_old:
-                self.microstate_order[n_i] = [leaf.name for leaf in self.tree[n_i].leaves]
-                micro_order = self.microstate_order[n_i]
-                ma_order = ma[:, micro_order]
-                ro = np.zeros(self.n_states, dtype=np.uint32)
-                ro[micro_order] = np.arange(self.n_states)
-                indices_to_exclude_order = utils.get_microstates_to_reassign(self.full_pop[n_i][micro_order], ma_order)
-
-                ma_order[:, indices_to_exclude_order] = False
-                ma = utils.reassign_states_(
-                    # self.tmat,
-                    self.tmat[micro_order][:, micro_order],
-                    self.full_pop[n_i, :self.n_states][micro_order],
-                    ma_order
-                )[:, ro]
-
-                # macros = np.array([np.where(ma[:, i])[0][0]+1 for i in range(547)])[self.microstate_order[n_i]]
-                # ma = utils.reassign_states(self.tmat, self.full_pop[n_i, :self.n_states][self.microstate_order[n_i]], ma[:, self.microstate_order[n_i]], self.traj, macros)
-                # ma = ma[:, ro]
-            macrostate_feature = np.zeros(ma.shape[0], dtype=self.feature_traj.dtype.type)
-            pop = self.full_pop[n_i, :self.n_states]
-            # Order macrostates by feature
-            for i, ms in enumerate(ma.astype(bool)):
-                macrostate_feature[i] = ((self.feature[ms] * pop[ms]) / pop[ms].sum()).sum()
-            order = np.argsort(macrostate_feature)[::-1]
-            self.macrostate_feature.append(macrostate_feature[order])
-            self.macrostate_assignment.append(ma[order])
+            self.macrostate_assignment.append(utils.get_macrostate_assignment_from_tree(self.tree[n_i]))
 
             # Calculate other macrostate related values
             self.macrostates_map.append(np.zeros(self.n_states, dtype=self.traj.dtype.type))
             mas, mis = np.where(self.macrostate_assignment[-1]==1)
             self.macrostates_map[-1][mis] = mas
             self.macro_tmat.append(utils.macro_tmat(self.tmat, self.macrostate_assignment[-1], pop))
-            # self.macrotraj.append(utils.translate_traj(self.traj, self.macrostates_map[-1]))
             self.macrotraj[:, n_i] = utils.translate_traj(self.traj, self.macrostates_map[-1])
             self.n_macrostates.append(self.macrostate_assignment[-1].shape[0])
+
 
     def macro_to_micro_feature(self):
         self.micro_feature = np.zeros((self.n_states, self.n_runs), dtype=self.feature_traj.dtype.type)
@@ -192,25 +132,8 @@ class MPT(object):
             for j, mb in enumerate(ma.astype(bool)):
                 self.micro_feature[mb, i] = mf[j]
 
-
-    def plot_(self, out: str, n_i: int = 0):
-        plot_dendrogram(
-            self.Z[n_i],
-            self.full_pop[n_i],
-            self.traj,
-            self.feature_traj,
-            self.macrostate_assignment[n_i],
-            out,
-        )
-    
     def plot(self, out: str, n_i: int = 0):
-        plot.plot_dendrogram_root(
-            self.tree[n_i],
-            self.traj,
-            self.feature_traj,
-            self.macrostate_assignment[n_i],
-            out,
-        )
+        plot.plot_tree(self.tree[n_i], self.macrostate_assignment[n_i], out)
     
     def __add__(self, other):
         """
@@ -269,9 +192,6 @@ class MPT(object):
                 S.append(utils.similarity(self.macrostate_assignment[n_i], other.macrostate_assignment[n_j]))
                 d1 = self.macrostate_assignment[n_i].shape[0]
                 d2 = self.macrostate_assignment[n_j].shape[0]
-                # e_intersect = d1 * d2 / self.n_states
-                # assuming random distribution:
-                # n.append(S[-1].mean() / (e_intersect / (d1 + d2 - e_intersect)))
                 n.append(S[-1].mean())
         return S, n
 
@@ -301,7 +221,7 @@ class MPT(object):
                 - label
                 of the clusterings that should be shown explicitly.
         """
-        plot_macro_feature(self.micro_feature, out, ref)
+        plot.plot_macro_feature(self.micro_feature, out, ref)
 
     def save_macrotraj(self, out, n_i=0):
         header = (
@@ -349,7 +269,6 @@ class MPT(object):
         self.n_runs = self.Z.shape[0]
         # n: number of macrostates
         tmat, states = mh.msm.estimate_markov_model(self.traj, self.tlag)
-        # self.tmat = tmat.astype(np.float32)
         self.tmat = tmat.astype(np.float_)
         _, pop = np.unique(self.traj, return_counts=True)
         self.n_states = len(states)
@@ -381,11 +300,32 @@ class MPT(object):
         if self._tree == None:
             self._tree = []
             for z, pop in zip(self.Z, self.full_pop):
-                self._tree.append(plot.build_tree(z, pop))
+                self._tree.append(self.build_tree(z, pop))
         return self._tree
 
+    def build_tree(self, Z, full_pop):
+        """
+        Build tree of BinaryTreeNode from a given Z matrix and the corresponding
+        populations.
+        """
+        macrostate_thresholds = (self.pop_thr, self.q_min)
+        n = Z.shape[0] + 1
+        nodes = {}
+        for i, (state, target_state, q, pop) in enumerate(Z):
+            state = int(state)
+            target_state = int(target_state)
+            if state not in nodes:
+                nodes[state] = core.BinaryTreeNode(state, self.tmat, population=full_pop[state], q=q, macrostate_thresholds=macrostate_thresholds)
+            if target_state not in nodes:
+                nodes[target_state] = core.BinaryTreeNode(target_state, self.tmat, population=full_pop[target_state], q=q, macrostate_thresholds=macrostate_thresholds)
+            nodes[n + i] = core.BinaryTreeNode(n + i, self.tmat, q=q, macrostate_thresholds=macrostate_thresholds)
+            nodes[n + i].left = nodes[state]
+            nodes[n + i].right = nodes[target_state]
+        for node in nodes[n + i].leaves:
+            node.feature = self.feature[node.name]
+        return nodes[n + i]
+
     def plot_graph(self, out, n_i=0, u=0, f=0):
-        #draw_knetwork(self.macrotraj[:, n_i], self.tlag, self.macrostate_feature[n_i], out)
         draw_knetwork(self.macrotraj[:, n_i], self.tlag, self.feature_traj, out, u=u, f=f)
 
     def plot_tmat(self, out, n_i=0):
