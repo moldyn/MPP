@@ -9,21 +9,17 @@ procss_mpp.py from Daniel Nagel.
 
 import os
 from os.path import splitext
-import itertools
 
 import numpy as np
-import pandas as pd
 import prettypyplot as pplt
 from matplotlib import pyplot as plt
 from matplotlib.cm import ScalarMappable
-from matplotlib.colors import to_hex, Normalize, LinearSegmentedColormap, LogNorm, ListedColormap
+from matplotlib.colors import Normalize, LinearSegmentedColormap, LogNorm, ListedColormap
 from matplotlib import colors
 from matplotlib.cbook import boxplot_stats
 import matplotlib.patches as patches
-import networkx as nx
 import msmhelper as mh
 from msmhelper._cli.contact_rep import load_clusters
-import MPT.core as core
 import MPT.utils as utils
 
 
@@ -70,7 +66,6 @@ def plot_tree(root, macrostate_assignment, output_file):
     # bring microstates in the right order
     macrostate_assignment = macrostate_assignment[:, [l.name for l in root.leaves]]
 
-    #yticks = np.arange(0.5, 1.5 + len(root.macrostates))
     yticks = np.arange(0.5, 1.5 + macrostate_assignment.shape[0])
     xticks = np.arange(0, n_states + 1)
     cmap = LinearSegmentedColormap.from_list(
@@ -145,7 +140,7 @@ def evaluate_stochastic_clustering(mpt1, mpt2, out):
         ax.hist(s1[state], bins=np.linspace(m, 1, 21), color="g", alpha=0.7)
         ax.hist(s2[state], bins=np.linspace(m, 1, 21), color="b", alpha=0.7)
         ax.hist(s3[state], bins=np.linspace(m, 1, 21), color="r", alpha=0.7)
-        ax.set_title(f"state {state+1} ({ref.macrostate_assignment[0][state].sum()})")
+        ax.set_title(f"state {state+1}")
     fig.supxlabel("Macrostate similarity")
     fig.supylabel(f"Count of clusterings ({sto.n_runs} clusterings)")
     leg = plt.figlegend(["union", "reference", "clustering"], ncols=3, loc='lower center', bbox_to_anchor=(0.5, 0.05))
@@ -184,7 +179,6 @@ def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, f
 
     lagtimes_ns = lagtimes * frame_length
     for ax, traj, title in zip(axs.flatten(), trajs, titles):
-        #ax.yaxis.set_major_formatter(mtick.ScalarFormatter(useMathText=True))
         ax.yaxis.set_major_formatter(mtick.LogFormatterSciNotation)
         it = mh.msm.implied_timescales(traj, lagtimes, ntimescales=3)
         # change from frames to ns
@@ -227,7 +221,6 @@ def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, f
 
 def _plot_impl_times(impl_times, lagtimes, ax, ls="-"):
     """Plot the implied timescales"""
-    #colors = ['pplt:blue', 'pplt:red', 'pplt:green']
     colors = ['#264653', '#2A9D8F', '#E9C46A']
     for idx, impl_time in enumerate(impl_times.T):
         if ls == ":":
@@ -240,18 +233,12 @@ def _plot_impl_times(impl_times, lagtimes, ax, ls="-"):
     ref_low = int(lagtimes.shape[0] / 4)
     ax.set_xlim(xlim)
     # highlight diagonal
-    #x_i = np.arange(max(xlim[0], 1), xlim[1])
     x_i = np.arange(ref_low, xlim[1])
     ax.fill_between(x_i, x_i, color='pplt:grid')
     pplt.legend(outside='right', frameon=False)
 
 
-def plot_relative_implied_timescales(cl, ref, out):
-    if cl.timescales == None:
-        cl.calc_timescales()
-    if ref.timescales == None:
-        ref.calc_timescales()
-    
+def plot_relative_implied_timescales_(cl, ref, out):
     its = cl.timescales / ref.timescales
 
     fig, axs = plt.subplots(1, 4, figsize=(8, 2.5), sharey=True)
@@ -261,10 +248,37 @@ def plot_relative_implied_timescales(cl, ref, out):
     axs[-1].hist(its.mean(axis=1), bins=20)
     axs[-1].set_title(f'Mean its {1}-{i+1}')
 
-    # fig.supxlabel(r"Implied Timescale Similarity $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{det}}\right)$")
     fig.supxlabel(r"Relative Implied Timescale $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{det}}\right)$")
     fig.supylabel('Count of Clusterings')
-#    fig.suptitle(r"Relative Implied Timescale Similarity $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{det}}\right)$")
+    plt.tight_layout()
+    plt.savefig(out)
+
+
+def plot_relative_implied_timescales(cl, ref, out):
+    its = cl.timescales / ref.timescales
+
+    fig = plt.figure(figsize=(8, 2.5))
+    ax1 = fig.add_subplot(1, 3, 1)
+    ax2 = fig.add_subplot(1, 3, 2, sharey=ax1)
+    ax3 = fig.add_subplot(1, 3, 3)
+
+    for ax in (ax1, ax2, ax3):
+        ax.grid(False)
+
+    ax1.hist(its[:, 0], bins=20)
+    ax1.set_title("its 1")
+    ax1.set_xlabel(r"Relative Implied Timescale $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{det}}\right)$")
+    ax1.set_ylabel('Count of Clusterings')
+    ax2.hist(its.mean(axis=1), bins=20)
+    ax2.set_title(f"Mean its {1}-{3}")
+    ax2.set_xlabel(r"Relative Implied Timescale $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{det}}\right)$")
+
+    bins = np.array(range(min(cl.n_macrostates)-1, max(cl.n_macrostates)+1)) + 0.5
+
+    ax3.hist(cl.n_macrostates, bins=bins)
+    ax3.set_title("n macrostates")
+    ax3.set_xlabel("macrostate count")
+
     plt.tight_layout()
     plt.savefig(out)
 
@@ -388,7 +402,6 @@ def plot_trans_time(
     """
     with np.errstate(divide='ignore'):
         a = tlag / a * frame_length
-    #a = (np.full(a.shape, tlag) / a) * frame_length
 
     # Define the colormap for the diagonal elements (logarithmic Reds)
     diagonal_values = np.diag(a)
@@ -408,15 +421,12 @@ def plot_trans_time(
     threshold = off_diag_values.min() / color_thr
     print(f"Threshold for probabilities: {threshold:.2f} ns")
 
-    #off_diag_norm = LogNorm(vmin=off_diag_values.min(), vmax=off_diag_values_non_inf.max())
     off_diag_norm = LogNorm(vmin=off_diag_values.min(), vmax=threshold/(1-color_thr))
     off_diag_cmap = plt.cm.viridis_r
 
     # Create a custom colormap for off-diagonal values including light gray
     colors_list = plt.cm.viridis_r(np.linspace(0, 1, 256))
     gray = np.array([0.9, 0.9, 0.9, 1.0])
-#    colors_list[:int(threshold / off_diag_values.max() * 256)] = gray
-#    colors_list[int(threshold / off_diag_values_non_inf.min() * 256):] = gray
     colors_list[int((1-color_thr) * 256):] = gray
     custom_off_diag_cmap = colors.ListedColormap(colors_list)
 
@@ -437,7 +447,6 @@ def plot_trans_time(
             ax.add_patch(patches.Rectangle((j - 0.5, i - 0.5), 1, 1, color=color))
         
             # Add text with transition probabilities
-            # print(np.array(color[:3]))
             if value != np.inf:
                 grayscale = np.sum(np.array(color[:3]) * np.array([0.299, 0.587, 0.114]))
                 text_color = 'white' if grayscale < 0.5 else 'black'
@@ -679,7 +688,6 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid):
             output = f'{state_file}.contactRep.pdf'
         # insert state_str between pathname and extension
         path, ext = splitext(output)
-        #pplt.savefig(f'{path}.state{chunk[0]:.0f}-{chunk[-1]:.0f}{ext}')
         if counter == 0:
             pplt.savefig(output)
         else:
@@ -728,6 +736,7 @@ def report_stochastic(cl, ref, multi_feature, cluster_file, out, frame_length=0.
 
     title = f"Stochastic Clustering"
     kernel = f"\\verb|{cl.kernel}|"
+    kl = f"KL = {cl.kernel.kullback_leibler}"
     thr = f"$\\mathrm{{pop}}_\\mathrm{{min}}={cl.pop_thr}$, $q_\\mathrm{{min}}={cl.q_min}$"
     if cl.kernel.method == "n":
         mode = f"n={cl.kernel.param}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
@@ -754,10 +763,10 @@ def report_stochastic(cl, ref, multi_feature, cluster_file, out, frame_length=0.
 \\centering
 \\begin{{tabular}}{{lll}}
     General & Clustering & Feature \\\\\\midrule
-    {lagtime} & {kernel} & {feature_kernel} \\\\
-    {traj_length} & {runs} & {feature_params} \\\\
-    & {thr} & \\\\
-    & {mode} &
+    {lagtime} & {runs} & {feature_kernel} \\\\
+    {traj_length} & {thr} & {feature_params} \\\\
+    & {mode} & \\\\
+    & {kl} &
 \\end{{tabular}}
 \\end{{table}}
 
@@ -904,3 +913,76 @@ $t_3={its[0, 2]:.2f}\\cdot t_\\mathrm{{det}}$
     with open(tex, "w") as f:
         f.write(header)
 
+
+def report(cl, ref, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
+    """
+    frame_length in ns
+    """
+    if not os.path.isdir(out):
+        os.makedirs(out)
+
+    tex = os.path.join(out, os.path.basename(out)) + ".tex"
+
+    dendrogram = os.path.join(out, "dendrogram.pdf")
+    
+    cl.plot(dendrogram, n_i)
+
+    contact_rep_path = os.path.join(out, "contact_rep.pdf")
+    contact_rep(multi_feature, cluster_file, cl.macrotraj[:, n_i], contact_rep_path, (4, 3))
+
+    # header
+    # - Title 
+    label = f"ana:{os.path.basename(out)}"
+
+    lagtime = f"Lagtime: \\SI{{{cl.tlag*frame_length}}}{{\\nano\\second}}"
+    traj_length = f"Traj langth: \\SI{{{cl.traj.shape[0]*frame_length*1e-3:.0f}}}{{\\micro\\second}}"
+
+    title = f"Clustering"
+    kernel = f"\\verb|{cl.kernel}|"
+    kl = f"KL = {cl.kernel.kullback_leibler}"
+    thr = f"$\\mathrm{{pop}}_\\mathrm{{min}}={cl.pop_thr}$, $q_\\mathrm{{min}}={cl.q_min}$"
+    if cl.kernel.method == "n":
+        mode = f"n={cl.kernel.param}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
+    elif cl.kernel.method == "p":
+        mode = f"p=\\SI{{{cl.kernel.param*100:.0f}}}{{\\percent}}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
+    else:
+        mode = ""
+    runs = f"Run {n_i}"
+    its = f"rel its: ${cl.timescales[n_i, 0] / ref.timescales[0, 0]:.2f}\\cdot t_\\mathrm{{ref}}$"
+    thresholds = f"pop: \\SI{{{cl.pop_thr*100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
+
+    if cl.feature_kernel != 1:
+        feature_kernel = f"\\verb|{cl.feature_kernel}|"
+        feature_params = f"$\\sigma$={cl.feature_kernel.sigma}, b={cl.feature_kernel.b}"
+    else:
+        feature_kernel = "No feature\\hspace{2cm}"
+        feature_params = ""
+
+    header = f"""
+\\begin{{analysis}}
+\\label{{{label}}}
+\\vspace{{-0.6cm}}
+\\begin{{table}}[H]
+\\centering
+\\begin{{tabular}}{{lll}}
+    General & Clustering & Feature \\\\\\midrule
+    {lagtime} & {thr} & {feature_kernel} \\\\
+    {traj_length} & {mode} & {feature_params} \\\\
+    & {kl} & \\\\
+    & {its} & \\\\
+    & {runs} & \\\\
+\\end{{tabular}}
+\\end{{table}}
+\\vspace{{-2.0cm}}
+
+\\begin{{figure}}[H]
+\\centering
+\\includegraphics[width=0.48\\textwidth]{{{os.path.abspath(dendrogram)}}}
+\\includegraphics[width=0.48\\textwidth]{{{os.path.abspath(contact_rep_path)}}}
+\\end{{figure}}
+\\vspace{{-0.6cm}}
+\\end{{analysis}}
+"""
+
+    with open(tex, "w") as f:
+        f.write(header)

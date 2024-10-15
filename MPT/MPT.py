@@ -16,29 +16,21 @@ from graph import draw_knetwork
 
 import MPT.plot as plot
 
-__doc__ = """
-MPT - Most Probable Transition algorithm
-========================================
-
-**MPT** is a set of tools used to analyze trajectories of molecular dynamics
-(MD) simulations. Trajectories are a huge collection of cartesian coordinates
-that need to be boiled down to collective variables and frames need to be
-assigned a state in order to extract desired information from such a
-trajectory.
-
-MPT is based on markov state models from a microstate trajectory.
-
-"""
-
 __all__ = [
     "kernel.MPTKernel",
-    "kernel.SMPTKernel",
     "kernel.feature_kernel",
     "MPT",
 ]
 
 class MPT(object):
-    def __init__(self, traj: NDArray[np.int_], tlag: int, macrostate_thresholds: tuple = (0.005, 0.5)):
+    def __init__(
+            self,
+            traj: NDArray[np.int_],
+            tlag: int,
+            feature_traj: NDArray[np.float_],
+            feature_type=np.float64,
+            macrostate_thresholds: tuple = (0.005, 0.5)
+    ):
         if traj.max() < 2**8:
             traj_type = np.uint8
         elif traj.max() < 2**16:
@@ -48,15 +40,18 @@ class MPT(object):
 
         self.traj = traj.astype(traj_type)
         self.tlag = tlag
-        self.macrostate_thresholds = macrostate_thresholds
+        self.pop_thr, self.q_min = macrostate_thresholds
+        tmat, states = mh.msm.estimate_markov_model(self.traj, self.tlag)
+        self.tmat = tmat.astype(np.float64)
+        _, self.pop = np.unique(self.traj, return_counts=True)
+        self.n_states = len(states)
+        self.add_feature(feature_traj, feature_type)
 
-        self.timescales = None
+        self._timescales = None
         self._linkage = None
         self._macro_pop = None
         self._tree = None
 
-    # TODO:
-    # doublecheck annotation
     def mpt(
         self,
         kernel: Callable[
@@ -66,52 +61,39 @@ class MPT(object):
         feature_kernel = 1,
         n: int = 1,
     ) -> (NDArray[np.float_], NDArray[np.int_]):
-        """
-        mpt
-        ---
-        Perform MPT
-     
-        kernel: kernel object
-        n (int): number of runs
-     
-        defines: self.Z matrix as of cluster,
-            self.full_pop population of all states
-        """
+        """Perform MPT"""
         self.n_runs = n
         self.kernel = kernel
         self.feature_kernel = feature_kernel
         # n: number of macrostates
-        tmat, states = mh.msm.estimate_markov_model(self.traj, self.tlag)
-        self.tmat = tmat.astype(np.float64)
-        _, pop = np.unique(self.traj, return_counts=True)
-        self.n_states = len(states)
+
         self.Z = np.zeros((self.n_runs, self.n_states-1, 4), dtype=np.float64)
         self.full_pop = np.zeros((self.n_runs, 2*self.n_states-1), dtype=np.uint32)
         print("Clustering ...")
         for i in tqdm(range(self.n_runs)):
             self.Z[i], self.full_pop[i] = core.cluster(
                 self.tmat,
-                pop,
+                self.pop,
                 kernel=self.kernel,
                 feature_kernel=self.feature_kernel
             )
+        self.assign_macrostates()
 
     def add_feature(self, feature_traj: NDArray[np.float_], feature_type=np.float64):
+        """Add feature data to instance"""
         self.feature_traj = feature_traj.astype(feature_type)
         self.feature = np.zeros(self.n_states, dtype=feature_type)
         for i in range(self.n_states):
             self.feature[i] = self.feature_traj[self.traj == i+1].mean()
 
-    def assign_macrostates(self, pop_thr, q_min, macrotraj_type=np.uint8):
-        self.pop_thr = pop_thr
-        self.q_min = q_min
+    def assign_macrostates(self, macrotraj_type=np.uint8):
+        """Assign microstates to macrostates and collect associate data"""
         self.macrostate_feature = []
         self.macrostate_assignment = []
         self.macrostates_map = []
         self.macro_tmat = []
         self.macrotraj = np.zeros((self.traj.shape[0], self.n_runs), dtype=macrotraj_type)
         self.n_macrostates = []
-        pop = self.full_pop[0, :self.n_states]
 
         print("Assigning macrostates ...")
         for n_i in tqdm(range(self.n_runs)):
@@ -121,25 +103,23 @@ class MPT(object):
             self.macrostates_map.append(np.zeros(self.n_states, dtype=self.traj.dtype.type))
             mas, mis = np.where(self.macrostate_assignment[-1]==1)
             self.macrostates_map[-1][mis] = mas
-            self.macro_tmat.append(utils.macro_tmat(self.tmat, self.macrostate_assignment[-1], pop))
+            self.macro_tmat.append(utils.macro_tmat(self.tmat, self.macrostate_assignment[-1], self.pop))
             self.macrotraj[:, n_i] = utils.translate_traj(self.traj, self.macrostates_map[-1])
             self.n_macrostates.append(self.macrostate_assignment[-1].shape[0])
 
-
     def macro_to_micro_feature(self):
+        """Assign macrostate feature values to corresponding microstates"""
         self.micro_feature = np.zeros((self.n_states, self.n_runs), dtype=self.feature_traj.dtype.type)
         for i, (ma, mf) in enumerate(zip(self.macrostate_assignment, self.macrostate_feature)):
             for j, mb in enumerate(ma.astype(bool)):
                 self.micro_feature[mb, i] = mf[j]
 
     def plot(self, out: str, n_i: int = 0):
+        """Plot dendrogram"""
         plot.plot_tree(self.tree[n_i], self.macrostate_assignment[n_i], out)
     
     def __add__(self, other):
-        """
-        The '+' operator is used to calculate the similarity between many
-        stochastic clusterings and a reference
-        """
+        """'+' operator is used to calculate similarity"""
         if self.n_runs == 1 and other.n_runs >= 1:
             # reference
             ref = self
@@ -152,55 +132,23 @@ class MPT(object):
             raise ValueError(
                 "The reference clustering must have exactly one run."
             )
+        return ref, sto, utils.similarity(ref, sto)
 
-        # Similarity matrix
-        S = np.zeros((3, ref.n_macrostates[0], sto.n_runs))
-        
-        print(f"Calculating similarities for {ref.n_macrostates[0]} macrostates ...")
-        for n_i in tqdm(range(sto.n_runs)):
-            ref_ma = ref.macrostate_assignment[0].astype(bool)
-            sto_ma = sto.macrostate_assignment[n_i].astype(bool)
-            for i in range(ref.n_macrostates[0]):
-                for j in range(sto.n_macrostates[n_i]):
-                    intersect = (np.logical_and(ref_ma[i], sto_ma[j]) * ref.full_pop[0, :ref.n_states]).sum()
-                    union = (np.logical_or(ref_ma[i], sto_ma[j]) * ref.full_pop[0, :ref.n_states]).sum()
-                    # union
-                    S[0, i, n_i] = max(S[0, i, n_i], intersect / union)
-                    # reference
-                    S[1, i, n_i] = max(S[1, i, n_i], intersect / (ref_ma[i] * ref.full_pop[0, :ref.n_states]).sum())
-                    # clustering
-                    S[2, i, n_i] = max(S[2, i, n_i], intersect / (sto_ma[j] * ref.full_pop[0, :ref.n_states]).sum())
-        return ref, sto, S
-
-    def __mul__(self, other):
-        """
-        The '*' operator is used to calculate the similarity between many
-        stochastic clusterings and a reference - needs to be the right hand
-        argument
-
-        Currently, the number of microstates in common is calculated.
-        """
-        # Similarity matrix
-        S = []
-        n = []
-        
-        for n_i in tqdm(range(self.n_runs-1)):
-            for n_j in range(n_i + 1, other.n_runs):
-                if n_i == n_j:
-                    continue
-                # utils.similarity calculates the number of common microstate for each macrostate combination
-                S.append(utils.similarity(self.macrostate_assignment[n_i], other.macrostate_assignment[n_j]))
-                d1 = self.macrostate_assignment[n_i].shape[0]
-                d2 = self.macrostate_assignment[n_j].shape[0]
-                n.append(S[-1].mean())
-        return S, n
+    @property
+    def timescales(self):
+        """The timescales property."""
+        if self._timescales is None:
+            self.calc_timescales()
+        return self._timescales
 
     def calc_timescales(self, ntimescales=3, dtype=np.float32):
-        self.timescales = np.zeros((self.n_runs, ntimescales), dtype=dtype)
+        """Calculate implied timescales"""
+        self._timescales = np.zeros((self.n_runs, ntimescales), dtype=dtype)
         for i, traj in enumerate(self.macrotraj.T):
-            self.timescales[i] = mh.msm.implied_timescales(traj, [self.tlag], ntimescales=ntimescales)[0]
+            self._timescales[i] = mh.msm.implied_timescales(traj, [self.tlag], ntimescales=ntimescales)[0]
 
     def plot_timescales(self, out, n_i=0):
+        """Plot implied timescales as histogram and save to out"""
         if self.timescales == None:
             self.calc_timescales()
         plt.hist(self.timescales[n_i][:, 0])
@@ -233,6 +181,7 @@ class MPT(object):
         np.savetxt(out, self.macrotraj[:, n_i], fmt="%.0f", header=header)
 
     def save_Z(self, out, n_i="all"):
+        """Save Z matrix"""
         if out.endswith(".Z.npy"):
             pass
         elif out.endswith(".Z"):
@@ -259,6 +208,7 @@ class MPT(object):
             raise ValueError("n_i must be 'all', Iterable or int.")
 
     def from_Z(self, Z):
+        """Load Z matrix"""
         if isinstance(Z, np.ndarray):
             self.Z = Z
         elif os.path.exists(Z):
@@ -270,10 +220,10 @@ class MPT(object):
         # n: number of macrostates
         tmat, states = mh.msm.estimate_markov_model(self.traj, self.tlag)
         self.tmat = tmat.astype(np.float_)
-        _, pop = np.unique(self.traj, return_counts=True)
+        _, self.pop = np.unique(self.traj, return_counts=True)
         self.n_states = len(states)
         self.full_pop = np.zeros((self.n_runs, 2*self.n_states-1), dtype=np.uint32)
-        self.full_pop[:, :self.n_states] = pop
+        self.full_pop[:, :self.n_states] = self.pop
         self.full_pop[:, self.n_states:] = self.Z[:, :, 3]
 
     @property
@@ -304,10 +254,7 @@ class MPT(object):
         return self._tree
 
     def build_tree(self, Z, full_pop):
-        """
-        Build tree of BinaryTreeNode from a given Z matrix and the corresponding
-        populations.
-        """
+        """Build tree using BinaryTreeNode and return root"""
         macrostate_thresholds = (self.pop_thr, self.q_min)
         n = Z.shape[0] + 1
         nodes = {}

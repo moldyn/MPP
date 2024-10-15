@@ -14,6 +14,7 @@ from numba import njit
 from itertools import combinations
 from typing import List
 from numpy.typing import NDArray
+import scipy as scy
 import msmhelper as mh
 
 @njit
@@ -141,19 +142,6 @@ def macro_tmat(tmat, macrostate_assignment, pop):
             m_tmat[i, j] = (tmat[ms][:, other_ms] * np.expand_dims(pop[ms], -1)).sum()
     return m_tmat / m_tmat.sum(axis=0)
 
-def similarity(ma1, ma2):
-    # number of macrostates
-    n_m1 = ma1.shape[0]
-    n_m2 = ma2.shape[0]
-    mat = np.zeros((n_m1, n_m2))
-    for i in range(n_m1):
-        for j in range(n_m2):
-            intersect = np.logical_and(ma1[i], ma2[j]).sum()
-            union = np.logical_or(ma1[i], ma2[j]).sum()
-            mat[i, j] = intersect
-
-    return mat
-
 def get_grid_format(n):
     sqrt = np.sqrt(n)
     y = int(sqrt)
@@ -221,20 +209,13 @@ def get_macrostate_tmat_from_assignment(tmat, pop, macrostate_assignment):
     tmat: initial transitition matrix (NxN)
     pop: microstate population (N)
     """
-    #dims = (macrostate_assignment.shape[0], macrostate_assignment.shape[0])
     n_states = tmat.shape[0]
     dim = sum(macrostate_assignment.shape)
 
-    #macro_tmat = np.zeros(tmat.shape, tmat.dtype.type)
-    #macro_tmat = np.zeros(dims, tmat.dtype.type)
     full_macro_tmat = np.zeros((dim, dim), tmat.dtype.type)
     full_macro_tmat[:n_states][:, :n_states] = tmat
-    #macro_pop = np.zeros(macrostate_assignment.shape[0], pop.dtype.type)
     full_pop = np.zeros(dim, pop.dtype.type)
     full_pop[:n_states] = pop
-    #macro_pop = np.zeros(tmat.shape[0], pop.dtype.type)
-    # full_mask = np.full(dim, False)
-    # full_mask[:n_states] = True
     for i, m in enumerate(macrostate_assignment):
         full_macro_tmat, full_pop = merge_states(full_macro_tmat, np.where(m)[0], i + n_states, full_pop)
     return full_macro_tmat[n_states:, n_states:], full_pop[n_states:]
@@ -242,34 +223,46 @@ def get_macrostate_tmat_from_assignment(tmat, pop, macrostate_assignment):
 def dim(n):
     return int(n * (n+3) / 2)
 
-def ld_tmat(Z, pop, tmat):
-    linkage = Z_to_linkage(Z)
-    tm = tmat.copy()
-    po = pop.copy()
-
-    mask = np.full(pop.shape, True)
-    n = pop.shape[0]
-    dims = np.zeros(n, dtype=int)
-    dims[1:] = np.arange(n, 1, -1)
-    c_dims = np.cumsum(dims)
-    tps = np.zeros(dim(n-1))
-
-    for i, (o, t) in enumerate(linkage[:, :2].astype(int)):
-        tps[c_dims[i]:c_dims[i+1]] = tm[o-1][mask]
-        tm, po = merge_states(tm, [o-1, t-1], t-1, po)
-        print(tm.sum())
-        mask[o-1] = False
-
-    return tm, po, tps
-
 def get_macrostate_assignment_from_tree(tree):
     macrostate_order = [l.assigned_macrostate.name for l in tree.leaves]
     macrostates = {l.assigned_macrostate for l in tree.leaves}
     q_ma = np.array([(m.name, m.feature) for m in macrostates])
     ma_order = np.argsort(q_ma[:, 1])[::-1]
+    # Dict to translate from n+i numbering to actual macrostate numbers.
     full2real = {f: r for r, f in enumerate(q_ma[ma_order, 0])}
     macrostate_assignment = np.full((len(macrostates), len(macrostate_order)), False)
     macrostate_assignment[[full2real[m] for m in macrostate_order], np.arange(len(macrostate_order))] = True
     reorder_microstates = np.zeros(len(macrostate_order), dtype=int)
     reorder_microstates[[l.name for l in tree.leaves]] = np.arange(len(macrostate_order))
     return macrostate_assignment[:, reorder_microstates]
+
+def similarity(ref, sto):
+    """Return similarity of two clusterings"""
+    # Similarity matrix
+    S = np.zeros((3, ref.n_macrostates[0], sto.n_runs))
+    
+    for n_i in range(sto.n_runs):
+        ref_ma = ref.macrostate_assignment[0].astype(bool)
+        sto_ma = sto.macrostate_assignment[n_i].astype(bool)
+        for i in range(ref.n_macrostates[0]):
+            for j in range(sto.n_macrostates[n_i]):
+                intersect = (np.logical_and(ref_ma[i], sto_ma[j]) * ref.full_pop[0, :ref.n_states]).sum()
+                union = (np.logical_or(ref_ma[i], sto_ma[j]) * ref.full_pop[0, :ref.n_states]).sum()
+                # union
+                S[0, i, n_i] = max(S[0, i, n_i], intersect / union)
+                # reference
+                S[1, i, n_i] = max(S[1, i, n_i], intersect / (ref_ma[i] * ref.full_pop[0, :ref.n_states]).sum())
+                # clustering
+                S[2, i, n_i] = max(S[2, i, n_i], intersect / (sto_ma[j] * ref.full_pop[0, :ref.n_states]).sum())
+    return S
+
+def kullback_leibler_probability(transitions, tmat, epsilon=1e-6):
+    """Return Kallback-Leibler probability"""
+    tmat = tmat.copy()
+    np.fill_diagonal(tmat, transitions)
+    tmat += epsilon
+    smoothed_tmat = tmat / np.expand_dims(tmat.sum(axis=1), axis=1)
+    kl = scy.stats.entropy(transitions, smoothed_tmat, axis=1)
+    exp_kl = np.exp(-kl)
+    p = exp_kl / exp_kl.sum()
+    return p

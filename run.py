@@ -20,32 +20,25 @@ def run(out):
     lagtime = 50
 
     mpt_kernel = MPT.kernel.MPTKernel()
-    # smpt_kernel = MPT.kernel.SMPTKernel(method="n", param=5)
-    smpt_kernel = MPT.kernel.SMPTKernel(method="p", param=1, c=0.15)
+    # smpt_kernel = MPT.kernel.MPTKernel(method="n", param=2, kullback_leibler=False)
+    mpt_kernel2 = MPT.kernel.MPTKernel(kullback_leibler=True)
+    # smpt_kernel = MPT.kernel.MPTKernel(method="p", param=1, c=0.15)
     feature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05)
     # kl_kernel = MPT.kernel.KLKernel()
 
-    mpt = MPT.MPT(traj, lagtime)
+    mpt = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
     mpt.mpt(mpt_kernel)
-    # mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
-    mpt.add_feature(feature_traj)
-    mpt.assign_macrostates(0.005, 0.5, dyn_correct=True, use_new=True)
 
-    smpt = MPT.MPT(traj, lagtime)
+    smpt = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
+    # smpt = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
     # smpt.mpt(smpt_kernel, n=1000)
-    smpt.mpt(smpt_kernel, feature_kernel=feature_kernel, n=10)
-    smpt.add_feature(feature_traj)
-    # smpt.assign_macrostates(0.005, 0.5)
-    smpt.assign_macrostates(0.005, 0.5, dyn_correct=True, use_new=True)
+    # smpt.mpt(smpt_kernel, n=10)
+    # smpt.mpt(mpt_kernel2, feature_kernel=feature_kernel)
+    smpt.mpt(mpt_kernel2)
     
-    # smpt = MPT.MPT(traj, lagtime)
-    # smpt.mpt(smpt_kernel, feature_kernel=feature_kernel, n=10)
-    # #smpt.mpt(smpt_kernel, n=1000)
-    # smpt.add_feature(feature_traj)
-    # smpt.assign_macrostates(0.005, 0.5)
-
     #MPT.plot.report_1v1(smpt, mpt, multi_feature_traj, cluster_file, out)
-    MPT.plot.report_stochastic(smpt, mpt, multi_feature_traj, cluster_file, out)
+    # MPT.plot.report_stochastic(smpt, mpt, multi_feature_traj, cluster_file, out)
+    MPT.plot.report(smpt, mpt, multi_feature_traj, cluster_file, out)
 
     return mpt, smpt
 
@@ -53,8 +46,9 @@ def main():
     out_base = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/"
     #out = out_base + "img/hp35_det_KL_thr_similarity_89_t.pdf"
     
-    out = out_base + "img/hp35_smpt_c15_s05_b2_ld_corrected_b"
-    # out = out_base + "img/hp35_smpt_c15_s05_b2_fg_2"
+    out = out_base + "img/hp35_kl_det"
+    # out = out_base + "img/hp35_smpt_n2_s05_b2"
+    # out = out_base + "img/hp35_smpt_c15_s05_b2"
     start = time.time()
     ret = run(out)
     execution_time = time.time() - start

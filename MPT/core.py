@@ -10,8 +10,9 @@ __all__ = [
 ]
 
 import numpy as np
-from typing import Callable, List
+from typing import Callable
 from numpy.typing import NDArray
+import matplotlib.pyplot as plt
 
 from anytree import NodeMixin
 from anytree.iterators import PreOrderIter

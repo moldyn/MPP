@@ -8,7 +8,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import msmhelper as mh
-from MPT.MPT_MCMC_fnc import q_macrostates
 
 import MPT
 
@@ -30,23 +29,30 @@ lagtime = 50
 # lagtime = 1
 
 mpt_kernel = MPT.kernel.MPTKernel()
-lmpt_kernel = MPT.kernel.MPTKernel()
-kmpt_kernel = MPT.kernel.KLKernel()
-smpt_kernel = MPT.kernel.SMPTKernel(method="p", param=1, c=0.15)
+# lmpt_kernel = MPT.kernel.MPTKernel()
+#kl_kernel = MPT.kernel.KLKernel()
+kl_kernel = MPT.kernel.MPTKernel(kullback_leibler=True)
+# smpt_kernel = MPT.kernel.SMPTKernel(method="p", param=1, c=0.15)
 feature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05, b=2)
 lfeature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05, b=2)
 kfeature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05, b=2)
 
-mpt = MPT.MPT(traj, lagtime)
-mpt.mpt(mpt_kernel, n=1)
-mpt.add_feature(feature_traj)
-mpt.assign_macrostates(0.005, 0.5)
-mpt.calc_timescales()
+mpt = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
+mpt.mpt(mpt_kernel)
 
-mpt_fnc = MPT.MPT(traj, lagtime)
+mpt_fnc = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
 mpt_fnc.mpt(mpt_kernel, feature_kernel=feature_kernel)
-mpt_fnc.add_feature(feature_traj)
-mpt_fnc.assign_macrostates(0.005, 0.5)
-mpt_fnc.calc_timescales()
+
+mpt_kl = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
+mpt_kl.mpt(kl_kernel)
+
+mpt_fnc_kl = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.59))
+mpt_fnc_kl.mpt(kl_kernel, feature_kernel=feature_kernel)
 
 print(mpt_fnc.timescales[0, 0] / mpt.timescales[0, 0])
+print(mpt_kl.timescales[0, 0] / mpt.timescales[0, 0])
+print(mpt_fnc_kl.timescales[0, 0] / mpt.timescales[0, 0])
+
+# mpt_fnc.plot("/home/fg149/Dokumente/data_production/tmp_dev/det_fnc_tmp.pdf")
+# mpt.plot("/home/fg149/Dokumente/data_production/tmp_dev/det_tmp.pdf")
+# mpt_fnc_kl.plot("/home/fg149/Dokumente/data_production/tmp_dev/det_fnc_kl.pdf")
