@@ -85,12 +85,6 @@ class BinaryTreeNode(NodeMixin):
             pass
         else:
             self._population = value
-        # elif 0 <= value <= 1:
-        #     self._population = value
-        # else:
-        #     # NOTE:
-        #     # population currently is the count of frames in that state
-        #     raise ValueError("population must be 0 <= population <= 1")
 
     @property
     def q(self):
@@ -395,7 +389,6 @@ def cluster(
     full_tmat = np.zeros((2 * n - 1, 2 * n - 1), dtype=tmat.dtype.type)
     full_tmat[:n, :n] = tmat
 
-    #full_pop = np.zeros(2 * n - 1, dtype=numba.uint64)
     full_pop = np.zeros(2 * n - 1, dtype=pop.dtype.type)
     full_pop[:n] = pop
 
@@ -407,7 +400,6 @@ def cluster(
         states_type = np.uint32
     
     # complete linkage
-    #full_states = np.zeros((2 * n - 1, 2), dtype=numba.uint32)
     full_states = np.zeros((2 * n - 1, 2), dtype=states_type)
     full_states[:n, 0] = np.arange(0, n)
 
@@ -432,9 +424,6 @@ def cluster(
             # state, target_state, mask = kernel(feature_kernel * full_tmat, full_states, mask)
             state, target_state, mask = kernel(full_tmat, full_states, mask, feature_kernel)
             feature_kernel.update(state, target_state, new_state)
-            # print(f"{state} - {target_state} - {new_state}")
-            # if i == 30:
-            #     exit()
         else:
             state, target_state, mask = kernel(full_tmat, full_states, mask)
 

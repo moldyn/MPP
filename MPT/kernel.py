@@ -2,7 +2,6 @@ import numpy as np
 import scipy as scy
 from itertools import combinations
 from sklearn.decomposition import PCA
-from scipy.stats import entropy # aka Kullback-Leibler divergence
 
 import MPT.utils as utils
 
@@ -43,37 +42,38 @@ class MPTKernel(object):
         mask[state] = False
     
         if feature_kernel != 1 and feature_kernel.b != 0:
-            tmat = feature_kernel.apply(full_tmat)[state][mask]
-            # tmat = feature_kernel.apply(full_tmat[state], state=state)[mask]
+            trans_probs = feature_kernel.apply(full_tmat[state], state, mask)[mask]
         else:
-            tmat = full_tmat[state][mask]
+            trans_probs = full_tmat[state][mask]
 
         # Apply cutoff as suggested by Lukas (report 8)
         # c=0: consider all transitions
         if self.c > 0 and self.c < 1:
-            p_max_i = np.where(tmat.max() == tmat)
-            p_max = tmat.max()
-            cutoff_mask = tmat > p_max * self.c
-            tmat = tmat[cutoff_mask]
+            p_max_i = np.where(trans_probs.max() == trans_probs)
+            p_max = trans_probs.max()
+            cutoff_mask = trans_probs > p_max * self.c
+            trans_probs = trans_probs[cutoff_mask]
 
         # If Kullback-Leibler divergence is used
         if self.kullback_leibler:
-            tmat = utils.kullback_leibler_probability(tmat, full_tmat[mask][:, mask])
+            t = full_tmat[mask][:, mask].copy()
+            np.fill_diagonal(t, trans_probs)
+            trans_probs = utils.kullback_leibler_probability(trans_probs, t)
 
         # transitions contains indices for masked tmat
-        transitions = np.argsort(tmat)[::-1]
+        transitions = np.argsort(trans_probs)[::-1]
         if self.method == "p":
-            t_prob_norm = tmat / tmat.sum()
+            t_prob_norm = trans_probs / trans_probs.sum()
             options = [0]
-            while t_prob_norm[options].sum() <= self.param and len(options) < np.count_nonzero(tmat):
+            while t_prob_norm[options].sum() <= self.param and len(options) < np.count_nonzero(trans_probs):
                 options.append(options[-1]+1)
             # p_options_norm = t_prob_norm[options]
         elif self.method == "n":
-            options = list(range(self.param))[:tmat.shape[0]]
+            options = list(range(self.param))[:trans_probs.shape[0]]
         else:
             raise ValueError("Method must be either 'p' or 'n'.")
      
-        p_options = tmat[transitions[options]]
+        p_options = trans_probs[transitions[options]]
         mask_target_state = np.random.choice(transitions[options], p=p_options / sum(p_options))
     
         if self.c > 0 and self.c < 1:
@@ -96,8 +96,10 @@ class FeatureKernel(object):
         """
         if len(feature_traj.shape) == 1:
             self.feature_traj = np.expand_dims(feature_traj.astype(feature_type), -1)
+            self.multidim_feature = False
         elif len(feature_traj.shape) == 2:
             self.feature_traj = feature_traj.astype(feature_type)
+            self.multidim_feature = True
         else:
             raise ValueError("featuretraj must be a 1 D or 2 D array.")
 
@@ -112,9 +114,6 @@ class FeatureKernel(object):
     def _init_feature(self, microstate_traj):
         states, pop = np.unique(microstate_traj, return_counts=True)
         self.n_states = states.shape[0]
-        # Mark which states have not yet been merged
-        self.states_not_merged = np.full(2*self.n_states-1, False)
-        self.states_not_merged[:self.n_states] = True
         # Populations for all states incl intermediate states
         self.full_pop = np.zeros(2*self.n_states-1, dtype=np.uint32)
         self.full_pop[:self.n_states] = pop
@@ -126,49 +125,25 @@ class FeatureKernel(object):
             ].mean(axis=0)
 
     def reset(self):
-        self.states_not_merged[:self.n_states] = True
-        self.states_not_merged[self.n_states:] = False
         self.full_pop[self.n_states:] = 0
         self.full_feature[self.n_states:] = 0
 
     def weighting_function(self, dq):
-        # NOTE:
-        # Function changed here
         a = 1 / (2 * self.sigma ** 2)
-        f = np.exp(-a * np.abs(dq) ** self.b)
+        return np.exp(-a * np.abs(dq) ** self.b)
 
-        return f
-
-    @property
-    def dq(self):
-        """The dq property."""
-        # get relevant feature values
-        feature = self.full_feature[self.states_not_merged]
-        return scy.spatial.distance_matrix(feature, feature).astype(self.full_feature.dtype.type)
-
-    def apply(self, tmat, state=None):
-        m = self.states_not_merged
-        if len(tmat.shape) == 1:
-            if tmat.shape[0] > m.sum():
-                tmat[m] = tmat[m] * self.weighting_function(self.dq[state-(~m[:state]).sum()])
-                return tmat
-            else:
-                return tmat * self.weighting_function(self.dq[state])
-        elif tmat.shape[0] == m.sum():
-            return tmat * self.weighting_function(self.dq)
-        elif tmat.shape[0] == m.shape[0]:
-            t = tmat.copy()
-            t[np.ix_(m, m)] = t[m][:, m] \
-                    * self.weighting_function(self.dq)
-            return t
+    def apply(self, trans_probs, state, mask=None):
+        # m = self.states_not_merged
+        if self.multidim_feature:
+            return trans_probs * self.weighting_function(
+                utils.dq_kl(self.full_feature[state], self.full_feature)
+            )
         else:
-            raise ValueError(
-                "Mismatch in tmat shape. Did you update this kernel?"
+            return trans_probs * self.weighting_function(
+                np.abs(self.full_feature - self.full_feature[state])[:, 0]
             )
 
     def update(self, origin, target, new_state):
-        self.states_not_merged[[origin, target]] = False
-        self.states_not_merged[new_state] = True
         self.full_pop[new_state] = self.full_pop[[origin, target]].sum()
         self.full_feature[new_state] = (
             self.full_feature[origin] * self.full_pop[origin] \

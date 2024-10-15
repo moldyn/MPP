@@ -230,10 +230,14 @@ def similarity(ref, sto):
 def kullback_leibler_probability(transitions, tmat, epsilon=1e-6):
     """Return Kallback-Leibler probability"""
     tmat = tmat.copy()
-    np.fill_diagonal(tmat, transitions)
     tmat += epsilon
     smoothed_tmat = tmat / np.expand_dims(tmat.sum(axis=1), axis=1)
     kl = scy.stats.entropy(transitions, smoothed_tmat, axis=1)
     exp_kl = np.exp(-kl)
     p = exp_kl / exp_kl.sum()
     return p
+
+def dq_kl(ref, s, e=1e-6):
+    k = scy.stats.entropy(ref+e, s+e, axis=1)
+    e_kl = np.exp(-k)
+    return 1 - e_kl
