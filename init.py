@@ -46,12 +46,16 @@ mpt_fnc.mpt(mpt_kernel, feature_kernel=feature_kernel)
 mpt_kl = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
 mpt_kl.mpt(kl_kernel)
 
-mpt_fnc_kl = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.59))
+mpt_fnc_kl = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
 mpt_fnc_kl.mpt(kl_kernel, feature_kernel=feature_kernel)
+
+mpt_fnc_kl59 = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.59))
+mpt_fnc_kl59.mpt(kl_kernel, feature_kernel=feature_kernel)
 
 print(mpt_fnc.timescales[0, 0] / mpt.timescales[0, 0])
 print(mpt_kl.timescales[0, 0] / mpt.timescales[0, 0])
 print(mpt_fnc_kl.timescales[0, 0] / mpt.timescales[0, 0])
+print(mpt_fnc_kl59.timescales[0, 0] / mpt.timescales[0, 0])
 
 # mpt_fnc.plot("/home/fg149/Dokumente/data_production/tmp_dev/det_fnc_tmp.pdf")
 # mpt.plot("/home/fg149/Dokumente/data_production/tmp_dev/det_tmp.pdf")

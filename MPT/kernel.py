@@ -1,6 +1,7 @@
 import numpy as np
 import scipy as scy
 from itertools import combinations
+from sklearn.decomposition import PCA
 from scipy.stats import entropy # aka Kullback-Leibler divergence
 
 import MPT.utils as utils
@@ -43,6 +44,7 @@ class MPTKernel(object):
     
         if feature_kernel != 1 and feature_kernel.b != 0:
             tmat = feature_kernel.apply(full_tmat)[state][mask]
+            # tmat = feature_kernel.apply(full_tmat[state], state=state)[mask]
         else:
             tmat = full_tmat[state][mask]
 
@@ -173,35 +175,3 @@ class FeatureKernel(object):
             + self.full_feature[target] * self.full_pop[target]
         ) / self.full_pop[new_state]
     
-        feature = self.full_feature[self.states_not_merged]
-        sparse = np.array(list(combinations(range(feature.shape[0]), 2))).T
-        kl = entropy(feature[sparse[0]], feature[sparse[1]], axis=1)
-
-        return utils.sparse_to_matrix(kl)
-
-    def apply(self, tmat):
-        m = self.states_not_merged
-        if tmat.shape[0] == m.sum():
-            return tmat * self.weighting_function(self.dq)
-        elif tmat.shape[0] == m.shape[0]:
-            tmat[m][:, m] = tmat[m][:, m] \
-                    * self.weighting_function(self.dq)
-            return tmat
-        else:
-            raise ValueError(
-                "Mismatch in tmat shape. Did you update this kernel?"
-            )
-
-    def __mul__(self, other):
-        if isinstance(other, np.ndarray):
-            return self.apply(other)
-        return NotImplemented
-
-    def update(self, origin, target, new_state):
-        self.states_not_merged[[origin, target]] = False
-        self.states_not_merged[new_state] = True
-        self.full_pop[new_state] = self.full_pop[[origin, target]].sum()
-        self.full_feature[new_state] = self.full_feature[
-            [origin, target]
-        ].sum(axis=0)
-

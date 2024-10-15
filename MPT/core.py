@@ -432,6 +432,9 @@ def cluster(
             # state, target_state, mask = kernel(feature_kernel * full_tmat, full_states, mask)
             state, target_state, mask = kernel(full_tmat, full_states, mask, feature_kernel)
             feature_kernel.update(state, target_state, new_state)
+            # print(f"{state} - {target_state} - {new_state}")
+            # if i == 30:
+            #     exit()
         else:
             state, target_state, mask = kernel(full_tmat, full_states, mask)
 
