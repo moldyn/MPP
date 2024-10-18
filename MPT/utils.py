@@ -227,17 +227,35 @@ def similarity(ref, sto):
                 S[2, i, n_i] = max(S[2, i, n_i], intersect / (sto_ma[j] * ref.full_pop[0, :ref.n_states]).sum())
     return S
 
-def kullback_leibler_probability(transitions, tmat, epsilon=1e-6):
+def kullback_leibler(transitions, tmat, epsilon=1e-6):
     """Return Kallback-Leibler probability"""
     tmat = tmat.copy()
     tmat += epsilon
+    transitions = transitions.copy()
+    transitions /= transitions.sum()
     smoothed_tmat = tmat / np.expand_dims(tmat.sum(axis=1), axis=1)
     kl = scy.stats.entropy(transitions, smoothed_tmat, axis=1)
-    exp_kl = np.exp(-kl)
-    p = exp_kl / exp_kl.sum()
-    return p
+    # exp_kl = np.exp(-kl)
+    # p = exp_kl / exp_kl.sum()
+    return scy.special.softmax(-kl)
 
 def dq_kl(ref, s, e=1e-6):
     k = scy.stats.entropy(ref+e, s+e, axis=1)
     e_kl = np.exp(-k)
     return 1 - e_kl
+
+def jensen_shannon_div(p, q):
+    m = (p + q) / 2
+    return (scy.stats.entropy(p, m, axis=1) + scy.stats.entropy(q, m, axis=1)) / 2
+
+def jensen_shannon(p, q):
+    if p.ndim == 1:
+        p = np.expand_dims(p, axis=0)
+    if q.ndim == 1:
+        q = np.expand_dims(q, axis=0)
+    js = scy.spatial.distance.jensenshannon(p, q, axis=1) ** 2
+    return scy.special.softmax(-js)
+
+def shannon_entropy(p):
+    p = p / sum(p)
+    return -(p * np.log(p)).sum() / np.log(p.shape[0])

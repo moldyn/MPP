@@ -28,11 +28,23 @@ class MPTKernel(object):
     mask (np.ndarray (m)): mask for states that are not yet merged
     params (dict): parameters for the kernel
     """
-    def __init__(self, method="n", param=1, c=0, kullback_leibler=False):
+    def __init__(self, method="n", param=1, cutoff=0, similarity="P", a=1/3, b=1/3, c=1/3, d=1, e=1, f=1):
+        """
+        similarity:
+            - P: probability
+            - KL: Kullback-Leibler
+            - JS: Jensen-Shannon
+        """
         self.method = method
         self.param = param
+        self.cutoff = cutoff
+        self.similarity = similarity
+        self.a = a
+        self.b = b
         self.c = c
-        self.kullback_leibler = kullback_leibler
+        self.d = d
+        self.e = e
+        self.f = f
 
     def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=1):
         # Select state with least self transition probability
@@ -41,24 +53,67 @@ class MPTKernel(object):
         state = states_not_merged[mask][mask_state][0]
         mask[state] = False
     
-        if feature_kernel != 1 and feature_kernel.b != 0:
-            trans_probs = feature_kernel.apply(full_tmat[state], state, mask)[mask]
-        else:
-            trans_probs = full_tmat[state][mask]
+        # if feature_kernel != 1 and feature_kernel.b != 0:
+        #     trans_probs = feature_kernel.apply(full_tmat[state], state, mask)[mask]
+        # else:
+        trans_probs = full_tmat[state][mask]
 
         # Apply cutoff as suggested by Lukas (report 8)
         # c=0: consider all transitions
-        if self.c > 0 and self.c < 1:
+        if self.cutoff > 0 and self.cutoff < 1:
             p_max_i = np.where(trans_probs.max() == trans_probs)
             p_max = trans_probs.max()
-            cutoff_mask = trans_probs > p_max * self.c
+            cutoff_mask = trans_probs > p_max * self.cutoff
             trans_probs = trans_probs[cutoff_mask]
 
+        trans_probs /= trans_probs.sum()
+
         # If Kullback-Leibler divergence is used
-        if self.kullback_leibler:
+        if self.similarity == "KL":
             t = full_tmat[mask][:, mask].copy()
             np.fill_diagonal(t, trans_probs)
-            trans_probs = utils.kullback_leibler_probability(trans_probs, t)
+            f1 = utils.kullback_leibler(trans_probs, t)
+            if feature_kernel != 1:
+                f2 = feature_kernel.kl(state, mask)
+            else:
+                f2 = 0
+        elif self.similarity == "JS":
+            t = full_tmat[mask][:, mask].copy()
+            np.fill_diagonal(t, trans_probs)
+            f1 = utils.jensen_shannon(trans_probs, t)
+            if feature_kernel != 1:
+                f2 = feature_kernel.js(state, mask)
+            else:
+                f2 = 0
+        else:
+            f1 = 0
+            if feature_kernel != 1 and feature_kernel.b != 0:
+                f2 = feature_kernel.apply(full_tmat[state], state, mask)[mask]
+            else:
+                f2 = 0
+
+        if isinstance(f1, np.ndarray):
+            if f1.shape[0] > 1:
+                df1 = f1 - f1.min()
+                f1 = df1 / df1.sum()
+
+        if isinstance(f2, np.ndarray):
+            if f2.shape[0] > 1:
+                df2 = f2 - f2.min()
+                f2 = df2 / df2.sum()
+
+        tr_prob = trans_probs
+        if self.d != 1:
+            tr_prob = tr_prob ** self.d
+            tr_prob /= tr_prob.sum()
+        if self.e != 1 and isinstance(f1, np.ndarray):
+            f1 = f1 ** self.e
+            f1 /= f1.sum()
+        if self.f != 1 and isinstance(f2, np.ndarray):
+            f2 = f2 ** self.f
+            f2 /= f2.sum()
+
+        trans_probs = self.a * tr_prob + self.b * f1 + self.c * f2
 
         # transitions contains indices for masked tmat
         transitions = np.argsort(trans_probs)[::-1]
@@ -76,7 +131,7 @@ class MPTKernel(object):
         p_options = trans_probs[transitions[options]]
         mask_target_state = np.random.choice(transitions[options], p=p_options / sum(p_options))
     
-        if self.c > 0 and self.c < 1:
+        if self.cutoff > 0 and self.cutoff < 1:
             target_state = states_not_merged[mask][cutoff_mask][mask_target_state][0]
         else:
             target_state = states_not_merged[mask][mask_target_state][0]
@@ -150,3 +205,14 @@ class FeatureKernel(object):
             + self.full_feature[target] * self.full_pop[target]
         ) / self.full_pop[new_state]
     
+    def kl(self, state, mask):
+        return utils.kullback_leibler(
+            self.full_feature[state],
+            self.full_feature[mask]
+        )
+
+    def js(self, state, mask):
+        return utils.jensen_shannon(
+            self.full_feature[state],
+            self.full_feature[mask]
+        )

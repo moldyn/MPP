@@ -21,6 +21,7 @@ import matplotlib.patches as patches
 import msmhelper as mh
 from msmhelper._cli.contact_rep import load_clusters
 import MPT.utils as utils
+from MPT.sankey_gap import sankey
 
 
 ### DENDROGRAM ###############################################################
@@ -695,6 +696,32 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid):
         counter += 1
             
 
+### SANKEY ###################################################################
+
+def plot_sankey(cl, ref, out, n_i=0, ax=None):
+    features = []
+    for macrostate in cl.tree[n_i].macrostates:
+        features.append(macrostate.feature)
+    ma_order = np.argsort(features)[::-1]
+    colorDict = {}
+    for i, o in enumerate(ma_order):
+        colorDict[str(i+1)] = cl.tree[n_i].macrostates[o].color
+    if ax is None:
+        pplt.use_style(figsize=(1.0, 2.0), true_black=True)
+    sankey(
+        left=(cl.macrostates_map[n_i] + 1).astype(str),
+        right=(ref.macrostates_map[0] + 1).astype(str),
+        leftWeight=ref.pop,
+        rightWeight=ref.pop,
+        leftLabels=np.arange(1, cl.n_macrostates[n_i] + 1).astype(str).tolist(),
+        rightLabels=np.arange(1, ref.n_macrostates[0] + 1).astype(str).tolist(),
+        colorDict=colorDict,
+        ax=ax,
+    )
+    if ax is None:
+        pplt.savefig(out)
+
+
 
 ### REPORT ###################################################################
 
@@ -732,7 +759,7 @@ def report_stochastic(cl, ref, multi_feature, cluster_file, out, frame_length=0.
     label = f"ana:{os.path.basename(out)}"
 
     lagtime = f"Lagtime: \\SI{{{cl.tlag*frame_length}}}{{\\nano\\second}}"
-    traj_length = f"Traj langth: \\SI{{{cl.traj.shape[0]*frame_length*1e-3:.0f}}}{{\\micro\\second}}"
+    traj_length = f"Traj length: \\SI{{{cl.traj.shape[0]*frame_length*1e-3:.0f}}}{{\\micro\\second}}"
 
     title = f"Stochastic Clustering"
     kernel = f"\\verb|{cl.kernel}|"
@@ -847,7 +874,7 @@ def report_1v1(cl, ref, multi_feature, cluster_file, out, frame_length=0.2):
     label = f"ana:{os.path.basename(out)}"
 
     lagtime = f"Lagtime: \\SI{{{cl.tlag*frame_length}}}{{\\nano\\second}}"
-    traj_length = f"Traj langth: \\SI{{{cl.traj.shape[0]*frame_length*1e-3:.0f}}}{{\\micro\\second}}"
+    traj_length = f"Traj length: \\SI{{{cl.traj.shape[0]*frame_length*1e-3:.0f}}}{{\\micro\\second}}"
 
     title = f"1v1 comparison"
     kernel = f"\\verb|{cl.kernel}|"
@@ -935,7 +962,7 @@ def report(cl, ref, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
     label = f"ana:{os.path.basename(out)}"
 
     lagtime = f"Lagtime: \\SI{{{cl.tlag*frame_length}}}{{\\nano\\second}}"
-    traj_length = f"Traj langth: \\SI{{{cl.traj.shape[0]*frame_length*1e-3:.0f}}}{{\\micro\\second}}"
+    traj_length = f"Traj length: \\SI{{{cl.traj.shape[0]*frame_length*1e-3:.0f}}}{{\\micro\\second}}"
 
     title = f"Clustering"
     kernel = f"\\verb|{cl.kernel}|"

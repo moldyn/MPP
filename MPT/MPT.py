@@ -8,6 +8,7 @@ from tqdm import tqdm
 from typing import Callable
 from numpy.typing import NDArray
 from collections.abc import Iterable
+from sklearn.metrics import davies_bouldin_score
 
 import MPT.core as core
 import MPT.utils as utils
@@ -29,7 +30,8 @@ class MPT(object):
             tlag: int,
             feature_traj: NDArray[np.float_],
             feature_type=np.float64,
-            macrostate_thresholds: tuple = (0.005, 0.5)
+            macrostate_thresholds: tuple = (0.005, 0.5),
+            quiet=False
     ):
         if traj.max() < 2**8:
             traj_type = np.uint8
@@ -45,12 +47,16 @@ class MPT(object):
         self.tmat = tmat.astype(np.float64)
         _, self.pop = np.unique(self.traj, return_counts=True)
         self.n_states = len(states)
+        self.quiet = quiet
         self.add_feature(feature_traj, feature_type)
 
         self._timescales = None
         self._linkage = None
         self._macro_pop = None
         self._tree = None
+        self._shannon_entropy = None
+        self._davies_bouldin_index = None
+        self._reference = None
 
     def mpt(
         self,
@@ -69,8 +75,12 @@ class MPT(object):
 
         self.Z = np.zeros((self.n_runs, self.n_states-1, 4), dtype=np.float64)
         self.full_pop = np.zeros((self.n_runs, 2*self.n_states-1), dtype=np.uint32)
-        print("Clustering ...")
-        for i in tqdm(range(self.n_runs)):
+        if not self.quiet:
+            print("Clustering ...")
+            iter = tqdm(range(self.n_runs))
+        else:
+            iter = range(self.n_runs)
+        for i in iter:
             self.Z[i], self.full_pop[i] = core.cluster(
                 self.tmat,
                 self.pop,
@@ -95,8 +105,12 @@ class MPT(object):
         self.macrotraj = np.zeros((self.traj.shape[0], self.n_runs), dtype=macrotraj_type)
         self.n_macrostates = []
 
-        print("Assigning macrostates ...")
-        for n_i in tqdm(range(self.n_runs)):
+        if not self.quiet:
+            print("Assigning macrostates ...")
+            iter = tqdm(range(self.n_runs))
+        else:
+            iter = range(self.n_runs)
+        for n_i in iter:
             self.macrostate_assignment.append(utils.get_macrostate_assignment_from_tree(self.tree[n_i]))
 
             # Calculate other macrostate related values
@@ -281,3 +295,31 @@ class MPT(object):
     def plot_tmat_times(self, out, n_i=0):
         plot.plot_trans_time(self.macro_tmat[n_i].copy(), out, title="Macrostate Transitiom Times")
 
+    def sankey(self, out, n_i=0, ax=None):
+        plot.plot_sankey(self, self.reference, out, n_i=n_i, ax=ax)
+
+    @property
+    def shannon_entropy(self):
+        """The shannon_entropy property."""
+        if self._shannon_entropy is None:
+            self._shannon_entropy = np.zeros(self.n_runs)
+            for i, pop in enumerate(self.macro_pop):
+                self._shannon_entropy[i] = utils.shannon_entropy(pop)
+        return self._shannon_entropy
+
+    def davies_bouldin_index(self, multi_feature_traj):
+        """The davies_bouldin_index property."""
+        if self._davies_bouldin_index is None:
+            self._davies_bouldin_index = np.zeros(self.n_runs)
+            for i in range(self.n_runs):
+                self._davies_bouldin_index[i] = davies_bouldin_score(multi_feature_traj, self.macrotraj[:, i])
+        return self._davies_bouldin_index
+
+    @property
+    def reference(self):
+        """The reference property."""
+        if self._reference is None:
+            k = kernel_module.MPTKernel()
+            self._reference = MPT(self.traj, self.tlag, self.feature_traj, macrostate_thresholds=(self.pop_thr, self.q_min), quiet=True)
+            self._reference.mpt(k)
+        return self._reference
