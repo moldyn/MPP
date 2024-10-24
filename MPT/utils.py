@@ -125,8 +125,11 @@ def get_grid_format(n):
 
 def gmrq(tmat):
     # Generalized matrix Rayleigh quotient
-    val, vec = np.linalg(tmat)
-    return val[:, :3].sum()
+    q = np.zeros(len(tmat))
+    for i, t in enumerate(tmat):
+        val, vec = np.linalg.eig(t)
+        q[i] = val[:3].sum()
+    return q
 
 def sparse_to_matrix(sparse):
     if not isinstance(sparse, np.ndarray):

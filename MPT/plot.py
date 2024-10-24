@@ -119,6 +119,7 @@ def plot_tree(root, macrostate_assignment, output_file):
             axes.set_xticklabels([], minor=True)
 
     pplt.savefig(output_file)
+    plt.close()
 
 
 ### SIMILARITY ###############################################################
@@ -147,6 +148,7 @@ def evaluate_stochastic_clustering(mpt1, mpt2, out):
     leg = plt.figlegend(["union", "reference", "clustering"], ncols=3, loc='lower center', bbox_to_anchor=(0.5, 0.05))
     plt.tight_layout(rect=(0, 0.04, 1, 1))
     plt.savefig(out)
+    plt.close()
 
 
 ### IMPLIED TIMESCALES #######################################################
@@ -219,6 +221,7 @@ def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, f
 
     plt.tight_layout()
     plt.savefig(out)
+    plt.close()
 
 def _plot_impl_times(impl_times, lagtimes, ax, ls="-"):
     """Plot the implied timescales"""
@@ -253,6 +256,7 @@ def plot_relative_implied_timescales_(cl, ref, out):
     fig.supylabel('Count of Clusterings')
     plt.tight_layout()
     plt.savefig(out)
+    plt.close()
 
 
 def plot_relative_implied_timescales(cl, ref, out):
@@ -282,6 +286,7 @@ def plot_relative_implied_timescales(cl, ref, out):
 
     plt.tight_layout()
     plt.savefig(out)
+    plt.close()
 
 
 ### SIMILARITY MATRIX ########################################################
@@ -308,6 +313,7 @@ def plot_heatmap(a, out, title=""):
     ax.set_ylabel("Macrostate")
     plt.tight_layout()
     plt.savefig(out)
+    plt.close()
 
 def plot_tmat(a, out, title="Transition Matrix", color_thr=0.01):
     """
@@ -387,6 +393,7 @@ def plot_tmat(a, out, title="Transition Matrix", color_thr=0.01):
     ax.set_ylabel("To Macrostate")
     plt.tight_layout()
     plt.savefig(out)
+    plt.close()
 
 def plot_trans_time(
         a,
@@ -483,6 +490,7 @@ def plot_trans_time(
     ax.set_ylabel("To Macrostate")
     plt.tight_layout()
     plt.savefig(out)
+    plt.close()
 
 
 ### MACROSTATE FEATURES ######################################################
@@ -526,6 +534,7 @@ def plot_macro_feature(micro_feature, out, ref=None, pop=None):
     plt.legend(loc="lower left")
     plt.tight_layout()
     plt.savefig(out)
+    plt.close()
 
 def add_ref(macrostate_assignment, macrostate_feature, ax, color="r", label="Reference", weights=None):
     """
@@ -691,8 +700,10 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid):
         path, ext = splitext(output)
         if counter == 0:
             pplt.savefig(output)
+            plt.close()
         else:
             pplt.savefig(f'{path}.state{chunk[0]:.0f}-{chunk[-1]:.0f}{ext}')
+            plt.close()
         counter += 1
             
 
@@ -720,6 +731,7 @@ def plot_sankey(cl, ref, out, n_i=0, ax=None):
     )
     if ax is None:
         pplt.savefig(out)
+        plt.close()
 
 
 
@@ -941,21 +953,129 @@ $t_3={its[0, 2]:.2f}\\cdot t_\\mathrm{{det}}$
         f.write(header)
 
 
-def report(cl, ref, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
+def report(cl, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
     """
     frame_length in ns
     """
+    ref = cl.reference
+
     if not os.path.isdir(out):
         os.makedirs(out)
 
     tex = os.path.join(out, os.path.basename(out)) + ".tex"
 
     dendrogram = os.path.join(out, "dendrogram.pdf")
-    
     cl.plot(dendrogram, n_i)
 
     contact_rep_path = os.path.join(out, "contact_rep.pdf")
     contact_rep(multi_feature, cluster_file, cl.macrotraj[:, n_i], contact_rep_path, (4, 3))
+
+    sankey_path = os.path.join(out, "sankey.pdf")
+    cl.plot_sankey(sankey_path)
+
+    # header
+    # - Title 
+    label = f"ana:{os.path.basename(out)}"
+
+    lagtime = f"Lagtime: \\SI{{{cl.tlag*frame_length}}}{{\\nano\\second}}"
+    traj_length = f"Traj length: \\SI{{{cl.traj.shape[0]*frame_length*1e-3:.0f}}}{{\\micro\\second}}"
+
+    title = f"Clustering"
+    kernel = f"\\verb|{cl.kernel}|"
+    thr = f"$\\mathrm{{pop}}_\\mathrm{{min}}={cl.pop_thr}$, $q_\\mathrm{{min}}={cl.q_min}$"
+    if cl.kernel.method == "n":
+        mode = f"n={cl.kernel.param}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
+    elif cl.kernel.method == "p":
+        mode = f"p=\\SI{{{cl.kernel.param*100:.0f}}}{{\\percent}}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
+    else:
+        mode = ""
+    runs = f"Run {n_i}"
+    its = f"rel its: ${cl.timescales[n_i, 0] / ref.timescales[0, 0]:.2f}\\cdot t_\\mathrm{{ref}}$"
+    thresholds = f"pop: \\SI{{{cl.pop_thr*100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
+
+    if cl.feature_kernel != 1:
+        feature_kernel = f"\\verb|{cl.feature_kernel}|"
+        feature_params = f"$\\sigma$={cl.feature_kernel.sigma}, b={cl.feature_kernel.b}"
+    else:
+        feature_kernel = "No feature\\hspace{2cm}"
+        feature_params = ""
+
+                    # \\item[$t_\\mathrm{{rel}}$] = {cl.timescales[0, 0] / ref.timescales[0, 0]:.2f}
+                    # \\item[$H_\\mathrm{{rel}}$] = {cl.shannon_entropy[0] / ref.shannon_entropy[0]:.2f}
+                    # \\mathrm{{DBI}}_\\mathrm{{rel}} &= {cl.davies_bouldin_index(multi_feature)[0] / ref.davies_bouldin_index(multi_feature)[0]:.2f} \\\\
+                    # \\mathrm{{GMRQ}}_\\mathrm{{rel}} &= {cl.gmrq[0] / ref.gmrq[0]:.2f}
+    header = f"""
+\\newpage
+\\begin{{analysis}}
+\\label{{{label}}}
+
+\\begin{{table}}[H]
+    \\centering
+    \\begin{{tabular}}{{ll}}
+        \\includegraphics[width=0.4\\textwidth]{{{os.path.abspath(sankey_path)}}} &
+        \\begin{{minipage}}{{0.5\\textwidth}}
+            \\vspace{{-0.4\\textheight}}
+            \\begin{{minipage}}{{0.4\\textwidth}}
+                \\begin{{itemize}}
+                    \\setlength\\itemsep{{0.0cm}}
+                    \\item[$t$:] ${cl.timescales[0, 0]:.0f} | {cl.timescales[0, 0] / ref.timescales[0, 0]:.2f}$
+                    \\item[$H$:] ${cl.shannon_entropy[0]:.2f} | {cl.shannon_entropy[0] / ref.shannon_entropy[0]:.2f}$
+                    \\item[$b$] = {cl.kernel.b:.3f}
+                    \\item[$c$] = {cl.kernel.c:.3f}
+                \\end{{itemize}}
+            \\end{{minipage}}
+            \\begin{{minipage}}{{0.58\\textwidth}}
+                \\parbox{{\\textwidth}}{{
+                \\begin{{align*}}
+                    \\mathrm{{DBI}}&: {cl.davies_bouldin_index(multi_feature)[0]:.2f} | {cl.davies_bouldin_index(multi_feature)[0] / ref.davies_bouldin_index(multi_feature)[0]:.2f} \\\\
+                    \\mathrm{{GMRQ}}&: {cl.gmrq[0]:.2f} | {cl.gmrq[0] / ref.gmrq[0]:.2f}
+                \\end{{align*}}}}
+                \\begin{{itemize}}
+                    \\setlength\\itemsep{{0.0cm}}
+                    \\item[T:] Transition probabilities
+                    \\item[$T_\\mathrm{{{cl.kernel.similarity}}}$:] Transition probability similarity
+                    \\item[$F_\\mathrm{{{cl.kernel.similarity}}}$:] Feature similarity
+                \\end{{itemize}}
+            \\end{{minipage}}
+            \\begin{{minipage}}{{\\textwidth}}
+                \\vspace{{0.5cm}}
+                $ P = \\cdot T + b \\cdot T_\\mathrm{{{cl.kernel.similarity}}} + c \\cdot F_\\mathrm{{{cl.kernel.similarity}}} $
+            \\end{{minipage}}
+        \\end{{minipage}}
+    \\end{{tabular}}
+\\end{{table}}
+
+\\vspace{{-1.5cm}}
+\\begin{{figure}}[H]
+    \\centering
+    \\includegraphics[width=0.48\\textwidth]{{{os.path.abspath(dendrogram)}}}
+    \\includegraphics[width=0.48\\textwidth]{{{os.path.abspath(contact_rep_path)}}}
+    \\end{{figure}}
+    \\vspace{{-0.6cm}}
+\\end{{analysis}}
+"""
+
+    with open(tex, "w") as f:
+        f.write(header)
+
+def report_(cl, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
+    """
+    frame_length in ns
+    """
+    ref = cl.reference
+
+    if not os.path.isdir(out):
+        os.makedirs(out)
+
+    tex = os.path.join(out, os.path.basename(out)) + ".tex"
+
+    dendrogram = os.path.join(out, "dendrogram.pdf")
+    cl.plot(dendrogram, n_i)
+
+    contact_rep_path = os.path.join(out, "contact_rep.pdf")
+    contact_rep(multi_feature, cluster_file, cl.macrotraj[:, n_i], contact_rep_path, (4, 3))
+
+    sankey_path = os.path.join(out, "sankey.pdf")
 
     # header
     # - Title 

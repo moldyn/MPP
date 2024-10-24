@@ -1,5 +1,6 @@
 import os
 import datetime
+import warnings
 import numpy as np
 import msmhelper as mh
 import matplotlib.pyplot as plt
@@ -23,24 +24,20 @@ __all__ = [
     "MPT",
 ]
 
+# TODO:
+# - internally change trajectory to 0-based, still support 1-based, ussue warning; Marcotraj as well
+
 class MPT(object):
     def __init__(
             self,
             traj: NDArray[np.int_],
             tlag: int,
-            feature_traj: NDArray[np.float_],
+            feature_traj: NDArray[np.float_]=None,
             feature_type=np.float64,
             macrostate_thresholds: tuple = (0.005, 0.5),
             quiet=False
     ):
-        if traj.max() < 2**8:
-            traj_type = np.uint8
-        elif traj.max() < 2**16:
-            traj_type = np.uint16
-        else:
-            traj_type = np.uint32
-
-        self.traj = traj.astype(traj_type)
+        self.traj = traj
         self.tlag = tlag
         self.pop_thr, self.q_min = macrostate_thresholds
         tmat, states = mh.msm.estimate_markov_model(self.traj, self.tlag)
@@ -48,7 +45,10 @@ class MPT(object):
         _, self.pop = np.unique(self.traj, return_counts=True)
         self.n_states = len(states)
         self.quiet = quiet
-        self.add_feature(feature_traj, feature_type)
+        if feature_traj is not None:
+            self.add_feature(feature_traj, feature_type)
+        else:
+            self.add_feature(np.ones(traj.shape), feature_type)
 
         self._timescales = None
         self._linkage = None
@@ -56,6 +56,7 @@ class MPT(object):
         self._tree = None
         self._shannon_entropy = None
         self._davies_bouldin_index = None
+        self._gmrq = None
         self._reference = None
 
     def mpt(
@@ -295,7 +296,7 @@ class MPT(object):
     def plot_tmat_times(self, out, n_i=0):
         plot.plot_trans_time(self.macro_tmat[n_i].copy(), out, title="Macrostate Transitiom Times")
 
-    def sankey(self, out, n_i=0, ax=None):
+    def plot_sankey(self, out, n_i=0, ax=None):
         plot.plot_sankey(self, self.reference, out, n_i=n_i, ax=ax)
 
     @property
@@ -316,6 +317,13 @@ class MPT(object):
         return self._davies_bouldin_index
 
     @property
+    def gmrq(self):
+        """The gmrq property."""
+        if self._gmrq is None:
+            self._gmrq = utils.gmrq(self.macro_tmat)
+        return self._gmrq
+
+    @property
     def reference(self):
         """The reference property."""
         if self._reference is None:
@@ -323,3 +331,28 @@ class MPT(object):
             self._reference = MPT(self.traj, self.tlag, self.feature_traj, macrostate_thresholds=(self.pop_thr, self.q_min), quiet=True)
             self._reference.mpt(k)
         return self._reference
+
+    @property
+    def traj(self):
+        """The traj property."""
+        return self._traj
+    @traj.setter
+    def traj(self, value):
+        if value.max() < 2**8:
+            traj_type = np.uint8
+        elif value.max() < 2**16:
+            traj_type = np.uint16
+        else:
+            traj_type = np.uint32
+
+        if value.min() == 1:
+            self._traj = value.astype(traj_type)
+            self._traj_base = 1
+            # warnings.warn("1-based trajectory was shifted to 0-based.")
+        elif value.min() == 0:
+            self._traj = value.astype(traj_type) + 1
+            self._traj_base = 0
+            warnings.warn("Still 1-based trajecttory used, thus, shifted to 1-based.")
+        else:
+            raise ValueError("trajectory must be 0 or 1 based")
+        

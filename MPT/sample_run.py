@@ -12,21 +12,25 @@ traj = np.loadtxt(
 feature_traj = np.loadtxt(
     "/path/to/hp35.mindists2.gaussian10f.q"
 )
+# required for contacts representation:
+# multi_feature_traj = np.loadtxt(
+#     "/path/to//hp35.mindists2"
+# )
 
 # save as .pdf
 out = "/path/to/save/dendrogram"
-lagtime = 50 # 10 ns
-n_macrostates = 4
+lagtime = 50 # 50 frames = 10 ns
 
+# Deterministic MPT
 mpt_kernel = MPT.kernel.MPTKernel()
-# sMPT kernel:
-# smpt_kernel = MPT.kernel.SMPTKernel(method="n", param=2)
-mpt = MPT.MPT(traj, lagtime)
-# SMPT allows running multiple clusterings with the same
-# parameters
-# mpt = MPT.SMPT(traj, lagtime)
+
+mpt = MPT.MPT(traj, lagtime, feature_traj)
 mpt.mpt(mpt_kernel)
-mpt.set_macrostates(n_macrostates)
-mpt.add_feature(feature_traj)
-mpt.plot(out)
+# mpt.plot(out)
+
+# list of np.array of dimension [n_macrostates, n_microstates], type bool
+# mpt.macrostate_assignment
+#
+# list of np.array of dimension [n_microstates], type int (index of macrostate for each microstate)
+# mpt.macrostates_map
 

@@ -19,9 +19,23 @@ def run(out):
    
     lagtime = 50
 
-    mpt_kernel = MPT.kernel.MPTKernel()
-    smpt_kernel = MPT.kernel.MPTKernel(method="n", param=2, kullback_leibler=True)
-    # mpt_kernel2 = MPT.kernel.MPTKernel(kullback_leibler=True)
+    p_js_4875 = {
+        "a": -0.31390263446885075,
+        "b": 0.7685878238249264,
+        "c": 0.13041883715594693,
+        "e": 5.682928465388565,
+        "f": 1.4272292032636014,
+    }
+    p_js_loss = {
+        "a": 0.6061912866743351,
+        "b": 0.5945954305784469,
+        "c": 0.9815886167424418,
+        "e": 14.666986771456534,
+        "f": 5.681534627126421,
+    }
+
+    mpt_kernel = MPT.kernel.MPTKernel(similarity="JS", **p_js_loss)
+    smpt_kernel = MPT.kernel.MPTKernel(method="n", param=2)
     # smpt_kernel = MPT.kernel.MPTKernel(method="p", param=1, c=0.15)
     feature_kernel = MPT.kernel.FeatureKernel(multi_feature_traj, traj, sigma=0.05)
     # kl_kernel = MPT.kernel.KLKernel()
@@ -29,24 +43,20 @@ def run(out):
     mpt = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
     mpt.mpt(mpt_kernel)
 
-    smpt = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
     # smpt = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
-    # smpt.mpt(smpt_kernel, n=1000)
-    # smpt.mpt(smpt_kernel, n=10)
-    smpt.mpt(smpt_kernel, feature_kernel=feature_kernel, n=1000)
-    # smpt.mpt(mpt_kernel2)
+    # smpt.mpt(smpt_kernel, feature_kernel=feature_kernel, n=1000)
     
     #MPT.plot.report_1v1(smpt, mpt, multi_feature_traj, cluster_file, out)
-    MPT.plot.report_stochastic(smpt, mpt, multi_feature_traj, cluster_file, out)
-    # MPT.plot.report(smpt, mpt, multi_feature_traj, cluster_file, out)
+    # MPT.plot.report_stochastic(smpt, mpt, multi_feature_traj, cluster_file, out)
+    MPT.plot.report(mpt, multi_feature_traj, cluster_file, out)
 
-    return mpt, smpt
+    return mpt
 
 def main():
     out_base = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/"
     #out = out_base + "img/hp35_det_KL_thr_similarity_89_t.pdf"
     
-    out = out_base + "img/hp35_kl_fnc_kl_n2"
+    out = out_base + "img_v2/hp35_det_js_loss"
     # out = out_base + "img/hp35_smpt_n2_s05_b2"
     # out = out_base + "img/hp35_smpt_c15_s05_b2"
     start = time.time()

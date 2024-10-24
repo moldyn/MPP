@@ -16,6 +16,8 @@ __all__ = [
 
 ### MERGING KERNEL ###########################################################
 
+# TEST:
+# deletion of a, d, e, f
 class MPTKernel(object):
     """
     smpt_kernel
@@ -28,7 +30,7 @@ class MPTKernel(object):
     mask (np.ndarray (m)): mask for states that are not yet merged
     params (dict): parameters for the kernel
     """
-    def __init__(self, method="n", param=1, cutoff=0, similarity="P", a=1/3, b=1/3, c=1/3, d=1, e=1, f=1):
+    def __init__(self, method="n", param=1, cutoff=0, similarity="P", b=1, c=1):
         """
         similarity:
             - P: probability
@@ -39,12 +41,8 @@ class MPTKernel(object):
         self.param = param
         self.cutoff = cutoff
         self.similarity = similarity
-        self.a = a
         self.b = b
         self.c = c
-        self.d = d
-        self.e = e
-        self.f = f
 
     def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=1):
         # Select state with least self transition probability
@@ -102,18 +100,13 @@ class MPTKernel(object):
                 df2 = f2 - f2.min()
                 f2 = df2 / df2.sum()
 
-        tr_prob = trans_probs
-        if self.d != 1:
-            tr_prob = tr_prob ** self.d
-            tr_prob /= tr_prob.sum()
-        if self.e != 1 and isinstance(f1, np.ndarray):
-            f1 = f1 ** self.e
+        tr_prob = trans_probs / trans_probs.sum()
+        if isinstance(f1, np.ndarray):
             f1 /= f1.sum()
-        if self.f != 1 and isinstance(f2, np.ndarray):
-            f2 = f2 ** self.f
+        if isinstance(f2, np.ndarray):
             f2 /= f2.sum()
 
-        trans_probs = self.a * tr_prob + self.b * f1 + self.c * f2
+        trans_probs = tr_prob + self.b * f1 + self.c * f2
 
         # transitions contains indices for masked tmat
         transitions = np.argsort(trans_probs)[::-1]
@@ -143,8 +136,10 @@ class MPTKernel(object):
 
 ### FEATURE KERNEL ###########################################################
 
+# TODO:
+# return only KL or JS. P: calculate 1D fnc - nothing done yet, except similarity property
 class FeatureKernel(object):
-    def __init__(self, feature_traj, microstate_traj, sigma=0.13, b=2, feature_type=np.float64, traj_type=np.uint16):
+    def __init__(self, feature_traj, microstate_traj, sigma=0.13, b=2, feature_type=np.float64, traj_type=np.uint16, similarity="P"):
         """
         feature_traj: either N or NxM, N being the number of frames and M the
                 number of features
@@ -158,6 +153,7 @@ class FeatureKernel(object):
         else:
             raise ValueError("featuretraj must be a 1 D or 2 D array.")
 
+        self.similarity = similarity
         self.sigma = sigma
         self.b = b
 

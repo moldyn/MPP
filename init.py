@@ -16,6 +16,7 @@ import MPT
 traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.selected_contacts.gaussian10f_microstates_pcs5_p153", dtype=np.uint16)
 feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2.gaussian10f.q")
 multi_feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2")
+cluster_file = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindist2.mosaic_clusters"
 
 out_base = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/"
 out = out_base + "img/hp35_dendrogram_det_dc.pdf"
@@ -98,8 +99,8 @@ mpt = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
 mpt.mpt(mpt_kernel)
 
 mpt_fnc = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
-# mpt_fnc.mpt(mpt_kernel, feature_kernel=feature_kernel)
-mpt_fnc.mpt(MPT.kernel.MPTKernel(a=0, b=0, c=1), feature_kernel=lfeature_kernel)
+mpt_fnc.mpt(mpt_kernel, feature_kernel=feature_kernel)
+# mpt_fnc.mpt(MPT.kernel.MPTKernel(a=0, b=0, c=1), feature_kernel=lfeature_kernel)
 
 # mpt_kl = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
 # mpt_kl.mpt(kl_kernel)
