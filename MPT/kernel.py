@@ -51,9 +51,6 @@ class MPTKernel(object):
         state = states_not_merged[mask][mask_state][0]
         mask[state] = False
     
-        # if feature_kernel != 1 and feature_kernel.b != 0:
-        #     trans_probs = feature_kernel.apply(full_tmat[state], state, mask)[mask]
-        # else:
         trans_probs = full_tmat[state][mask]
 
         # Apply cutoff as suggested by Lukas (report 8)
@@ -71,40 +68,24 @@ class MPTKernel(object):
             t = full_tmat[mask][:, mask].copy()
             np.fill_diagonal(t, trans_probs)
             f1 = utils.kullback_leibler(trans_probs, t)
-            if feature_kernel != 1:
-                f2 = feature_kernel.kl(state, mask)
-            else:
-                f2 = 0
         elif self.similarity == "JS":
             t = full_tmat[mask][:, mask].copy()
             np.fill_diagonal(t, trans_probs)
             f1 = utils.jensen_shannon(trans_probs, t)
-            if feature_kernel != 1:
-                f2 = feature_kernel.js(state, mask)
-            else:
-                f2 = 0
         else:
             f1 = 0
-            if feature_kernel != 1 and feature_kernel.b != 0:
-                f2 = feature_kernel.apply(full_tmat[state], state, mask)[mask]
-            else:
-                f2 = 0
 
         if isinstance(f1, np.ndarray):
             if f1.shape[0] > 1:
                 df1 = f1 - f1.min()
                 f1 = df1 / df1.sum()
 
-        if isinstance(f2, np.ndarray):
-            if f2.shape[0] > 1:
-                df2 = f2 - f2.min()
-                f2 = df2 / df2.sum()
-
         tr_prob = trans_probs / trans_probs.sum()
-        if isinstance(f1, np.ndarray):
-            f1 /= f1.sum()
-        if isinstance(f2, np.ndarray):
-            f2 /= f2.sum()
+
+        if feature_kernel != 1:
+            f2 = feature_kernel.apply(full_tmat[state], state, mask)
+        else:
+            f2 = 0
 
         trans_probs = tr_prob + self.b * f1 + self.c * f2
 
@@ -139,23 +120,74 @@ class MPTKernel(object):
 # TODO:
 # return only KL or JS. P: calculate 1D fnc - nothing done yet, except similarity property
 class FeatureKernel(object):
-    def __init__(self, feature_traj, microstate_traj, sigma=0.13, b=2, feature_type=np.float64, traj_type=np.uint16, similarity="P"):
+    def __init__(self, feature_traj, microstate_traj, sigma=0.13, b=2, feature_type=np.float64, traj_type=np.uint16):
         """
         feature_traj: either N or NxM, N being the number of frames and M the
                 number of features
         """
         if len(feature_traj.shape) == 1:
-            self.feature_traj = np.expand_dims(feature_traj.astype(feature_type), -1)
-            self.multidim_feature = False
-        elif len(feature_traj.shape) == 2:
             self.feature_traj = feature_traj.astype(feature_type)
-            self.multidim_feature = True
         else:
-            raise ValueError("featuretraj must be a 1 D or 2 D array.")
+            raise ValueError("featuretraj must be a 1 D array.")
 
-        self.similarity = similarity
         self.sigma = sigma
         self.b = b
+
+        self._init_feature(microstate_traj.astype(traj_type))
+
+    def __repr__(self):
+        return "<class FeatureKernel>"
+    
+    def _init_feature(self, microstate_traj):
+        states, pop = np.unique(microstate_traj, return_counts=True)
+        self.n_states = states.shape[0]
+        # Populations for all states incl intermediate states
+        self.full_pop = np.zeros(2*self.n_states-1, dtype=np.uint32)
+        self.full_pop[:self.n_states] = pop
+        # corresponding feature values
+        self.full_feature = np.zeros(2*self.n_states-1, dtype=self.feature_traj.dtype.type)
+        for i in range(self.n_states):
+            self.full_feature[i] = self.feature_traj[
+                microstate_traj == i+1
+            ].mean()
+
+    def reset(self):
+        self.full_pop[self.n_states:] = 0
+        self.full_feature[self.n_states:] = 0
+
+    def weighting_function(self, dq):
+        a = 1 / (2 * self.sigma ** 2)
+        return np.exp(-a * np.abs(dq) ** self.b)
+
+    def apply(self, trans_probs, state, mask):
+        f = (trans_probs * self.weighting_function(
+            np.abs(self.full_feature - self.full_feature[state])
+        ))[mask]
+        f -= f.min()
+        if f.sum() != 0:
+            return f / f.sum()
+        else:
+            return 0
+
+    def update(self, origin, target, new_state):
+        self.full_pop[new_state] = self.full_pop[[origin, target]].sum()
+        self.full_feature[new_state] = (
+            self.full_feature[origin] * self.full_pop[origin] \
+            + self.full_feature[target] * self.full_pop[target]
+        ) / self.full_pop[new_state]
+
+class MultiFeatureKernel(object):
+    def __init__(self, feature_traj, microstate_traj, feature_type=np.float64, traj_type=np.uint16, similarity="JS"):
+        """
+        feature_traj: either N or NxM, N being the number of frames and M the
+                number of features
+        """
+        if len(feature_traj.shape) == 2:
+            self.feature_traj = feature_traj.astype(feature_type)
+        else:
+            raise ValueError("featuretraj must be a 2 D array.")
+
+        self.similarity = similarity
 
         self._init_feature(microstate_traj.astype(traj_type))
 
@@ -179,20 +211,18 @@ class FeatureKernel(object):
         self.full_pop[self.n_states:] = 0
         self.full_feature[self.n_states:] = 0
 
-    def weighting_function(self, dq):
-        a = 1 / (2 * self.sigma ** 2)
-        return np.exp(-a * np.abs(dq) ** self.b)
-
-    def apply(self, trans_probs, state, mask=None):
-        # m = self.states_not_merged
-        if self.multidim_feature:
-            return trans_probs * self.weighting_function(
-                utils.dq_kl(self.full_feature[state], self.full_feature)
-            )
+    def apply(self, trans_prob, state, mask):
+        if self.similarity == "KL":
+            f = self.kl(state, mask)
+        elif self.similarity == "JS":
+            f = self.js(state, mask)
         else:
-            return trans_probs * self.weighting_function(
-                np.abs(self.full_feature - self.full_feature[state])[:, 0]
-            )
+            raise ValueError(f"Invalid similarity: {self.similarity}")
+        f -= f.min()
+        if f.sum() != 0:
+            return f / f.sum()
+        else:
+            return 0
 
     def update(self, origin, target, new_state):
         self.full_pop[new_state] = self.full_pop[[origin, target]].sum()

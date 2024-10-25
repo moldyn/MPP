@@ -355,4 +355,13 @@ class MPT(object):
             warnings.warn("Still 1-based trajecttory used, thus, shifted to 1-based.")
         else:
             raise ValueError("trajectory must be 0 or 1 based")
+
+    def print_rel(self, multi_feature_traj):
+        for l, i in [
+            ("Implied Timescale: ", self.timescales[0, 0] / self.reference.timescales[0, 0]),
+            ("GMRQ: ", self.gmrq[0] / self.reference.gmrq[0]),
+            ("DBI: ", self.davies_bouldin_index(multi_feature_traj)[0] / self.reference.davies_bouldin_index(multi_feature_traj)[0]),
+            ("H: ", self.shannon_entropy[0] / self.reference.shannon_entropy[0]),
+        ]:
+            print(l + f"{i:.2f}")
         
