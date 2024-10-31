@@ -5,6 +5,7 @@ utils.py
 Utilities for MPT.
 """
 
+import os
 import numpy as np
 from numba import njit
 from itertools import combinations
@@ -12,6 +13,8 @@ from typing import List
 from numpy.typing import NDArray
 import scipy as scy
 import msmhelper as mh
+import mdtraj as md
+from tqdm import tqdm
 
 @njit
 def feature_mean(traj: np.ndarray, feature: np.ndarray):
@@ -262,3 +265,131 @@ def jensen_shannon(p, q):
 def shannon_entropy(p):
     p = p / sum(p)
     return -(p * np.log(p)).sum() / np.log(p.shape[0])
+
+### RMSD #####################################################################
+
+def load_traj(topfile, trajfile):
+    print("Loading trajectory...")
+    top = md.load_topology(topfile)
+    sel = "name CA"
+    traj = md.load_xtc(trajfile, top=top, atom_indices=top.select(sel))
+    return traj
+
+def load_mean_frames(topfile, trajfile, mean_frames, dt=0.1):
+    top = md.load_topology(topfile)
+    idxs = [int(frame.time[0]) / dt for frame in mean_frames]
+    traj = md.join([md.load_xtc(trajfile, top=top, frame=frame) for frame in idxs])
+    return traj
+
+def find_mean_frame(traj):
+    mean_rmsd = np.array([
+        estimate_rmsd(frame, traj)
+        for frame in traj
+    ])
+    mean_frame = traj[np.argmin(mean_rmsd)]
+    return mean_frame
+
+def estimate_rmsd(frame, traj):
+    rmsd = md.rmsd(
+        traj,
+        frame,
+    )
+    return np.mean(rmsd)
+
+def align_trajectory_to_reference(trajectory, reference):
+    """
+    Aligns each frame in the trajectory array to the reference frame using the Kabsch algorithm.
+
+    Parameters:
+    - trajectory: numpy array of shape (N, 35, 3) where N is the number of frames.
+    - reference: numpy array of shape (1, 35, 3) representing the reference points.
+    
+    Returns:
+    - aligned_trajectory: numpy array of shape (N, 35, 3) where each frame is aligned to the reference.
+    """
+    
+    # Extract the reference frame (since reference is of shape (1, 35, 3), we need to squeeze it to (35, 3))
+    reference_frame = reference.squeeze()
+    
+    # Compute the centroid (mean) of the reference points
+    reference_centroid = np.mean(reference_frame, axis=0)
+    
+    # Center the reference points by subtracting the centroid
+    centered_reference = reference_frame - reference_centroid
+
+    # Initialize the array to store the aligned trajectory
+    aligned_trajectory = np.zeros_like(trajectory)
+    
+    # Iterate through each frame in the trajectory
+    for i in range(trajectory.shape[0]):
+        # Extract the current frame
+        current_frame = trajectory[i]
+        
+        # Compute the centroid of the current frame
+        frame_centroid = np.mean(current_frame, axis=0)
+        
+        # Center the current frame by subtracting the centroid
+        centered_frame = current_frame - frame_centroid
+        
+        # Compute the covariance matrix
+        H = np.dot(centered_frame.T, centered_reference)
+        
+        # Compute the Singular Value Decomposition (SVD)
+        U, S, Vt = np.linalg.svd(H)
+        
+        # Compute the optimal rotation matrix
+        R = np.dot(Vt.T, U.T)
+        
+        # Handle special reflection case where the determinant of R is -1
+        if np.linalg.det(R) < 0:
+            Vt[2, :] *= -1
+            R = np.dot(Vt.T, U.T)
+        
+        # Apply the rotation to the centered frame
+        rotated_frame = np.dot(centered_frame, R)
+        
+        # Re-add the reference centroid to align the trajectory in the reference coordinate system
+        aligned_trajectory[i] = rotated_frame + reference_centroid
+
+    return aligned_trajectory
+
+def calc_var(ref, traj):
+    """Calculate RMSD"""
+    aligned_trajectory = align_trajectory_to_reference(traj, ref)
+    d = ((aligned_trajectory - ref) ** 2).sum(axis=2)
+    return np.sqrt(d.mean(axis=0))
+
+def opt_num_batches(n):
+    return int(np.cbrt(n ** 2 / 2))
+
+def calc_rmsd(mpt, n_i=None):
+    if n_i is None:
+        n_i = mpt.n_i
+    t = load_traj(mpt.topology_file, mpt.xtc_trajectory_file)
+    mean_frames = []
+    rmsd = np.empty([mpt.n_macrostates[n_i], t.n_atoms])
+    for j in range(mpt.n_macrostates[n_i]):
+        print(f"Process macrostate {j+1}")
+        m = (mpt.macrotraj[:, n_i] == j + 1)
+        tm = t[m]
+        m_frames = []
+        n_batches = opt_num_batches(mpt.macro_pop[n_i][j])
+        for i in tqdm(range(n_batches)):
+            m_frames.append(find_mean_frame(tm[i::n_batches]))
+        mean_frames.append(find_mean_frame(md.join(m_frames)))
+        rmsd[j] = calc_var(mean_frames[j].xyz, tm.xyz)
+    return rmsd, mean_frames
+
+def write_pdbs(out, vars, top, xtctraj, mean_frames):
+    mean_frames_traj = load_mean_frames(top, xtctraj, mean_frames, dt=0.1)
+    b_factors = np.zeros((mean_frames_traj.n_frames, mean_frames_traj.n_atoms))
+    for frame in range(mean_frames_traj.n_frames):
+        atms = 0
+        for res in mean_frames_traj.topology.residues:
+            new_atms = atms + res.n_atoms
+            b_factors[frame, atms:new_atms] = vars[frame, res.resSeq-1]
+            atms = new_atms
+
+    for i, frame in enumerate(mean_frames_traj):
+        frame.save_pdb(os.path.join(out, f"macrostate_{i+1:02d}.pdb"), bfactors=b_factors[i])
+    print(f"PyMol commnand: 'spectrum b, blue_white_red, minimum={vars.min():.3f}, maximum={vars.max():.3f}'")

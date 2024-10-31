@@ -22,6 +22,7 @@ import msmhelper as mh
 from msmhelper._cli.contact_rep import load_clusters
 import MPT.utils as utils
 from MPT.sankey_gap import sankey
+import MPT.kernel as krnl
 
 
 ### DENDROGRAM ###############################################################
@@ -734,6 +735,80 @@ def plot_sankey(cl, ref, out, n_i=0, ax=None):
         plt.close()
 
 
+### RMSD HEATMAP #############################################################
+
+def plot_rmsd(vars, row_heights, filename=None, num_x_labels=8):
+    """
+    Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
+
+    Parameters:
+    - vars (np.ndarray): The 2D NumPy array to plot. Values must be positive for logarithmic scaling.
+    - row_heights (np.ndarray): 1D array defining the height of each row.
+    - filename (str, optional): If provided, saves the heatmap to this file.
+    """
+    # pplt.use_style(
+    #     figsize=0.8, colors='pastel_autumn', true_black=True, latex=False,
+    # )
+
+    # Ensure all values are positive for logarithmic scaling
+    if np.any(vars <= 0):
+        raise ValueError("All values in `vars` must be positive for logarithmic scaling.")
+    
+    if vars.shape[0] != len(row_heights):
+        raise ValueError("Length of `row_heights` must match the number of rows in `vars`.")
+
+    # Calculate y-axis boundaries using cumulative sum of row heights
+    y_boundaries = np.insert(np.cumsum(row_heights), 0, 0)
+
+    # Generate x-axis boundaries (evenly spaced)
+    x_boundaries = np.arange(vars.shape[1] + 1)
+
+    # Create the heatmap with a logarithmic color scale
+    plt.figure(figsize=(4, 3))
+    plt.pcolormesh(x_boundaries, y_boundaries, vars, cmap="viridis", norm=LogNorm(), shading='flat')
+
+    # Set x-axis labels with 10 evenly spaced labels along the x-axis, ensuring equal intervals
+    num_x_ticks = vars.shape[1]
+    interval = max(1, num_x_ticks // (num_x_labels - 1))
+    x_ticks = np.arange(0, num_x_ticks, interval)
+    if x_ticks[-1] != num_x_ticks - 1:
+        x_ticks = np.append(x_ticks, num_x_ticks - 1)  # Ensure the last label aligns with the array's end
+
+    # Set y-axis labels (start from 1)
+    y_ticks = y_boundaries[:-1] + np.diff(y_boundaries) / 2
+    y_labels = np.arange(1, len(y_ticks) + 1)
+    
+    # Determine spacing threshold based on figure size and row height differences
+    min_spacing = (y_boundaries[-1] - y_boundaries[0]) / len(y_ticks) * 1.0  # Minimum spacing between labels
+    displayed_y_ticks = []
+    displayed_y_labels = []
+    
+    last_displayed_y = -np.inf
+    for y, label in zip(y_ticks, y_labels):
+        if y - last_displayed_y >= min_spacing:  # Only display label if it's far enough from the last one
+            displayed_y_ticks.append(y)
+            displayed_y_labels.append(label)
+            last_displayed_y = y
+
+    plt.xticks(ticks=x_ticks + 0.5, labels=x_ticks + 1)
+    plt.yticks(ticks=displayed_y_ticks, labels=displayed_y_labels)
+    
+    plt.ylabel("Macrostate")
+    plt.xlabel("Residue")
+
+    # Hide grid lines
+    plt.grid(False)
+
+    # Display the colorbar
+    plt.colorbar(label="RMSD / nm")
+
+    # Save to file if filename is provided
+    if filename:
+        plt.savefig(filename, bbox_inches="tight", dpi=100)
+    else:
+        plt.show()
+    plt.close()
+
 
 ### REPORT ###################################################################
 
@@ -955,9 +1030,10 @@ $t_3={its[0, 2]:.2f}\\cdot t_\\mathrm{{det}}$
 
 def report(cl, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
     """
-    frame_length in ns
+    frame_length in ns / frame
     """
     ref = cl.reference
+    cl.n_i = n_i
 
     if not os.path.isdir(out):
         os.makedirs(out)
@@ -973,79 +1049,50 @@ def report(cl, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
     sankey_path = os.path.join(out, "sankey.pdf")
     cl.plot_sankey(sankey_path)
 
+    rmsd_path = os.path.join(out, "rmsd.pdf")
+    cl.plot_rmsd(rmsd_path)
+
     # header
     # - Title 
     label = f"ana:{os.path.basename(out)}"
 
-    lagtime = f"Lagtime: \\SI{{{cl.tlag*frame_length}}}{{\\nano\\second}}"
-    traj_length = f"Traj length: \\SI{{{cl.traj.shape[0]*frame_length*1e-3:.0f}}}{{\\micro\\second}}"
-
-    title = f"Clustering"
-    kernel = f"\\verb|{cl.kernel}|"
-    thr = f"$\\mathrm{{pop}}_\\mathrm{{min}}={cl.pop_thr}$, $q_\\mathrm{{min}}={cl.q_min}$"
-    if cl.kernel.method == "n":
-        mode = f"n={cl.kernel.param}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
-    elif cl.kernel.method == "p":
-        mode = f"p=\\SI{{{cl.kernel.param*100:.0f}}}{{\\percent}}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
+    formula = f"$T + a \\cdot T_\\mathrm{{{cl.kernel.similarity}}}"
+    if isinstance(cl.feature_kernel, krnl.MultiFeatureKernel):
+        feature_term = f" + c \\cdot F_\\mathrm{{{cl.feature_kernel.similarity}}}$"
     else:
-        mode = ""
-    runs = f"Run {n_i}"
-    its = f"rel its: ${cl.timescales[n_i, 0] / ref.timescales[0, 0]:.2f}\\cdot t_\\mathrm{{ref}}$"
-    thresholds = f"pop: \\SI{{{cl.pop_thr*100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
+        feature_term = "$"
+    formula += feature_term
 
-    if cl.feature_kernel != 1:
-        feature_kernel = f"\\verb|{cl.feature_kernel}|"
-        feature_params = f"$\\sigma$={cl.feature_kernel.sigma}, b={cl.feature_kernel.b}"
-    else:
-        feature_kernel = "No feature\\hspace{2cm}"
-        feature_params = ""
+    head_line = f"\\multicolumn{{6}}{{l}}{{{formula}}} && abs. & rel. &&& abs. & rel. \\\\\\toprule"
+    first_line =  f"$b$ & {cl.kernel.b:.2f} & \\quad & $q_\\mathrm{{min}}$ & {cl.q_min:.2f} & \\quad & "
+    first_line += f"$\\tau_1$ & \\SI{{{cl.timescales[0, 0] * frame_length:.0f}}}{{\\nano\\second}} & "
+    first_line += f"{cl.timescales[0, 0] / ref.timescales[0, 0]:.2f} & \\quad"
+    first_line += f"& DBI & {cl.davies_bouldin_index(multi_feature)[0]:.2f} &"
+    first_line += f"{cl.davies_bouldin_index(multi_feature)[0] / ref.davies_bouldin_index(multi_feature)[0]:.2f} \\\\"
+    second_line = f"$c$ & {cl.kernel.c:.2f} & \\quad & $p_\\mathrm{{min}}$ & "
+    second_line += f"{cl.pop_thr:.3f} && $H$ & {cl.shannon_entropy[0]:.2f} & "
+    second_line += f"{cl.shannon_entropy[0] / ref.shannon_entropy[0]:.2f} && "
+    second_line += f"GMRQ & {cl.gmrq[0]:.2f} & {cl.gmrq[0] / ref.gmrq[0]:.2f} \\\\"
 
-                    # \\item[$t_\\mathrm{{rel}}$] = {cl.timescales[0, 0] / ref.timescales[0, 0]:.2f}
-                    # \\item[$H_\\mathrm{{rel}}$] = {cl.shannon_entropy[0] / ref.shannon_entropy[0]:.2f}
-                    # \\mathrm{{DBI}}_\\mathrm{{rel}} &= {cl.davies_bouldin_index(multi_feature)[0] / ref.davies_bouldin_index(multi_feature)[0]:.2f} \\\\
-                    # \\mathrm{{GMRQ}}_\\mathrm{{rel}} &= {cl.gmrq[0] / ref.gmrq[0]:.2f}
-    header = f"""
+
+    tex_file = f"""
 \\newpage
 \\begin{{analysis}}
 \\label{{{label}}}
 
 \\begin{{table}}[H]
-    \\centering
-    \\begin{{tabular}}{{ll}}
-        \\includegraphics[width=0.4\\textwidth]{{{os.path.abspath(sankey_path)}}} &
-        \\begin{{minipage}}{{0.5\\textwidth}}
-            \\vspace{{-0.4\\textheight}}
-            \\begin{{minipage}}{{0.4\\textwidth}}
-                \\begin{{itemize}}
-                    \\setlength\\itemsep{{0.0cm}}
-                    \\item[$t$:] ${cl.timescales[0, 0]:.0f} | {cl.timescales[0, 0] / ref.timescales[0, 0]:.2f}$
-                    \\item[$H$:] ${cl.shannon_entropy[0]:.2f} | {cl.shannon_entropy[0] / ref.shannon_entropy[0]:.2f}$
-                    \\item[$b$] = {cl.kernel.b:.3f}
-                    \\item[$c$] = {cl.kernel.c:.3f}
-                \\end{{itemize}}
-            \\end{{minipage}}
-            \\begin{{minipage}}{{0.58\\textwidth}}
-                \\parbox{{\\textwidth}}{{
-                \\begin{{align*}}
-                    \\mathrm{{DBI}}&: {cl.davies_bouldin_index(multi_feature)[0]:.2f} | {cl.davies_bouldin_index(multi_feature)[0] / ref.davies_bouldin_index(multi_feature)[0]:.2f} \\\\
-                    \\mathrm{{GMRQ}}&: {cl.gmrq[0]:.2f} | {cl.gmrq[0] / ref.gmrq[0]:.2f}
-                \\end{{align*}}}}
-                \\begin{{itemize}}
-                    \\setlength\\itemsep{{0.0cm}}
-                    \\item[T:] Transition probabilities
-                    \\item[$T_\\mathrm{{{cl.kernel.similarity}}}$:] Transition probability similarity
-                    \\item[$F_\\mathrm{{{cl.kernel.similarity}}}$:] Feature similarity
-                \\end{{itemize}}
-            \\end{{minipage}}
-            \\begin{{minipage}}{{\\textwidth}}
-                \\vspace{{0.5cm}}
-                $ P = \\cdot T + b \\cdot T_\\mathrm{{{cl.kernel.similarity}}} + c \\cdot F_\\mathrm{{{cl.kernel.similarity}}} $
-            \\end{{minipage}}
-        \\end{{minipage}}
-    \\end{{tabular}}
+	\\centering
+	\\begin{{tabular}}{{lllllllllllll}}
+        {head_line}
+        {first_line}
+        {second_line}
+	\\end{{tabular}}
 \\end{{table}}
 
-\\vspace{{-1.5cm}}
+\\includegraphics[width=0.34\\textwidth]{{{os.path.abspath(sankey_path)}}}
+\\includegraphics[width=0.64\\textwidth]{{{os.path.abspath(rmsd_path)}}}
+
+\\vspace{{-0.5cm}}
 \\begin{{figure}}[H]
     \\centering
     \\includegraphics[width=0.48\\textwidth]{{{os.path.abspath(dendrogram)}}}
@@ -1054,9 +1101,14 @@ def report(cl, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
     \\vspace{{-0.6cm}}
 \\end{{analysis}}
 """
+                # \\parbox{{\\textwidth}}{{
+                # \\begin{{align*}}
+                #     \\mathrm{{DBI}}&: {cl.davies_bouldin_index(multi_feature)[0]:.2f} | {cl.davies_bouldin_index(multi_feature)[0] / ref.davies_bouldin_index(multi_feature)[0]:.2f} \\\\
+                #     \\mathrm{{GMRQ}}&: {cl.gmrq[0]:.2f} | {cl.gmrq[0] / ref.gmrq[0]:.2f}
+                # \\end{{align*}}}}
 
     with open(tex, "w") as f:
-        f.write(header)
+        f.write(tex_file)
 
 def report_(cl, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
     """
@@ -1133,3 +1185,40 @@ def report_(cl, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
 
     with open(tex, "w") as f:
         f.write(header)
+
+
+# \\begin{{table}}[H]
+#     \\centering
+#     \\begin{{tabular}}{{ll}}
+#         \\includegraphics[width=0.4\\textwidth]{{{os.path.abspath(sankey_path)}}} &
+#         \\begin{{minipage}}{{0.58\\textwidth}}
+#             \\vspace{{-0.45\\textheight}}
+#             \\begin{{minipage}}{{0.38\\textwidth}}
+#                 \\vspace{{-1.95cm}}
+#                 \\begin{{itemize}}
+#                     \\setlength\\itemsep{{0.0cm}}
+#                     \\item[$t$:] ${cl.timescales[0, 0]:.0f} | {cl.timescales[0, 0] / ref.timescales[0, 0]:.2f}$
+#                     \\item[$H$:] ${cl.shannon_entropy[0]:.2f} | {cl.shannon_entropy[0] / ref.shannon_entropy[0]:.2f}$
+#                     \\item[$b$] = {cl.kernel.b:.3f}
+#                     \\item[$c$] = {cl.kernel.c:.3f}
+#                 \\end{{itemize}}
+#             \\end{{minipage}}
+#             \\begin{{minipage}}{{0.08\\textwidth}}
+#             \\end{{minipage}}
+#             \\begin{{minipage}}{{0.55\\textwidth}}
+#                 \\begin{{itemize}}
+#                     \\setlength\\itemsep{{0.0cm}}
+#                     \\item[DBI:] ${cl.davies_bouldin_index(multi_feature)[0]:.2f} | {cl.davies_bouldin_index(multi_feature)[0] / ref.davies_bouldin_index(multi_feature)[0]:.2f}$
+#                     \\item[GMRQ:] ${cl.gmrq[0]:.2f} | {cl.gmrq[0] / ref.gmrq[0]:.2f}$
+#                     \\item[T:] Transition probabilities
+#                     \\item[$T_\\mathrm{{{cl.kernel.similarity}}}$:] Transition probability similarity
+#                     \\item[$F_\\mathrm{{{cl.kernel.similarity}}}$:] Feature similarity
+#                 \\end{{itemize}}
+#             \\end{{minipage}}
+#             \\begin{{minipage}}{{\\textwidth}}
+#                 \\vspace{{0.5cm}}
+#                 $ P = T + b \\cdot T_\\mathrm{{{cl.kernel.similarity}}} + c \\cdot F_\\mathrm{{{cl.kernel.similarity}}} $
+#             \\end{{minipage}}
+#         \\end{{minipage}}
+#     \\end{{tabular}}
+# \\end{{table}}

@@ -58,6 +58,10 @@ class MPT(object):
         self._davies_bouldin_index = None
         self._gmrq = None
         self._reference = None
+        self._topology_file = None
+        self._xtc_trajectory_file = None
+        self._rmsd = None
+        self.n_i = 0
 
     def mpt(
         self,
@@ -364,4 +368,54 @@ class MPT(object):
             ("H: ", self.shannon_entropy[0] / self.reference.shannon_entropy[0]),
         ]:
             print(l + f"{i:.2f}")
-        
+      
+    @property
+    def topology_file(self):
+        """The topology_file property."""
+        if self._topology_file is None:
+            raise ValueError("No topology file set.")
+        return self._topology_file
+    @topology_file.setter
+    def topology_file(self, value):
+        if os.path.isfile(value):
+            self._topology_file = value
+        else:
+            raise FileNotFoundError(f"No such file: {value}")
+
+    @property
+    def xtc_trajectory_file(self):
+        """The xtc_trajectory_file property."""
+        if self._xtc_trajectory_file is None:
+            raise ValueError("No xtc trajectory file set.")
+        return self._xtc_trajectory_file
+    @xtc_trajectory_file.setter
+    def xtc_trajectory_file(self, value):
+        if os.path.isfile(value):
+            self._xtc_trajectory_file = value
+        else:
+            raise FileNotFoundError(f"No such file: {value}")
+
+    @property
+    def rmsd(self):
+        """The rmsd property."""
+        if self._rmsd is None:
+            self._rmsd, self.mean_frames = utils.calc_rmsd(self)
+        return self._rmsd
+
+    def save_rmsd(self, out):
+        np.save(out, self._rmsd)
+
+    def load_rmsd(self, f_name):
+        self._rmsd = np.load(f_name)
+
+    def write_pdbs(self, out):
+        utils.write_pdbs(
+            out,
+            np.log(self.rmsd),
+            self.topology_file,
+            self.xtc_trajectory_file,
+            self.mean_frames
+        )
+
+    def plot_rmsd(self, out, n_i=0):
+        plot.plot_rmsd(self.rmsd, self.macro_pop[n_i], out)
