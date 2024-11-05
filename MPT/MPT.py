@@ -417,5 +417,5 @@ class MPT(object):
             self.mean_frames
         )
 
-    def plot_rmsd(self, out, n_i=0):
-        plot.plot_rmsd(self.rmsd, self.macro_pop[n_i], out)
+    def plot_rmsd(self, out, helices=None, n_i=0):
+        plot.plot_rmsd(self.rmsd, self.macro_pop[n_i], helices, out)

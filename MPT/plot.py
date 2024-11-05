@@ -737,7 +737,113 @@ def plot_sankey(cl, ref, out, n_i=0, ax=None):
 
 ### RMSD HEATMAP #############################################################
 
-def plot_rmsd(vars, row_heights, filename=None, num_x_labels=8):
+def plot_rmsd(vars, row_heights, helices=None, filename=None, num_x_labels=8):
+    """
+    Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
+
+    Parameters:
+    - vars (np.ndarray): The 2D NumPy array to plot. Values must be positive for logarithmic scaling.
+    - row_heights (np.ndarray): 1D array defining the height of each row.
+    - helices (np.ndarray): Array with start and end points for blocks to be indicated in the bottom row.
+    - filename (str, optional): If provided, saves the heatmap to this file.
+    """
+    # Ensure all values are positive for logarithmic scaling
+    if np.any(vars <= 0):
+        raise ValueError("All values in `vars` must be positive for logarithmic scaling.")
+    
+    if vars.shape[0] != len(row_heights):
+        raise ValueError("Length of `row_heights` must match the number of rows in `vars`.")
+
+    # Calculate y-axis boundaries using cumulative sum of row heights
+    y_boundaries = np.insert(np.cumsum(row_heights), 0, 0)
+
+    # Generate x-axis boundaries (evenly spaced)
+    x_boundaries = np.arange(vars.shape[1] + 1)
+
+    # Create the heatmap with a logarithmic color scale
+    # plt.figure(figsize=(4, 3))
+    fig, ax = plt.subplots(figsize=(4, 3))
+    plt.pcolormesh(x_boundaries, y_boundaries, vars, cmap="viridis", norm=LogNorm(), shading='flat') # , edgecolors='black', linewidth=0.5
+        
+    # Draw horizontal lines at each y-boundary
+    for y in y_boundaries:
+        plt.axhline(y=y, color='black', linewidth=0.5)
+
+    if helices is not None:
+        # Add the additional row at the bottom for block indicators
+        plot_height = y_boundaries[-1]  # Total height of the heatmap
+        indicator_row_height = plot_height * 0.05  # 5% of plot height
+        indicator_y = -indicator_row_height * 1.2  # Position for the indicator row
+
+        # Draw the white background for the indicator row
+        plt.fill_between(x_boundaries, indicator_y, 0, color='white')
+
+        # Draw a horizontal line across the indicator row
+        indicator_line = indicator_y + 0.5 * indicator_row_height
+        plt.plot([0, vars.shape[1]], [indicator_line] * 2, color='black', linewidth=0.8)
+
+        # Add black boxes for each block in 'helices'
+        block_height = indicator_row_height * 0.9  # Block height as 90% of the row height
+        for start, end in helices:
+            start -= 1
+            rect = patches.Rectangle(
+                (start, indicator_y + 0.05 * indicator_row_height),  # Position of the block
+                end - start, block_height, color='black'
+            )
+            ax.add_patch(rect)
+    
+        displayed_y_ticks = [indicator_line]
+        displayed_y_labels = ["H"]
+
+    else:
+        displayed_y_ticks = []
+        displayed_y_labels = []
+
+    # Set x-axis labels with 10 evenly spaced labels along the x-axis, ensuring equal intervals
+    num_x_ticks = vars.shape[1]
+    interval = max(1, num_x_ticks // (num_x_labels - 1))
+    x_ticks = np.arange(0, num_x_ticks, interval)
+    if x_ticks[-1] != num_x_ticks - 1:
+        x_ticks = np.append(x_ticks, num_x_ticks - 1)  # Ensure the last label aligns with the array's end
+
+    # Set y-axis labels (start from 1)
+    y_ticks = y_boundaries[:-1] + np.diff(y_boundaries) / 2
+    y_labels = np.arange(1, len(y_ticks) + 1)
+    
+    # Determine spacing threshold based on figure size and row height differences
+    min_spacing = (y_boundaries[-1] - y_boundaries[0]) / len(y_ticks) * 1.0  # Minimum spacing between labels
+    
+    last_displayed_y = -np.inf
+    for y, label in zip(y_ticks, y_labels):
+        if y - last_displayed_y >= min_spacing:  # Only display label if it's far enough from the last one
+            displayed_y_ticks.append(y)
+            displayed_y_labels.append(label)
+            last_displayed_y = y
+
+    plt.xticks(ticks=x_ticks + 0.5, labels=x_ticks + 1)
+    plt.yticks(ticks=displayed_y_ticks, labels=displayed_y_labels)
+
+    if helices is not None:
+        plt.ylim(indicator_y - indicator_row_height * 0.22, y_boundaries[-1])
+    
+    plt.ylabel("Macrostate")
+    plt.xlabel("Residue")
+
+    # Hide grid lines
+    # plt.grid(True, axis="y", mec="k")
+    plt.grid(False)
+
+    # Display the colorbar
+    plt.colorbar(label="RMSD / nm")
+
+    # Save to file if filename is provided
+    if filename:
+        plt.savefig(filename, bbox_inches="tight", dpi=100)
+    else:
+        plt.show()
+    plt.close()
+
+def plot_rmsd_(vars, row_heights, filename=None, num_x_labels=8):
     """
     Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
 
@@ -746,10 +852,6 @@ def plot_rmsd(vars, row_heights, filename=None, num_x_labels=8):
     - row_heights (np.ndarray): 1D array defining the height of each row.
     - filename (str, optional): If provided, saves the heatmap to this file.
     """
-    # pplt.use_style(
-    #     figsize=0.8, colors='pastel_autumn', true_black=True, latex=False,
-    # )
-
     # Ensure all values are positive for logarithmic scaling
     if np.any(vars <= 0):
         raise ValueError("All values in `vars` must be positive for logarithmic scaling.")
@@ -808,6 +910,80 @@ def plot_rmsd(vars, row_heights, filename=None, num_x_labels=8):
     else:
         plt.show()
     plt.close()
+
+
+### TRAJECTORY ###############################################################
+
+def plot_state_trajectory(trajectory, filename):
+    # Calculate unique states and their lengths
+    unique_states, lengths = utils.find_state_lengths(trajectory)
+    x_max = 1.53e5
+    n_rows = int(np.ceil(trajectory.shape[0] / x_max))
+    
+    # Set up figure size proportional to data
+    width = max(6, x_max * 0.0001)  # Minimum width of 6 inches
+    height = max(2, (unique_states.max() - unique_states.min() + 1) * 0.05 * n_rows + 0.6)  # Minimum height of 4 inches
+    
+    
+    # Use a logarithmic color scale for lengths
+    norm = colors.LogNorm(vmin=lengths.min(), vmax=lengths.max())
+    cmap = plt.cm.viridis
+   
+    # plt.figure(figsize=(width, height))
+    a4 = True
+    if a4:
+        figsize = (11.7, 8.3)
+    else:
+        figsize = (width, height)
+
+    fig, axs = plt.subplots(n_rows, 1, sharex=True, figsize=figsize, gridspec_kw={'wspace':0, 'hspace':0})
+    axi = 0
+
+    # Plot each state occurrence as a line segment
+    x_start = 0  # Initial x-coordinate for the first segment
+    for state, length in zip(unique_states, lengths):
+        x_end = x_start + length  # Calculate end position of this segment on the x-axis
+        color = cmap(norm(length))  # Color based on the length, logarithmically scaled
+
+        if x_end <= x_max:
+            # Plot the line segment for the current state
+            # plt.plot([x_start, x_end], [state, state], color=color, linewidth=3, solid_capstyle='butt')
+            axs[axi].plot([x_start, x_end], [state, state], color=color, linewidth=3, solid_capstyle='butt')
+        else:
+            axs[axi].plot([x_start, x_max], [state, state], color=color, linewidth=3, solid_capstyle='butt')
+            x_end -= x_max
+            x_start = 0
+            axi += 1
+            axs[axi].plot([x_start, x_end], [state, state], color=color, linewidth=3, solid_capstyle='butt')
+            
+        
+        # Move x_start to the end of the current segment for the next one
+        x_start = x_end
+
+    # Add color bar to indicate the log-scale of state lengths
+    # sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    # # sm.set_array(lengths)
+    # sm.set_array([])
+    # plt.colorbar(sm, label='Log of State Length')
+    
+    # Label axes and set title
+    # fig.supxlabel("Index in State Sequence")
+    fig.supylabel("State Index")
+    # plt.title("Line Plot of State Trajectory with Length-Color Coding")
+  
+    for ax in axs:
+        # ax.grid(visible=False)
+        ax.set_ylim(unique_states.min() - 1, unique_states.max() + 1)
+
+    # Set axis limits
+    plt.xlim(0, x_max)
+    # plt.ylim(np.min(unique_states) - 0.2, np.max(unique_states) + 0.2)
+  
+    # plt.subplots_adjust(wspace=0, hspace=0)
+    plt.tight_layout()
+    # Save the plot to the specified file
+    plt.savefig(filename)
+    plt.close()  # Close the plot to free memory
 
 
 ### REPORT ###################################################################
@@ -1028,7 +1204,7 @@ $t_3={its[0, 2]:.2f}\\cdot t_\\mathrm{{det}}$
         f.write(header)
 
 
-def report(cl, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
+def report(cl, multi_feature, cluster_file, out, helices=None, n_i=0, frame_length=0.2):
     """
     frame_length in ns / frame
     """
@@ -1050,13 +1226,13 @@ def report(cl, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
     cl.plot_sankey(sankey_path)
 
     rmsd_path = os.path.join(out, "rmsd.pdf")
-    cl.plot_rmsd(rmsd_path)
+    cl.plot_rmsd(rmsd_path, helices)
 
     # header
     # - Title 
     label = f"ana:{os.path.basename(out)}"
 
-    formula = f"$T + a \\cdot T_\\mathrm{{{cl.kernel.similarity}}}"
+    formula = f"$T + b \\cdot T_\\mathrm{{{cl.kernel.similarity}}}"
     if isinstance(cl.feature_kernel, krnl.MultiFeatureKernel):
         feature_term = f" + c \\cdot F_\\mathrm{{{cl.feature_kernel.similarity}}}$"
     else:

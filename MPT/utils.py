@@ -393,3 +393,31 @@ def write_pdbs(out, vars, top, xtctraj, mean_frames):
     for i, frame in enumerate(mean_frames_traj):
         frame.save_pdb(os.path.join(out, f"macrostate_{i+1:02d}.pdb"), bfactors=b_factors[i])
     print(f"PyMol commnand: 'spectrum b, blue_white_red, minimum={vars.min():.3f}, maximum={vars.max():.3f}'")
+
+def find_state_lengths(arr):
+    # Lists to store unique states and their consecutive counts
+    unique_states = []
+    lengths = []
+    
+    # Initialize the first state and its count
+    current_state = arr[0]
+    count = 1
+    
+    # Iterate over the array from the second element onward
+    for value in arr[1:]:
+        if value == current_state:
+            # Increment count if the state is the same
+            count += 1
+        else:
+            # Append the state and its count when a new state is encountered
+            unique_states.append(current_state)
+            lengths.append(count)
+            # Update the current state and reset count
+            current_state = value
+            count = 1
+    
+    # Append the last state and its count
+    unique_states.append(current_state)
+    lengths.append(count)
+    
+    return np.array(unique_states), np.array(lengths)

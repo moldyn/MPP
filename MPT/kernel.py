@@ -16,8 +16,6 @@ __all__ = [
 
 ### MERGING KERNEL ###########################################################
 
-# TEST:
-# deletion of a, d, e, f
 class MPTKernel(object):
     """
     smpt_kernel
@@ -41,6 +39,7 @@ class MPTKernel(object):
         self.param = param
         self.cutoff = cutoff
         self.similarity = similarity
+        self.a = 1
         self.b = b
         self.c = c
 
@@ -87,7 +86,7 @@ class MPTKernel(object):
         else:
             f2 = 0
 
-        trans_probs = tr_prob + self.b * f1 + self.c * f2
+        trans_probs = self.a * tr_prob + self.b * f1 + self.c * f2
 
         # transitions contains indices for masked tmat
         transitions = np.argsort(trans_probs)[::-1]

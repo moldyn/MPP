@@ -24,7 +24,8 @@ ob = "/home/fg149/Dokumente/data_production/rep_lukas_fnc/fnc_weighting_function
 toy = "/home/fg149/Dokumente/data_production/rep_lukas_fnc/toy1/"
 
 top = "/home/fg149/Dokumente/data_source/villin_crystal_number360K.pdb"
-xtc_traj = "/tmp/pnas2012-2f4k-360K-protein-fit.xtc"
+# xtc_traj = "/tmp/pnas2012-2f4k-360K-protein-fit.xtc"
+xtc_traj = "/home/fg149/Dokumente/data_source/pnas2012-2f4k-360K-protein-fit.xtc"
 
 lagtime = 50
 
@@ -56,19 +57,32 @@ jsfeature_kernel = MPT.kernel.MultiFeatureKernel(multi_feature_traj, traj, simil
 # mpt_js = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
 # mpt_js.mpt(js_kernel)
 
-k1 = MPT.kernel.MPTKernel(similarity="KL", b=10.35, c=77)
-k2 = MPT.kernel.MPTKernel(similarity="JS", b=70.1, c=92.5)
+# k1 = MPT.kernel.MPTKernel(similarity="JS", b=55, c=0)
+# k1 = MPT.kernel.MPTKernel(similarity="KL", b=11, c=0)
+k1 = MPT.kernel.MPTKernel(similarity="KL", b=1, c=0)
+k1.a = 0
+# k1 = MPT.kernel.MPTKernel()
+# k2 = MPT.kernel.MPTKernel(similarity="JS", b=70.1, c=92.5)
 m1 = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
-m2 = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
-m1.mpt(k1, feature_kernel=jsfeature_kernel)
-m2.mpt(k2, feature_kernel=jsfeature_kernel)
+# m2 = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
+m1.mpt(k1)
+# m1.mpt(k1, feature_kernel=klfeature_kernel)
+# m2.mpt(k2, feature_kernel=jsfeature_kernel)
 # MPT.plot.report(m1, multi_feature_traj, cluster_file, "/home/fg149/Dokumente/data_production/tmp_dev/r1")
 # MPT.plot.report(m2, multi_feature_traj, cluster_file, "/home/fg149/Dokumente/data_production/tmp_dev/r2")
 # m1.print_rel(multi_feature_traj)
 # m2.print_rel(multi_feature_traj)
 m1.topology_file = top
 m1.xtc_trajectory_file = xtc_traj
-m2.topology_file = top
-m2.xtc_trajectory_file = xtc_traj
+helices = np.array([[3, 10], [14, 19], [22, 32]])
+# m2.topology_file = top
+# m2.xtc_trajectory_file = xtc_traj
 
-MPT.plot.report(m1, multi_feature_traj, cluster_file, "/home/fg149/Dokumente/data_production/tmp_dev/r1")
+
+MPT.plot.report(
+    m1,
+    multi_feature_traj,
+    cluster_file,
+    out_base + "img_v2/hp35_det_KL",
+    helices,
+)
