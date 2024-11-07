@@ -28,20 +28,24 @@ class MPTKernel(object):
     mask (np.ndarray (m)): mask for states that are not yet merged
     params (dict): parameters for the kernel
     """
-    def __init__(self, method="n", param=1, cutoff=0, similarity="P", b=1, c=1):
+    def __init__(self, method="n", param=1, cutoff=0, similarity="P", a=1, b=0, c=0, term="+"):
         """
         similarity:
             - P: probability
             - KL: Kullback-Leibler
             - JS: Jensen-Shannon
+        term:
+            - +: sum
+            - *: product
         """
         self.method = method
         self.param = param
         self.cutoff = cutoff
         self.similarity = similarity
-        self.a = 1
+        self.a = a
         self.b = b
         self.c = c
+        self.term = term
 
     def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=1):
         # Select state with least self transition probability
@@ -86,7 +90,18 @@ class MPTKernel(object):
         else:
             f2 = 0
 
-        trans_probs = self.a * tr_prob + self.b * f1 + self.c * f2
+        if self.term == "+":
+            trans_probs = self.a * tr_prob + self.b * f1 + self.c * f2
+        elif self.term == "*":
+            trans_probs = 1
+            if self.a != 0:
+                trans_probs *= tr_prob
+            if self.b != 0:
+                trans_probs *= f1
+            if self.c != 0:
+                if not isinstance(f2, np.ndarray) and f2 == 0:
+                    f2 = np.array([1.0]) 
+                trans_probs *= f2
 
         # transitions contains indices for masked tmat
         transitions = np.argsort(trans_probs)[::-1]
@@ -176,7 +191,7 @@ class FeatureKernel(object):
         ) / self.full_pop[new_state]
 
 class MultiFeatureKernel(object):
-    def __init__(self, feature_traj, microstate_traj, feature_type=np.float64, traj_type=np.uint16, similarity="JS"):
+    def __init__(self, feature_traj, microstate_traj, feature_type=np.float64, traj_type=np.uint16, similarity="KL"):
         """
         feature_traj: either N or NxM, N being the number of frames and M the
                 number of features

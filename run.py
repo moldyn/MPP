@@ -19,20 +19,30 @@ def run(out):
    
     lagtime = 50
 
-    p_js_4875 = {
-        "a": -0.31390263446885075,
-        "b": 0.7685878238249264,
-        "c": 0.13041883715594693,
-        "e": 5.682928465388565,
-        "f": 1.4272292032636014,
-    }
-    p_js_loss = {
-        "a": 0.6061912866743351,
-        "b": 0.5945954305784469,
-        "c": 0.9815886167424418,
-        "e": 14.666986771456534,
-        "f": 5.681534627126421,
-    }
+    mpt_kernel = MPT.kernel.MPTKernel(similarity="P", a=0, b=0, c=1, term="*")
+    # feature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05)
+    feature_kernel = MPT.kernel.MultiFeatureKernel(multi_feature_traj, traj, similarity="KL")
+
+    mpt = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
+    mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
+
+    # mpt.n_i = np.argmax(mpt.timescales[:, 0])
+    mpt.plot(out + "dendrogram.pdf")
+    mpt.plot_implied_timescales(out + "timescales.pdf")
+    mpt.plot_sankey(out + "sankey.pdf")
+    mpt.plot_contact_rep(multi_feature_traj, cluster_file, out + "contact_rep.pdf")
+    # mpt.plot_relative_implied_timescales(out + "relative_timescales.pdf")
+
+    return mpt
+
+def run_(out):
+    traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.selected_contacts.gaussian10f_microstates_pcs5_p153", dtype=int)
+    feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2.gaussian10f.q")
+    multi_feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2")
+    #multi_feature_traj_file = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2"
+    cluster_file = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindist2.mosaic_clusters"
+   
+    lagtime = 50
 
     mpt_kernel = MPT.kernel.MPTKernel(similarity="JS", **p_js_loss)
     smpt_kernel = MPT.kernel.MPTKernel(method="n", param=2)
@@ -53,10 +63,11 @@ def run(out):
     return mpt
 
 def main():
-    out_base = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/"
+    out_base = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/thesis/"
+    name = "hp35_det_only_KL_contacts/"
     #out = out_base + "img/hp35_det_KL_thr_similarity_89_t.pdf"
     
-    out = out_base + "img_v2/hp35_det_js_loss"
+    out = out_base + name
     # out = out_base + "img/hp35_smpt_n2_s05_b2"
     # out = out_base + "img/hp35_smpt_c15_s05_b2"
     start = time.time()

@@ -156,13 +156,14 @@ def evaluate_stochastic_clustering(mpt1, mpt2, out):
 
 def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, first_ref=False):
     """
-    frame_length in ns
+    frame_length in ns / frame
     """
     if first_ref:
         ref_traj = trajs.pop(0)
     x, y = utils.get_grid_format(len(trajs))
-    pplt.use_style(figsize=(3*x, 2*y), latex=False, colors='pastel_autumn')
+    pplt.use_style(figsize=(3.5*x, 2*y), latex=False, colors='pastel_autumn')
     fig, axs = plt.subplots(y, x, sharex=True, sharey=True)
+    plt.grid(False)
     if not isinstance(axs, np.ndarray):
         axs = np.array([axs])
 
@@ -183,7 +184,8 @@ def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, f
 
     lagtimes_ns = lagtimes * frame_length
     for ax, traj, title in zip(axs.flatten(), trajs, titles):
-        ax.yaxis.set_major_formatter(mtick.LogFormatterSciNotation)
+        ax.axvline(10, color='pplt:grid')
+        # ax.yaxis.set_major_formatter(mtick.LogFormatterSciNotation)
         it = mh.msm.implied_timescales(traj, lagtimes, ntimescales=3)
         # change from frames to ns
         it *= frame_length
@@ -260,7 +262,8 @@ def plot_relative_implied_timescales_(cl, ref, out):
     plt.close()
 
 
-def plot_relative_implied_timescales(cl, ref, out):
+def plot_relative_implied_timescales(cl, out):
+    ref = cl.reference
     its = cl.timescales / ref.timescales
 
     fig = plt.figure(figsize=(8, 2.5))
@@ -273,11 +276,11 @@ def plot_relative_implied_timescales(cl, ref, out):
 
     ax1.hist(its[:, 0], bins=20)
     ax1.set_title("its 1")
-    ax1.set_xlabel(r"Relative Implied Timescale $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{det}}\right)$")
+    ax1.set_xlabel(r"Relative Implied Timescale $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{ref}}\right)$")
     ax1.set_ylabel('Count of Clusterings')
     ax2.hist(its.mean(axis=1), bins=20)
     ax2.set_title(f"Mean its {1}-{3}")
-    ax2.set_xlabel(r"Relative Implied Timescale $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{det}}\right)$")
+    ax2.set_xlabel(r"Relative Implied Timescale $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{ref}}\right)$")
 
     bins = np.array(range(min(cl.n_macrostates)-1, max(cl.n_macrostates)+1)) + 0.5
 
@@ -710,22 +713,22 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid):
 
 ### SANKEY ###################################################################
 
-def plot_sankey(cl, ref, out, n_i=0, ax=None):
+def plot_sankey(cl, ref, out, ax=None):
     features = []
-    for macrostate in cl.tree[n_i].macrostates:
+    for macrostate in cl.tree[cl.n_i].macrostates:
         features.append(macrostate.feature)
     ma_order = np.argsort(features)[::-1]
     colorDict = {}
     for i, o in enumerate(ma_order):
-        colorDict[str(i+1)] = cl.tree[n_i].macrostates[o].color
+        colorDict[str(i+1)] = cl.tree[cl.n_i].macrostates[o].color
     if ax is None:
         pplt.use_style(figsize=(1.0, 2.0), true_black=True)
     sankey(
-        left=(cl.macrostates_map[n_i] + 1).astype(str),
+        left=(cl.macrostates_map[cl.n_i] + 1).astype(str),
         right=(ref.macrostates_map[0] + 1).astype(str),
         leftWeight=ref.pop,
         rightWeight=ref.pop,
-        leftLabels=np.arange(1, cl.n_macrostates[n_i] + 1).astype(str).tolist(),
+        leftLabels=np.arange(1, cl.n_macrostates[cl.n_i] + 1).astype(str).tolist(),
         rightLabels=np.arange(1, ref.n_macrostates[0] + 1).astype(str).tolist(),
         colorDict=colorDict,
         ax=ax,
@@ -834,75 +837,7 @@ def plot_rmsd(vars, row_heights, helices=None, filename=None, num_x_labels=8):
     plt.grid(False)
 
     # Display the colorbar
-    plt.colorbar(label="RMSD / nm")
-
-    # Save to file if filename is provided
-    if filename:
-        plt.savefig(filename, bbox_inches="tight", dpi=100)
-    else:
-        plt.show()
-    plt.close()
-
-def plot_rmsd_(vars, row_heights, filename=None, num_x_labels=8):
-    """
-    Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
-
-    Parameters:
-    - vars (np.ndarray): The 2D NumPy array to plot. Values must be positive for logarithmic scaling.
-    - row_heights (np.ndarray): 1D array defining the height of each row.
-    - filename (str, optional): If provided, saves the heatmap to this file.
-    """
-    # Ensure all values are positive for logarithmic scaling
-    if np.any(vars <= 0):
-        raise ValueError("All values in `vars` must be positive for logarithmic scaling.")
-    
-    if vars.shape[0] != len(row_heights):
-        raise ValueError("Length of `row_heights` must match the number of rows in `vars`.")
-
-    # Calculate y-axis boundaries using cumulative sum of row heights
-    y_boundaries = np.insert(np.cumsum(row_heights), 0, 0)
-
-    # Generate x-axis boundaries (evenly spaced)
-    x_boundaries = np.arange(vars.shape[1] + 1)
-
-    # Create the heatmap with a logarithmic color scale
-    plt.figure(figsize=(4, 3))
-    plt.pcolormesh(x_boundaries, y_boundaries, vars, cmap="viridis", norm=LogNorm(), shading='flat')
-
-    # Set x-axis labels with 10 evenly spaced labels along the x-axis, ensuring equal intervals
-    num_x_ticks = vars.shape[1]
-    interval = max(1, num_x_ticks // (num_x_labels - 1))
-    x_ticks = np.arange(0, num_x_ticks, interval)
-    if x_ticks[-1] != num_x_ticks - 1:
-        x_ticks = np.append(x_ticks, num_x_ticks - 1)  # Ensure the last label aligns with the array's end
-
-    # Set y-axis labels (start from 1)
-    y_ticks = y_boundaries[:-1] + np.diff(y_boundaries) / 2
-    y_labels = np.arange(1, len(y_ticks) + 1)
-    
-    # Determine spacing threshold based on figure size and row height differences
-    min_spacing = (y_boundaries[-1] - y_boundaries[0]) / len(y_ticks) * 1.0  # Minimum spacing between labels
-    displayed_y_ticks = []
-    displayed_y_labels = []
-    
-    last_displayed_y = -np.inf
-    for y, label in zip(y_ticks, y_labels):
-        if y - last_displayed_y >= min_spacing:  # Only display label if it's far enough from the last one
-            displayed_y_ticks.append(y)
-            displayed_y_labels.append(label)
-            last_displayed_y = y
-
-    plt.xticks(ticks=x_ticks + 0.5, labels=x_ticks + 1)
-    plt.yticks(ticks=displayed_y_ticks, labels=displayed_y_labels)
-    
-    plt.ylabel("Macrostate")
-    plt.xlabel("Residue")
-
-    # Hide grid lines
-    plt.grid(False)
-
-    # Display the colorbar
-    plt.colorbar(label="RMSD / nm")
+    plt.colorbar(label="RMSD Variance / nm")
 
     # Save to file if filename is provided
     if filename:

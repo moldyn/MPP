@@ -133,9 +133,9 @@ class MPT(object):
             for j, mb in enumerate(ma.astype(bool)):
                 self.micro_feature[mb, i] = mf[j]
 
-    def plot(self, out: str, n_i: int = 0):
+    def plot(self, out: str):
         """Plot dendrogram"""
-        plot.plot_tree(self.tree[n_i], self.macrostate_assignment[n_i], out)
+        plot.plot_tree(self.tree[self.n_i], self.macrostate_assignment[self.n_i], out)
     
     def __add__(self, other):
         """'+' operator is used to calculate similarity"""
@@ -166,11 +166,22 @@ class MPT(object):
         for i, traj in enumerate(self.macrotraj.T):
             self._timescales[i] = mh.msm.implied_timescales(traj, [self.tlag], ntimescales=ntimescales)[0]
 
-    def plot_timescales(self, out, n_i=0):
+    def plot_implied_timescales(self, out, use_ref=True):
+        if use_ref:
+            ref_traj = self.reference.macrotraj[:, 0]
+        else:
+            ref_traj = self.traj
+        plot.plot_implied_timescales(
+            [ref_traj, self.macrotraj[:, self.n_i]],
+            # [self.traj, self.macrotraj[:, n_i]],
+            np.arange(1, 227, 5),
+            out,
+            first_ref=True
+        )
+
+    def plot_timescales(self, out):
         """Plot implied timescales as histogram and save to out"""
-        if self.timescales == None:
-            self.calc_timescales()
-        plt.hist(self.timescales[n_i][:, 0])
+        plt.hist(self.timescales[self.n_i][:, 0])
         plt.tight_layout()
         plt.savefig(out)
 
@@ -190,14 +201,14 @@ class MPT(object):
         """
         plot.plot_macro_feature(self.micro_feature, out, ref)
 
-    def save_macrotraj(self, out, n_i=0):
+    def save_macrotraj(self, out):
         header = (
             f"# Created by MPT class\n"
             f"# Time: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}\n"
             f"# Trajectory contains {self.n_macrostates[n_i]} states and {self.macrotraj.shape[0]} frames.\n"
-            f"# Trajectory index: {n_i}\n"
+            f"# Trajectory index: {self.n_i}\n"
         )
-        np.savetxt(out, self.macrotraj[:, n_i], fmt="%.0f", header=header)
+        np.savetxt(out, self.macrotraj[:, self.n_i], fmt="%.0f", header=header)
 
     def save_Z(self, out, n_i="all"):
         """Save Z matrix"""
@@ -249,7 +260,7 @@ class MPT(object):
     def linkage(self):
         """The linkage property."""
         if self._linkage == None:
-            self._linkage = utils.Z_to_linkage(self.Z)
+            self._linkage = utils.Z_to_linkage(self.Z[self.n_i])
         return self._linkage
 
     @property
@@ -291,17 +302,17 @@ class MPT(object):
             node.feature = self.feature[node.name]
         return nodes[n + i]
 
-    def plot_graph(self, out, n_i=0, u=0, f=0):
-        draw_knetwork(self.macrotraj[:, n_i], self.tlag, self.feature_traj, out, u=u, f=f)
+    def plot_graph(self, out, u=0, f=0):
+        draw_knetwork(self.macrotraj[:, self.n_i], self.tlag, self.feature_traj, out, u=u, f=f)
 
-    def plot_tmat(self, out, n_i=0):
-        plot.plot_tmat(self.macro_tmat[n_i].copy(), out, title="Macrostate Transitiom Matrix")
+    def plot_tmat(self, out):
+        plot.plot_tmat(self.macro_tmat[self.n_i].copy(), out, title="Macrostate Transitiom Matrix")
 
-    def plot_tmat_times(self, out, n_i=0):
-        plot.plot_trans_time(self.macro_tmat[n_i].copy(), out, title="Macrostate Transitiom Times")
+    def plot_tmat_times(self, out):
+        plot.plot_trans_time(self.macro_tmat[self.n_i].copy(), out, title="Macrostate Transitiom Times")
 
-    def plot_sankey(self, out, n_i=0, ax=None):
-        plot.plot_sankey(self, self.reference, out, n_i=n_i, ax=ax)
+    def plot_sankey(self, out, ax=None):
+        plot.plot_sankey(self, self.reference, out, ax=ax)
 
     @property
     def shannon_entropy(self):
@@ -417,5 +428,17 @@ class MPT(object):
             self.mean_frames
         )
 
-    def plot_rmsd(self, out, helices=None, n_i=0):
-        plot.plot_rmsd(self.rmsd, self.macro_pop[n_i], helices, out)
+    def plot_rmsd(self, out, helices=None):
+        plot.plot_rmsd(self.rmsd, self.macro_pop[self.n_i], helices, out)
+
+    def plot_contact_rep(self, multi_feature_traj, cluster_file, out):
+        plot.contact_rep(
+            multi_feature_traj,
+            cluster_file,
+            self.macrotraj[:, self.n_i],
+            out,
+            utils.get_grid_format(self.n_macrostates[self.n_i])
+        )
+
+    def plot_relative_implied_timescales(self, out):
+        plot.plot_relative_implied_timescales(self, out)

@@ -235,15 +235,17 @@ def similarity(ref, sto):
 
 def kullback_leibler(transitions, tmat, epsilon=1e-6):
     """Return Kallback-Leibler probability"""
-    tmat = tmat.copy()
-    tmat += epsilon
-    transitions = transitions.copy()
-    transitions /= transitions.sum()
-    smoothed_tmat = tmat / np.expand_dims(tmat.sum(axis=1), axis=1)
-    kl = scy.stats.entropy(transitions, smoothed_tmat, axis=1)
-    # exp_kl = np.exp(-kl)
-    # p = exp_kl / exp_kl.sum()
+    kl = scy.stats.entropy(transitions + epsilon, tmat + epsilon, axis=1)
     return scy.special.softmax(-kl)
+
+# def kullback_leibler(transitions, tmat, epsilon=1e-6):
+#     """Return Kallback-Leibler probability"""
+#     tmat = tmat.copy()
+#     tmat += epsilon
+#     transitions = transitions.copy()
+#     smoothed_tmat = tmat / np.expand_dims(tmat.sum(axis=1), axis=1)
+#     kl = scy.stats.entropy(transitions, smoothed_tmat, axis=1)
+#     return scy.special.softmax(-kl)
 
 def dq_kl(ref, s, e=1e-6):
     k = scy.stats.entropy(ref+e, s+e, axis=1)
@@ -357,7 +359,7 @@ def calc_var(ref, traj):
     """Calculate RMSD"""
     aligned_trajectory = align_trajectory_to_reference(traj, ref)
     d = ((aligned_trajectory - ref) ** 2).sum(axis=2)
-    return np.sqrt(d.mean(axis=0))
+    return d.mean(axis=0)
 
 def opt_num_batches(n):
     return int(np.cbrt(n ** 2 / 2))
