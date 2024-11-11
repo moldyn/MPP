@@ -19,9 +19,9 @@ def run(out):
    
     lagtime = 50
 
-    mpt_kernel = MPT.kernel.MPTKernel(similarity="P", a=0, b=0, c=1, term="*")
+    mpt_kernel = MPT.kernel.MPTKernel(similarity="P", a=1, b=0, c=1, term="*")
     # feature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05)
-    feature_kernel = MPT.kernel.MultiFeatureKernel(multi_feature_traj, traj, similarity="KL")
+    feature_kernel = MPT.kernel.MultiFeatureKernel(multi_feature_traj, traj, similarity="JS")
 
     mpt = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
     mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
@@ -32,39 +32,14 @@ def run(out):
     mpt.plot_sankey(out + "sankey.pdf")
     mpt.plot_contact_rep(multi_feature_traj, cluster_file, out + "contact_rep.pdf")
     # mpt.plot_relative_implied_timescales(out + "relative_timescales.pdf")
+    np.savetxt(out + "linkage.txt", mpt.linkage)
 
     return mpt
 
-def run_(out):
-    traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.selected_contacts.gaussian10f_microstates_pcs5_p153", dtype=int)
-    feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2.gaussian10f.q")
-    multi_feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2")
-    #multi_feature_traj_file = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2"
-    cluster_file = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindist2.mosaic_clusters"
-   
-    lagtime = 50
-
-    mpt_kernel = MPT.kernel.MPTKernel(similarity="JS", **p_js_loss)
-    smpt_kernel = MPT.kernel.MPTKernel(method="n", param=2)
-    # smpt_kernel = MPT.kernel.MPTKernel(method="p", param=1, c=0.15)
-    feature_kernel = MPT.kernel.FeatureKernel(multi_feature_traj, traj, sigma=0.05)
-    # kl_kernel = MPT.kernel.KLKernel()
-
-    mpt = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
-    mpt.mpt(mpt_kernel)
-
-    # smpt = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
-    # smpt.mpt(smpt_kernel, feature_kernel=feature_kernel, n=1000)
-    
-    #MPT.plot.report_1v1(smpt, mpt, multi_feature_traj, cluster_file, out)
-    # MPT.plot.report_stochastic(smpt, mpt, multi_feature_traj, cluster_file, out)
-    MPT.plot.report(mpt, multi_feature_traj, cluster_file, out)
-
-    return mpt
 
 def main():
     out_base = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/thesis/"
-    name = "hp35_det_only_KL_contacts/"
+    name = "hp35_det_JS_contacts_mul/"
     #out = out_base + "img/hp35_det_KL_thr_similarity_89_t.pdf"
     
     out = out_base + name

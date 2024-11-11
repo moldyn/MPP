@@ -35,24 +35,27 @@ klfeature_kernel = MPT.kernel.MultiFeatureKernel(multi_feature_traj, traj, simil
 jsfeature_kernel = MPT.kernel.MultiFeatureKernel(multi_feature_traj, traj, similarity="JS")
 
 
-# k1 = MPT.kernel.MPTKernel(similarity="JS", b=55, c=0)
-# k1 = MPT.kernel.MPTKernel(similarity="KL", b=11, c=0)
-k1 = MPT.kernel.MPTKernel(similarity="P", a=1, b=0, c=1, term="*")
+k1 = MPT.kernel.MPTKernel(similarity="P", a=0, b=0, c=1, term="*")
 # k1 = MPT.kernel.MPTKernel()
 m1 = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
 # m1.mpt(k1)
-m1.mpt(k1, feature_kernel=feature_kernel)
-m1.topology_file = top
-m1.xtc_trajectory_file = xtc_traj
-helices = np.array([[3, 10], [14, 19], [22, 32]])
+m1.mpt(k1, feature_kernel=jsfeature_kernel)
+# m1.topology_file = top
+# m1.xtc_trajectory_file = xtc_traj
+# helices = np.array([[3, 10], [14, 19], [22, 32]])
+#
+name = "hp35_det_only_JS_contacts/"
 
-name = "hp35_det_fnc_1/"
 
+# m1.plot(out_thesis + name + "dendrogram.pdf")
+# m1.plot_implied_timescales(out_thesis + name + "timescales.pdf")
+# m1.plot_sankey(out_thesis + name + "sankey.pdf")
+# m1.plot_contact_rep(multi_feature_traj, cluster_file, out_thesis + name + "contact_rep.pdf")
 
-m1.plot(out_thesis + name + "dendrogram.pdf")
-m1.plot_implied_timescales(out_thesis + name + "timescales.pdf")
-m1.plot_sankey(out_thesis + name + "sankey.pdf")
-m1.plot_contact_rep(multi_feature_traj, cluster_file, out_thesis + name + "contact_rep.pdf")
+# m1.plot(out_thesis + name + "dendrogram.pgf", scale=1)
+m1.plot_implied_timescales(out_thesis + name + "timescales.pgf", scale=1)
+# m1.plot_sankey(out_thesis + name + "sankey.pgf", scale=1)
+# m1.plot_contact_rep(multi_feature_traj, cluster_file, out_thesis + name + "contact_rep.pgf", scale=0.8)
 
 # m1.plot_implied_timescales(out_dev + "ts.pdf")
 # MPT.plot.plot_implied_timescales([m1.reference.macrotraj[:, 0], m1.macrotraj[:, 0]], np.arange(1, 152, 5), out_dev + "ts.pdf", first_ref=True)
@@ -64,3 +67,21 @@ m1.plot_contact_rep(multi_feature_traj, cluster_file, out_thesis + name + "conta
 #     out_base + "img_v2/hp35_det_KL",
 #     helices,
 # )
+
+
+# ff = np.zeros((1093, 1093))
+# ix = np.ix_(np.arange(547), np.arange(547))
+# ff[ix] = m1.tmat
+# m = np.zeros(1093).astype(bool)
+# m[:547] = True
+# s = 272
+# fjs = jsfeature_kernel.apply(ff[s], s, m)
+# fkl = klfeature_kernel.apply(ff[s], s, m)
+# fjs.sort()
+# fkl.sort()
+#
+# plt.plot(np.arange(547), fkl, label="KL")
+# plt.plot(np.arange(547), fjs, label="JS")
+# plt.legend()
+# plt.show()
+

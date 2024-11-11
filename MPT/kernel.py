@@ -92,6 +92,8 @@ class MPTKernel(object):
 
         if self.term == "+":
             trans_probs = self.a * tr_prob + self.b * f1 + self.c * f2
+            if not isinstance(trans_probs, np.ndarray) and trans_probs == 0:
+                trans_probs = np.array([1.0]) 
         elif self.term == "*":
             trans_probs = 1
             if self.a != 0:

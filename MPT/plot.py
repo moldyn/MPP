@@ -28,14 +28,14 @@ import MPT.kernel as krnl
 ### DENDROGRAM ###############################################################
 
 
-def plot_tree(root, macrostate_assignment, output_file):
+def plot_tree(root, macrostate_assignment, output_file, scale=1):
     """
     Plot the dendrogram from a given state tree of BinaryTreeNode.
     """
     n_states = len(root.leaves)
 
     # setup matplotlib
-    pplt.use_style(figsize=2.6, figratio='golden', true_black=True)
+    pplt.use_style(figsize=3.2*scale, figratio='golden', true_black=True)
 
     fig, (ax, ax_mat) = plt.subplots(
         2,
@@ -50,7 +50,7 @@ def plot_tree(root, macrostate_assignment, output_file):
 
     ax = root.plot_tree(ax)
 
-    ax.set_ylabel(r'metastability $Q_\text{min}$')
+    ax.set_ylabel(r'metastability $Q_\mathrm{min}$')
     ax.set_xlabel('microstates')
     ax.set_xlim(-0.005 * n_states, 1.005 * n_states)
     ax.set_ylim(0, 1.05)
@@ -59,7 +59,8 @@ def plot_tree(root, macrostate_assignment, output_file):
     cmap = plt.get_cmap('plasma_r', 10)
     bins = np.linspace(0, 1, 11)
     norm = Normalize(bins[0], bins[-1])
-    label = r'$\langle Q \rangle_\text{state} $'
+    # label = r'$\langle Q \rangle_\text{state} $'
+    label = 'fraction of native contacts'
 
     cmappable = ScalarMappable(norm, cmap)
     plt.sca(ax)
@@ -154,14 +155,15 @@ def evaluate_stochastic_clustering(mpt1, mpt2, out):
 
 ### IMPLIED TIMESCALES #######################################################
 
-def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, first_ref=False):
+def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, first_ref=False, scale=1):
     """
     frame_length in ns / frame
     """
     if first_ref:
         ref_traj = trajs.pop(0)
     x, y = utils.get_grid_format(len(trajs))
-    pplt.use_style(figsize=(3.5*x, 2*y), latex=False, colors='pastel_autumn')
+    # pplt.use_style(figsize=(2*x, 2*y), latex=False, colors='pastel_autumn')
+    pplt.use_style(figsize=(2.8*scale, 3.2*scale), latex=False, colors='pastel_autumn')
     fig, axs = plt.subplots(y, x, sharex=True, sharey=True)
     plt.grid(False)
     if not isinstance(axs, np.ndarray):
@@ -222,6 +224,17 @@ def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, f
         for ax in axs[1:]:
             plt.setp(ax.get_yticklabels(), visible=False)
 
+    # Get handles and labels
+    handles, labels = plt.gca().get_legend_handles_labels()
+
+    # Reorder the handles and labels manually to achieve column-major ordering
+    # desired_order = [0, 3, 1, 4, 2, 5]  # Indices in column-major order
+    desired_order = [3, 0, 4, 1, 5, 2]  # Indices in column-major order
+    handles = [handles[i] for i in desired_order]
+    labels = [labels[i] for i in desired_order]
+
+    pplt.legend(handles=handles, labels=labels, outside='top', frameon=False, ncols=3)
+
     plt.tight_layout()
     plt.savefig(out)
     plt.close()
@@ -231,7 +244,7 @@ def _plot_impl_times(impl_times, lagtimes, ax, ls="-"):
     colors = ['#264653', '#2A9D8F', '#E9C46A']
     for idx, impl_time in enumerate(impl_times.T):
         if ls == ":":
-            label = f'$t_{{ref,{idx + 1}}}$'
+            label = f'$t_{{\\mathrm{{ref}},{idx + 1}}}$'
         else:
             label = f'$t_{idx + 1}$'
         ax.plot(lagtimes, impl_time, label=label, color=colors[idx], ls=ls)
@@ -242,7 +255,7 @@ def _plot_impl_times(impl_times, lagtimes, ax, ls="-"):
     # highlight diagonal
     x_i = np.arange(ref_low, xlim[1])
     ax.fill_between(x_i, x_i, color='pplt:grid')
-    pplt.legend(outside='right', frameon=False)
+    # pplt.legend(outside='right', frameon=False)
 
 
 def plot_relative_implied_timescales_(cl, ref, out):
@@ -574,7 +587,7 @@ def add_ref(macrostate_assignment, macrostate_feature, ax, color="r", label="Ref
 
 ### CONTACT REPRESENTATION ###################################################
 
-def contact_rep(contacts, cluster_file, state_traj, output, grid):
+def contact_rep(contacts, cluster_file, state_traj, output, grid, scale=1):
     """
     Adapted from msmhelper.
 
@@ -590,7 +603,7 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid):
     """
     # setup matplotlib
     pplt.use_style(
-        figsize=0.8, colors='pastel_autumn', true_black=True, latex=False,
+        figsize=1.2*scale, colors='pastel_autumn', true_black=True, latex=False,
     )
 
     # load files
@@ -713,7 +726,7 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid):
 
 ### SANKEY ###################################################################
 
-def plot_sankey(cl, ref, out, ax=None):
+def plot_sankey(cl, ref, out, ax=None, scale=1):
     features = []
     for macrostate in cl.tree[cl.n_i].macrostates:
         features.append(macrostate.feature)
@@ -722,7 +735,7 @@ def plot_sankey(cl, ref, out, ax=None):
     for i, o in enumerate(ma_order):
         colorDict[str(i+1)] = cl.tree[cl.n_i].macrostates[o].color
     if ax is None:
-        pplt.use_style(figsize=(1.0, 2.0), true_black=True)
+        pplt.use_style(figsize=(1.7*scale, 3.6*scale), true_black=True)
     sankey(
         left=(cl.macrostates_map[cl.n_i] + 1).astype(str),
         right=(ref.macrostates_map[0] + 1).astype(str),

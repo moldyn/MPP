@@ -133,9 +133,9 @@ class MPT(object):
             for j, mb in enumerate(ma.astype(bool)):
                 self.micro_feature[mb, i] = mf[j]
 
-    def plot(self, out: str):
+    def plot(self, out: str, scale=1):
         """Plot dendrogram"""
-        plot.plot_tree(self.tree[self.n_i], self.macrostate_assignment[self.n_i], out)
+        plot.plot_tree(self.tree[self.n_i], self.macrostate_assignment[self.n_i], out, scale=scale)
     
     def __add__(self, other):
         """'+' operator is used to calculate similarity"""
@@ -166,17 +166,18 @@ class MPT(object):
         for i, traj in enumerate(self.macrotraj.T):
             self._timescales[i] = mh.msm.implied_timescales(traj, [self.tlag], ntimescales=ntimescales)[0]
 
-    def plot_implied_timescales(self, out, use_ref=True):
+    def plot_implied_timescales(self, out, use_ref=True, scale=1):
         if use_ref:
             ref_traj = self.reference.macrotraj[:, 0]
         else:
             ref_traj = self.traj
         plot.plot_implied_timescales(
             [ref_traj, self.macrotraj[:, self.n_i]],
-            # [self.traj, self.macrotraj[:, n_i]],
+            # [self.traj, self.macrotraj[:, self.n_i]],
             np.arange(1, 227, 5),
             out,
-            first_ref=True
+            first_ref=True,
+            scale=scale,
         )
 
     def plot_timescales(self, out):
@@ -311,8 +312,8 @@ class MPT(object):
     def plot_tmat_times(self, out):
         plot.plot_trans_time(self.macro_tmat[self.n_i].copy(), out, title="Macrostate Transitiom Times")
 
-    def plot_sankey(self, out, ax=None):
-        plot.plot_sankey(self, self.reference, out, ax=ax)
+    def plot_sankey(self, out, ax=None, scale=1):
+        plot.plot_sankey(self, self.reference, out, ax=ax, scale=scale)
 
     @property
     def shannon_entropy(self):
@@ -431,13 +432,14 @@ class MPT(object):
     def plot_rmsd(self, out, helices=None):
         plot.plot_rmsd(self.rmsd, self.macro_pop[self.n_i], helices, out)
 
-    def plot_contact_rep(self, multi_feature_traj, cluster_file, out):
+    def plot_contact_rep(self, multi_feature_traj, cluster_file, out, scale=1):
         plot.contact_rep(
             multi_feature_traj,
             cluster_file,
             self.macrotraj[:, self.n_i],
             out,
-            utils.get_grid_format(self.n_macrostates[self.n_i])
+            utils.get_grid_format(self.n_macrostates[self.n_i]),
+            scale=scale,
         )
 
     def plot_relative_implied_timescales(self, out):
