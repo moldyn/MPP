@@ -433,12 +433,36 @@ def get_multi_state_traj(trajs: np.ndarray, limits: np.ndarray):
         current_position += l
     return trajectories
 
-def multi_state_traj_to_tmat(multi_state_traj, tlag):
-    """Calculate combined transition matrix from multi state traj"""
-    states = np.unique(multi_state_traj)
-    tmat_tot = np.zeros((states.shape[0], states.shape[0]))
-    for traj in multi_state_traj:
-        tmat, s = mh.msm.estimate_markov_model(traj, tlag)
-        tmat_tot[np.ix_(s-1, s-1)] += tmat * traj.shape[0]
-    return (tmat_tot.T / tmat_tot.sum(axis=1)).T
+# def multi_state_traj_to_tmat(multi_state_traj, tlag):
+#     """Calculate combined transition matrix from multi state traj"""
+#     states = np.unique(multi_state_traj)
+#     tmat_tot = np.zeros((states.shape[0], states.shape[0]))
+#     for traj in multi_state_traj:
+#         tmat, s = mh.msm.estimate_markov_model(traj, tlag)
+#         tmat_tot[np.ix_(s-1, s-1)] += tmat * traj.shape[0]
+#     return (tmat_tot.T / tmat_tot.sum(axis=1)).T
 
+# def load_stata_traj(traj_file: str, limits_file: str=None) -> List:
+#     """Load trajectories from file and return list of np.ndarray"""
+#     traj = np.loadtxt(traj_file, dtype=np.uint32)
+#     if traj.max() < 2**8:
+#         traj = traj.astype(np.uint8)
+#     elif traj.max() < 2**16:
+#         traj = traj.astype(np.uint16)
+#
+#     if limits_file is None:
+#         return [traj]
+#     else:
+#         return get_multi_state_traj(traj, np.loadtxt(limits_file, dtype=np.int_))
+
+# def load_feature_traj(traj_file: str, limits_file: str=None) -> List:
+#     """Load trajectories from file and return list of np.ndarray"""
+#     traj = np.loadtxt(traj_file)
+#     if limits_file is None:
+#         return [traj]
+#     else:
+#         return get_multi_state_traj(traj, np.loadtxt(limits_file, dtype=np.int_))
+
+
+def fnc_from_multi_feature_traj(multi_feature_traj):
+    return (multi_feature_traj <= 0.45).mean(axis=1)

@@ -6,7 +6,7 @@ import msmhelper as mh
 import matplotlib.pyplot as plt
 
 from tqdm import tqdm
-from typing import Callable
+from typing import Callable, List
 from numpy.typing import NDArray
 from collections.abc import Iterable
 from sklearn.metrics import davies_bouldin_score
@@ -32,17 +32,25 @@ __all__ = [
 class MPT(object):
     def __init__(
             self,
-            traj: NDArray[np.int_],
+            traj: List[NDArray[np.int_]],
             tlag: int,
             feature_traj: NDArray[np.float_]=None,
             feature_type=np.float64,
             macrostate_thresholds: tuple = (0.005, 0.5),
+            limits=None,
             quiet=False
     ):
         self.traj = traj
         self.tlag = tlag
         self.pop_thr, self.q_min = macrostate_thresholds
-        tmat, states = mh.msm.estimate_markov_model(self.traj, self.tlag)
+        self.limits = limits
+        if self.limits is None:
+            tmat, states = mh.msm.estimate_markov_model(self.traj, self.tlag)
+        else:
+            tmat, states = mh.msm.estimate_markov_model(
+                utils.get_multi_state_traj(self.traj, self.limits),
+                self.tlag,
+            )
         self.tmat = tmat.astype(np.float64)
         _, self.pop = np.unique(self.traj, return_counts=True)
         self.n_states = len(states)
@@ -165,10 +173,12 @@ class MPT(object):
     def calc_timescales(self, ntimescales=3, dtype=np.float32):
         """Calculate implied timescales"""
         self._timescales = np.zeros((self.n_runs, ntimescales), dtype=dtype)
+        # TODO: This needs adaption
         for i, traj in enumerate(self.macrotraj.T):
             self._timescales[i] = mh.msm.implied_timescales(traj, [self.tlag], ntimescales=ntimescales)[0]
 
     def plot_implied_timescales(self, out, use_ref=True, scale=1):
+        # TODO: Maybe plot only one? And print the differences to other trajectories?
         if use_ref:
             ref_traj = self.reference.macrotraj[:, 0]
         else:
@@ -251,7 +261,13 @@ class MPT(object):
         
         self.n_runs = self.Z.shape[0]
         # n: number of macrostates
-        tmat, states = mh.msm.estimate_markov_model(self.traj, self.tlag)
+        if self.limits is None:
+            tmat, states = mh.msm.estimate_markov_model(self.traj, self.tlag)
+        else:
+            tmat, states = mh.msm.estimate_markov_model(
+                utils.get_multi_state_traj(self.traj, self.limits),
+                self.tlag,
+            )
         self.tmat = tmat.astype(np.float_)
         _, self.pop = np.unique(self.traj, return_counts=True)
         self.n_states = len(states)

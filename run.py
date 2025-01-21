@@ -12,6 +12,33 @@ import MPT
 
 
 def run_(out):
+    basepath = "/data/evaluation/MPP/stochastic_MPP_Felix/data_source/"
+    traj = np.loadtxt(basepath + "microstates_p100", dtype=int)
+    multi_feature_traj = np.loadtxt(basepath + "dist_all")
+    feature_traj = (multi_feature_traj <= 0.45).mean(axis=1)
+    cluster_file = basepath + "clusters"
+    limits = np.loadtxt(basepath + "limits")
+   
+    lagtime = 50
+
+    mpt_kernel = MPT.kernel.MPTKernel(similarity="P", a=1, b=0, c=80, term="+")
+    # feature_kernel = MPT.kernel.FeatureKernel(feature_traj, traj, sigma=0.05)
+    feature_kernel = MPT.kernel.MultiFeatureKernel(multi_feature_traj, traj, similarity="JS")
+
+    mpt = MPT.MPT(traj, lagtime, feature_traj, macrostate_thresholds=(0.005, 0.5))
+    mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
+    # mpt.mpt(mpt_kernel)
+    
+    mpt.plot(out + "dendrogram.pdf", scale=1)
+    mpt.plot_implied_timescales(out + "timescales.pdf", scale=1)
+    mpt.plot_sankey(out + "sankey.pdf", scale=1)
+    mpt.plot_contact_rep(multi_feature_traj, cluster_file, out + "contact_rep.pdf", scale=1)
+    
+    np.savetxt(out + "linkage.txt", mpt.linkage)
+
+    return mpt
+
+def run_(out):
     traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.selected_contacts.gaussian10f_microstates_pcs5_p153", dtype=int)
     feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2.gaussian10f.q")
     multi_feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2")
