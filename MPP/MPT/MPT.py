@@ -14,7 +14,7 @@ from sklearn.metrics import davies_bouldin_score
 import MPT.core as core
 import MPT.utils as utils
 import MPT.kernel as kernel_module
-from graph import draw_knetwork
+from MPT.graph import draw_knetwork
 
 import MPT.plot as plot
 
