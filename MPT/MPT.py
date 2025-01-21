@@ -25,6 +25,8 @@ __all__ = [
 ]
 
 # TODO:
+# - change traj and macrotraj to list - add one dimension. First, mark all places that need adaptation.
+# - Connect with contacts, check for implications. Float contacts file: /data/PDZ3_Ali/short_ligand/reduction/trans/contacts_analysis/cluster1-7/data/dist_all
 # - internally change trajectory to 0-based, still support 1-based, ussue warning; Marcotraj as well
 
 class MPT(object):
@@ -205,7 +207,7 @@ class MPT(object):
     def save_macrotraj(self, out):
         header = (
             f"# Created by MPT class\n"
-            f"# Time: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}\n"
+            f"# Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
             f"# Trajectory contains {self.n_macrostates[n_i]} states and {self.macrotraj.shape[0]} frames.\n"
             f"# Trajectory index: {self.n_i}\n"
         )

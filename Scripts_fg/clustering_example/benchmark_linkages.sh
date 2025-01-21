@@ -1,1 +1,0 @@
-/bin/python3 /data/MPP_MC/Lukas/Scripts/benchmark_its.py --folder-dir /data/MPP_MC/Lukas/Scripts/clustering_example --traj-benchmark-dir /data/MPP_MC/Lukas/Scripts/clustering_example/hp35.selected_contacts.gaussian10f_microstates_pcs5_p153_linkage.dat_q.pop0.005_qmin0.50.macrotraj --tlag 50 --ntimescales 4 --nbins 20

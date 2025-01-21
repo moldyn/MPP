@@ -7,8 +7,8 @@ import inspect
 import numpy as np
 import matplotlib.pyplot as plt
 
-# import MPT
-#
+import MPT
+
 # traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.selected_contacts.gaussian10f_microstates_pcs5_p153", dtype=np.uint16)
 # feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2.gaussian10f.q")
 # multi_feature_traj = np.loadtxt("/data/evaluation/MPP/stochastic_MPP_Felix/data_production/MPT/MPT/hp35.mindists2")
@@ -30,36 +30,9 @@ import matplotlib.pyplot as plt
 # mpt.add_feature(feature_traj)
 # mpt.assign_macrostates(0.005, 0.5)
 
-o = "/home/fg149/Dokumente/data_production/rep_lukas_fnc/debug/"
-t_fg = np.loadtxt(o + "fg/trans")
-t_ld = np.loadtxt(o + "ld/trans")
-w_fg = np.loadtxt(o + "fg/wf")
-w_ld = np.loadtxt(o + "ld/wf")
 
-def get_list(t):
-    l = []
-    n = int(np.sqrt(t.shape[0] * 2))
-    cs0 = 0
-    cs1 = n
-    for i in range(1, n + 1):
-        l.append(np.array(t[cs0:cs1]))
-        cs0 = cs1
-        cs1 += n - i
-    return l
+limits = np.loadtxt("/data/qMSM_Franzi/Sofia/pdz3/dbc_msm/limits", dtype=np.uint32)
+multi_state_traj = np.loadtxt("/data/qMSM_Franzi/Sofia/pdz3/dbc_msm/microstates_p100", dtype=np.uint16)
 
-def compare_lists(l1, l2):
-    s = []
-    for i in range(len(l1)):
-        s.append((~np.isclose(np.sort(l1[i]), np.sort(l2[i]))).sum())
-    return np.array(s)
-
-def compare_lists_pr(l1, l2):
-    s = []
-    for i in range(len(l1)):
-        s.append((~np.isclose(np.sort(l1[i]), np.sort(l2[i]), rtol=1e-07)).sum())
-    return np.array(s)
-
-l_fg = get_list(t_fg)
-l_ld = get_list(t_ld)
-lw_fg = get_list(w_fg)
-lw_ld = get_list(w_ld)
+trajs = MPT.utils.get_multi_state_traj(multi_state_traj, limits)
+tmat = MPT.utils.multi_state_traj_to_tmat(trajs, 50)

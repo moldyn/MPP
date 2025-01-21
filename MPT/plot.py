@@ -24,6 +24,7 @@ import MPT.utils as utils
 from MPT.sankey_gap import sankey
 import MPT.kernel as krnl
 
+plt.rcParams['font.family'] = 'sans-serif'
 
 ### DENDROGRAM ###############################################################
 
@@ -36,6 +37,7 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1):
 
     # setup matplotlib
     pplt.use_style(figsize=3.2*scale, figratio='golden', true_black=True)
+    plt.rcParams['font.family'] = 'sans-serif'
 
     fig, (ax, ax_mat) = plt.subplots(
         2,

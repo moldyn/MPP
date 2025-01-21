@@ -423,3 +423,22 @@ def find_state_lengths(arr):
     lengths.append(count)
     
     return np.array(unique_states), np.array(lengths)
+
+def get_multi_state_traj(trajs: np.ndarray, limits: np.ndarray):
+    """Load trajectory file containing several concatenated trajectories"""
+    trajectories = []
+    current_position = 0
+    for l in limits:
+        trajectories.append(trajs[current_position:current_position+l])
+        current_position += l
+    return trajectories
+
+def multi_state_traj_to_tmat(multi_state_traj, tlag):
+    """Calculate combined transition matrix from multi state traj"""
+    states = np.unique(multi_state_traj)
+    tmat_tot = np.zeros((states.shape[0], states.shape[0]))
+    for traj in multi_state_traj:
+        tmat, s = mh.msm.estimate_markov_model(traj, tlag)
+        tmat_tot[np.ix_(s-1, s-1)] += tmat * traj.shape[0]
+    return (tmat_tot.T / tmat_tot.sum(axis=1)).T
+

@@ -28,7 +28,7 @@ class MPTKernel(object):
     mask (np.ndarray (m)): mask for states that are not yet merged
     params (dict): parameters for the kernel
     """
-    def __init__(self, method="n", param=1, cutoff=0, similarity="P", a=1, b=0, c=0, term="+"):
+    def __init__(self, method="n", param=1, cutoff=0, similarity="P", a=1, b=0, c=0, term="*"):
         """
         similarity:
             - P: probability
@@ -104,6 +104,9 @@ class MPTKernel(object):
                 if not isinstance(f2, np.ndarray) and f2 == 0:
                     f2 = np.array([1.0]) 
                 trans_probs *= f2
+        trans_probs = np.nan_to_num(trans_probs, copy=False, nan=1e-6)
+        if trans_probs.sum() == 0:
+            trans_probs = f1
 
         # transitions contains indices for masked tmat
         transitions = np.argsort(trans_probs)[::-1]
@@ -119,6 +122,7 @@ class MPTKernel(object):
             raise ValueError("Method must be either 'p' or 'n'.")
      
         p_options = trans_probs[transitions[options]]
+
         mask_target_state = np.random.choice(transitions[options], p=p_options / sum(p_options))
     
         if self.cutoff > 0 and self.cutoff < 1:
@@ -138,7 +142,7 @@ class MPTKernel(object):
 class FeatureKernel(object):
     def __init__(self, feature_traj, microstate_traj, sigma=0.13, b=2, feature_type=np.float64, traj_type=np.uint16):
         """
-        feature_traj: either N or NxM, N being the number of frames and M the
+        feature_traj: either N, N being the number of frames and M the
                 number of features
         """
         if len(feature_traj.shape) == 1:
