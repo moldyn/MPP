@@ -425,7 +425,7 @@ def find_state_lengths(arr):
     return np.array(unique_states), np.array(lengths)
 
 def get_multi_state_traj(trajs: np.ndarray, limits: np.ndarray):
-    """Load trajectory file containing several concatenated trajectories"""
+    """Load trajectory containing several concatenated trajectories"""
     trajectories = []
     current_position = 0
     for l in limits:

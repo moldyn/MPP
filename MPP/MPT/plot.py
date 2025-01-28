@@ -868,6 +868,7 @@ def plot_state_trajectory(trajectory, filename):
     # Calculate unique states and their lengths
     unique_states, lengths = utils.find_state_lengths(trajectory)
     x_max = 1.53e5
+    x_max = 45001
     n_rows = int(np.ceil(trajectory.shape[0] / x_max))
     
     # Set up figure size proportional to data
@@ -880,7 +881,8 @@ def plot_state_trajectory(trajectory, filename):
     cmap = plt.cm.viridis
    
     # plt.figure(figsize=(width, height))
-    a4 = True
+    # a4 = True
+    a4 = False
     if a4:
         figsize = (11.7, 8.3)
     else:

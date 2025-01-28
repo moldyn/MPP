@@ -32,7 +32,8 @@ __all__ = [
 class MPT(object):
     def __init__(
             self,
-            traj: List[NDArray[np.int_]],
+            # traj: List[NDArray[np.int_]],
+            traj: NDArray[np.int_],
             tlag: int,
             feature_traj: NDArray[np.float_]=None,
             feature_type=np.float64,
@@ -173,18 +174,30 @@ class MPT(object):
     def calc_timescales(self, ntimescales=3, dtype=np.float32):
         """Calculate implied timescales"""
         self._timescales = np.zeros((self.n_runs, ntimescales), dtype=dtype)
-        # TODO: This needs adaption
         for i, traj in enumerate(self.macrotraj.T):
-            self._timescales[i] = mh.msm.implied_timescales(traj, [self.tlag], ntimescales=ntimescales)[0]
+            if self.limits is None:
+                self._timescales[i, 0] = mh.msm.implied_timescales(traj, [self.tlag], ntimescales=ntimescales)[0]
+            else:
+                self._timescales[i, 0] = mh.msm.implied_timescales(utils.get_multi_state_traj(self.traj, self.limits), [self.tlag], ntimescales=ntimescales)[0]
 
     def plot_implied_timescales(self, out, use_ref=True, scale=1):
-        # TODO: Maybe plot only one? And print the differences to other trajectories?
+        """
+        out: File to write plot
+        use_ref: If it for reference trajectory should be plotted
+        scale: scaling factor for plot
+        """
         if use_ref:
             ref_traj = self.reference.macrotraj[:, 0]
         else:
             ref_traj = self.traj
+
+        if self.limits is None:
+            macrotraj = self.macrotraj[:, self.n_i]
+        else:
+            macrotraj = utils.get_multi_state_traj(self.macrotraj[:, self.n_i], self.limits)
+
         plot.plot_implied_timescales(
-            [ref_traj, self.macrotraj[:, self.n_i]],
+            [ref_traj, macrotraj],
             # [self.traj, self.macrotraj[:, self.n_i]],
             np.arange(1, 227, 5),
             out,
@@ -362,7 +375,7 @@ class MPT(object):
         """The reference property."""
         if self._reference is None:
             k = kernel_module.MPTKernel()
-            self._reference = MPT(self.traj, self.tlag, self.feature_traj, macrostate_thresholds=(self.pop_thr, self.q_min), quiet=True)
+            self._reference = MPT(self.traj, self.tlag, self.feature_traj, macrostate_thresholds=(self.pop_thr, self.q_min), limits=self.limits, quiet=True)
             self._reference.mpt(k)
         return self._reference
 
@@ -386,7 +399,7 @@ class MPT(object):
         elif value.min() == 0:
             self._traj = value.astype(traj_type) + 1
             self._traj_base = 0
-            warnings.warn("Still 1-based trajecttory used, thus, shifted to 1-based.")
+            warnings.warn("Still 1-based trajecttory used, thus, trajectory was shifted to 1-based.")
         else:
             raise ValueError("trajectory must be 0 or 1 based")
 
