@@ -921,6 +921,8 @@ def plot_state_trajectory(trajectory, filename):
     # Label axes and set title
     # fig.supxlabel("Index in State Sequence")
     fig.supylabel("State Index")
+    # fig.supxlabel("Frames")
+    axs[-1].set_xlabel("Frames")
     # plt.title("Line Plot of State Trajectory with Length-Color Coding")
   
     for ax in axs:

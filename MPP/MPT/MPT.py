@@ -176,9 +176,9 @@ class MPT(object):
         self._timescales = np.zeros((self.n_runs, ntimescales), dtype=dtype)
         for i, traj in enumerate(self.macrotraj.T):
             if self.limits is None:
-                self._timescales[i, 0] = mh.msm.implied_timescales(traj, [self.tlag], ntimescales=ntimescales)[0]
+                self._timescales[i, :] = mh.msm.implied_timescales(traj, [self.tlag], ntimescales=ntimescales)[0]
             else:
-                self._timescales[i, 0] = mh.msm.implied_timescales(utils.get_multi_state_traj(self.traj, self.limits), [self.tlag], ntimescales=ntimescales)[0]
+                self._timescales[i, :] = mh.msm.implied_timescales(utils.get_multi_state_traj(traj, self.limits), [self.tlag], ntimescales=ntimescales)[0]
 
     def plot_implied_timescales(self, out, use_ref=True, scale=1):
         """

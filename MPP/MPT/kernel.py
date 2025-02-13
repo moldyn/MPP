@@ -28,7 +28,7 @@ class MPTKernel(object):
     mask (np.ndarray (m)): mask for states that are not yet merged
     params (dict): parameters for the kernel
     """
-    def __init__(self, method="n", param=1, cutoff=0, similarity="P", a=1, b=0, c=0, term="*"):
+    def __init__(self, method="n", param=1, cutoff=0, similarity="P", term="*"):
         """
         similarity:
             - P: probability
@@ -38,16 +38,27 @@ class MPTKernel(object):
             - +: sum
             - *: product
         """
+        # , a=1, b=0, c=0
         self.method = method
         self.param = param
         self.cutoff = cutoff
         self.similarity = similarity
-        self.a = a
-        self.b = b
-        self.c = c
+        if self.similarity == "P":
+            self.a = 1
+            self.b = 0
+        elif self.similarity == "KL" or self.similarity == "JS":
+            self.a = 0
+            self.b = 1
+        # self.a = a
+        # self.b = b
+        self.c = 0
         self.term = term
 
     def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=1):
+        if feature_kernel == 1:
+            self.c = 0
+        else:
+            self.c = 1
         # Select state with least self transition probability
         mask_state = np.argmin(np.diag(full_tmat)[mask])
         # Get correct state index
@@ -212,7 +223,7 @@ class MultiFeatureKernel(object):
         self._init_feature(microstate_traj.astype(traj_type))
 
     def __repr__(self):
-        return "<class FeatureKernel>"
+        return "<class MultiFeatureKernel>"
     
     def _init_feature(self, microstate_traj):
         states, pop = np.unique(microstate_traj, return_counts=True)
