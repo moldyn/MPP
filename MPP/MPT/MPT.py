@@ -346,6 +346,9 @@ class MPT(object):
     def plot_sankey(self, out, ax=None, scale=1):
         plot.plot_sankey(self, self.reference, out, ax=ax, scale=scale)
 
+    def plot_macrotraj(self, out):
+        plot.plot_state_trajectory(self.macrotraj[:, self.n_i], out)
+
     @property
     def shannon_entropy(self):
         """The shannon_entropy property."""

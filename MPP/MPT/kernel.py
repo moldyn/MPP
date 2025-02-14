@@ -17,17 +17,6 @@ __all__ = [
 ### MERGING KERNEL ###########################################################
 
 class MPTKernel(object):
-    """
-    smpt_kernel
-    -----------
-    Stochastic MPT kernel to determine states that are merged next.
-
-    full_tmat (np.ndarray (m, m)): m = n(n+1); Transition matrix for all
-            states, including not yet defined states
-    states_not_merged (np.ndarray (m, 2)): complete linkage
-    mask (np.ndarray (m)): mask for states that are not yet merged
-    params (dict): parameters for the kernel
-    """
     def __init__(self, method="n", param=1, cutoff=0, similarity="P", term="*"):
         """
         similarity:
@@ -151,7 +140,7 @@ class MPTKernel(object):
 # TODO:
 # return only KL or JS. P: calculate 1D fnc - nothing done yet, except similarity property
 class FeatureKernel(object):
-    def __init__(self, feature_traj, microstate_traj, sigma=0.13, b=2, feature_type=np.float64, traj_type=np.uint16):
+    def __init__(self, feature_traj, microstate_traj, sigma=0.05, b=2, feature_type=np.float64, traj_type=np.uint16):
         """
         feature_traj: either N, N being the number of frames and M the
                 number of features
