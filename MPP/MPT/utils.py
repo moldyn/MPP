@@ -169,7 +169,7 @@ def linkage_to_Z(linkage, pop):
     Z[:, 3] = full_pop[n_states:]
     return Z, full_pop
 
-def merge_states(tmat, states, new_state, full_pop):
+def merge_states(tmat, states, new_state, full_pop, reset_states=True):
     full_pop[new_state] = full_pop[states].sum()
 
     tmat[new_state] = (
@@ -177,9 +177,39 @@ def merge_states(tmat, states, new_state, full_pop):
     ).sum(axis=0) / full_pop[new_state]
 
     tmat[:, new_state] = tmat[:, states].sum(axis=1)
-    tmat[:, states] = 0
-    tmat[states, :] = 0
+    if reset_states:
+        tmat[:, states] = 0
+        tmat[states, :] = 0
     return tmat, full_pop
+
+def calc_full_tmat(tmat, pop, Z):
+    """Calculate full tmat for a give Z matrix"""
+    # Ensure that Z is 3D
+    if Z.ndim == 2:
+        Z = Z.reshape((1, *Z.shape))
+
+    # Initialize full_tmat and full_pop
+    n_states = tmat.shape[0]
+    full_dim = 2 * n_states - 1
+    n_runs = Z.shape[0]
+    full_tmat = np.empty((n_runs, full_dim, full_dim))
+    full_pop = np.empty((n_runs, full_dim), dtype=np.uint32)
+
+    full_tmat[:, :n_states, :n_states] = tmat
+    full_pop[:, :n_states] = pop
+
+    for run, z in enumerate(Z):
+        for i, (origin, target) in enumerate(z[:, :2].astype(int)):
+            full_tmat[run], full_pop[run] = merge_states(
+                full_tmat[run],
+                [origin, target],
+                n_states + i,
+                full_pop[run],
+                reset_states=False,
+            )
+            # full_tmat[run, n_states+i] = fm[n_states+i]
+            # full_tmat[run, :, n_states+i] = fm[:, n_states+i]
+    return full_tmat, full_pop
 
 def get_macrostate_tmat_from_assignment(tmat, pop, macrostate_assignment):
     """
@@ -267,6 +297,98 @@ def jensen_shannon(p, q):
 def shannon_entropy(p):
     p = p / sum(p)
     return -(p * np.log(p)).sum() / np.log(p.shape[0])
+
+### Delta function for correlation plot ######################################
+
+def dq_kernel_P(full_tmat, mask):
+    """Kernel for transition probabilities"""
+    n = mask.sum()
+    idx = np.where(np.tri(n, n, -1).T)
+    return full_tmat[mask][idx]
+
+def dq_kernel_fnc(full_feature, mask):
+    """Kernel for difference in fraction of native contacts"""
+    n = mask.sum()
+    c = list(combinations(range(n), 2))
+    return abs(np.diff(full_feature[mask][c]).flatten())
+
+def dq_kernel_KLP(full_tmat, mask):
+    """Kerenl for Kullback-Leibler probabilities"""
+    tmat = full_tmat[np.ix_(mask, mask)]
+    r = np.roll(np.arange(mask.sum()-1, -1, -1), 1).cumsum()
+    start = r[:-1]
+    end = r[1:]
+    klp = np.empty(r[-1])
+    for i, trans_probs in enumerate(tmat[:-1]):
+        t = tmat.copy()
+        np.fill_diagonal(t, trans_probs)
+        t[:, i] = trans_probs[i]
+        kl = kullback_leibler(trans_probs, t[i+1:])
+        # Renormalize
+        if True:
+            if kl.shape[0] > 1:
+                kl = kl - kl.min()
+                kl = kl / kl.sum()
+        klp[start[i]:end[i]] = kl
+    return klp
+
+def dq_kernel_JSC(full_feature, mask):
+    """Kernel for Jensen-Shannon contacts"""
+    feature = full_feature[np.ix_(mask)]
+    r = np.roll(np.arange(mask.sum()-1, -1, -1), 1).cumsum()
+    start = r[:-1]
+    end = r[1:]
+    jsc = np.empty(r[-1])
+    for i, feature_state in enumerate(feature[:-1]):
+        js = jensen_shannon(feature_state, feature[i+1:])
+        # Renormalize
+        if True:
+            if js.shape[0] > 1:
+                js = js - js.min()
+                js = js / js.sum()
+        jsc[start[i]:end[i]] = js
+    return jsc
+
+def dq_kernel_pop(full_pop, mask):
+    """Kernel for sum of population of merged states"""
+    n = mask.sum()
+    c = list(combinations(range(n), 2))
+    return full_pop[mask][c].sum(axis=1)
+
+def dq(full_feature, Z, similarity="P"):
+    """
+    feature (np.ndarray): array containing the data
+    Z (np.ndarray): Z matrix (2D, only for one run)
+    similarity (str):
+        P: transition probability (full_tmat)
+        fnc: difference in fnc (full_feature)
+        KLP: Kullback-Leibler probabilities (full_tmat)
+        JSC: Jensen-Shannon contacts (full_feature)
+        pop: population (full_pop)
+
+    returns a list of arrays, one array for each stage of the lumping
+    """
+    n_states = Z.shape[0] + 1
+    mask = np.full(2 * n_states - 1, False)
+    mask[:n_states] = True
+    stages = []
+    if similarity == "P":
+        dq_kernel = dq_kernel_P
+    elif similarity == "fnc":
+        dq_kernel = dq_kernel_fnc
+    elif similarity == "KLP":
+        dq_kernel = dq_kernel_KLP
+    elif similarity == "JSC":
+        dq_kernel = dq_kernel_JSC
+    elif similarity == "pop":
+        dq_kernel = dq_kernel_pop
+
+    for i, (origin, target) in enumerate(Z[:, :2].astype(int)):
+        stages.append(dq_kernel(full_feature, mask))
+        mask[n_states + i] = True
+        mask[[origin, target]] = False
+    return stages
+
 
 ### RMSD #####################################################################
 

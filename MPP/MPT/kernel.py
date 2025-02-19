@@ -137,8 +137,6 @@ class MPTKernel(object):
 
 ### FEATURE KERNEL ###########################################################
 
-# TODO:
-# return only KL or JS. P: calculate 1D fnc - nothing done yet, except similarity property
 class FeatureKernel(object):
     def __init__(self, feature_traj, microstate_traj, sigma=0.05, b=2, feature_type=np.float64, traj_type=np.uint16):
         """
@@ -195,6 +193,22 @@ class FeatureKernel(object):
             self.full_feature[origin] * self.full_pop[origin] \
             + self.full_feature[target] * self.full_pop[target]
         ) / self.full_pop[new_state]
+
+    def full_feature_from_Z(self, Z):
+        # Ensure that Z is 3D
+        if Z.ndim == 2:
+            Z = Z.reshape((1, *Z.shape))
+    
+        full_dim = 2 * self.n_states - 1
+
+        self.n_full_feature = np.empty((Z.shape[0], full_dim))
+        self.n_full_feature[:, :self.n_states] = self.full_feature[:self.n_states]
+        for run, z in enumerate(Z):
+            self.reset()
+            for i, (origin, target) in enumerate(z[:, :2].astype(int)):
+                self.update(origin, target, self.n_states + i)
+            self.n_full_feature[run, self.n_states:] = self.full_feature[self.n_states:]
+        return self.n_full_feature
 
 class MultiFeatureKernel(object):
     def __init__(self, feature_traj, microstate_traj, feature_type=np.float64, traj_type=np.uint16, similarity="KL"):
@@ -262,3 +276,19 @@ class MultiFeatureKernel(object):
             self.full_feature[state],
             self.full_feature[mask]
         )
+
+    def full_feature_from_Z(self, Z):
+        # Ensure that Z is 3D
+        if Z.ndim == 2:
+            Z = Z.reshape((1, *Z.shape))
+    
+        full_dim = 2 * self.n_states - 1
+
+        self.n_full_feature = np.empty((Z.shape[0], full_dim, self.feature_traj.shape[1]))
+        self.n_full_feature[:, :self.n_states] = self.full_feature[:self.n_states]
+        for run, z in enumerate(Z):
+            self.reset()
+            for i, (origin, target) in enumerate(z[:, :2].astype(int)):
+                self.update(origin, target, self.n_states + i)
+            self.n_full_feature[run, self.n_states:] = self.full_feature[self.n_states:]
+        return self.n_full_feature
