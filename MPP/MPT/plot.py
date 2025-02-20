@@ -17,9 +17,11 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize, LinearSegmentedColormap, LogNorm, ListedColormap
 from matplotlib import colors
 from matplotlib.cbook import boxplot_stats
+import matplotlib.animation as animation
 import matplotlib.patches as patches
 import msmhelper as mh
 from msmhelper._cli.contact_rep import load_clusters
+from scipy.stats import pearsonr
 import MPT.utils as utils
 from MPT.sankey_gap import sankey
 import MPT.kernel as krnl
@@ -938,6 +940,150 @@ def plot_state_trajectory(trajectory, filename):
     # Save the plot to the specified file
     plt.savefig(filename)
     plt.close()  # Close the plot to free memory
+
+
+### CORRELATION ##############################################################
+
+def plot_correlation_evolution(
+        feature1,
+        feature2,
+        out,
+        weights=None,
+        label1="feature 1",
+        label2="feature 2",
+        clip_to_greater_zero=True,
+    ):
+    """
+    Plot two features as a function of time.
+
+    feature1, feature2 (list[np.ndarray]): list containing coordinates of feature as numpy array
+    weights (list[np.ndarray]): list containing weights of the respective data points as numpy array
+    label1, label2 (str): Label for the features
+    clip_to_greater_zero (bool): Consider only data points where feature1 > 0
+    """
+    if clip_to_greater_zero:
+        mask = [dq > 0 for dq in feature1]
+        feature1 = [f1[m] for m, f1 in zip(mask, feature1)]
+        feature2 = [f2[m] for m, f2 in zip(mask, feature2)]
+        if weights is not None:
+            weights = [w[m] for m, w in zip(mask, weights)]
+
+    fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+    # fig, ax = plt.subplots()
+    artists = []
+
+    if weights is None:
+        weights = []
+        for f1 in feature1:
+            weights.append(np.full(f1.shape, 1))
+
+    for f1, f2, w in zip(feature1, feature2, weights):
+        container = ax.scatter(f1, f2, s=w/1000, c="k", alpha=0.4)
+        # container = ax.scatter(f1, f2, s=1, c="k")
+        artists.append([container])
+
+    ax.set_xlabel(label1)
+    ax.set_ylabel(label2)
+
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+
+    ani = animation.ArtistAnimation(fig=fig, artists=artists, interval=500)
+    ani.save(filename=out, writer="ffmpeg")
+    # plt.show()
+    # ani.save(out, writer="pillow")
+
+
+def plot_pearson(
+        feature1,
+        feature2,
+        out,
+        title="Correlation of Two Features",
+        clip_to_greater_zero=True,
+    ):
+    if clip_to_greater_zero:
+        mask = [dq > 0 for dq in feature1]
+        feature1 = [f1[m] for m, f1 in zip(mask, feature1)]
+        feature2 = [f2[m] for m, f2 in zip(mask, feature2)]
+
+    pplt.use_style(
+        figsize=4.8, colors="pastel_autumn", true_black=True, latex=False,
+    )
+    r = np.array([
+        pearsonr(f1, f2) for f1, f2 in zip(feature1[:-1], feature2[:-1])
+    ]).T
+    l = len(r[0])
+
+    fig, ax = plt.subplots(1, 1, figsize=(l/30, 6))
+
+    ax.plot(r[0], label="Pearson correlation coefficient")
+    ax.plot(r[1], label="p-value (exact distribution)")
+    lim = (0, 261)
+    ax.hlines(0, lim[0], lim[1], colors="k", lw=1)
+    ax.hlines(
+        [-0.05, 0.05],
+        [lim[0]] * 2,
+        [lim[1]] * 2,
+        colors="grey",
+        linestyle="dashed",
+        label="p-value = 0.05",
+    )
+    
+    ax.set_title(title)
+    ax.set_xlabel("Lumping Step")
+
+    ax.grid(False)
+
+    ax.legend()
+
+    plt.savefig(out)
+
+
+def plot_correlation_scatter(
+        feature1,
+        feature2,
+        out,
+        macro_feature1=None,
+        macro_feature2=None,
+        weights=None,
+        label1="feature 1",
+        label2="feature 2",
+        clip_to_greater_zero=True,
+    ):
+    """
+    Scatter plot two features of a model, optionally add macro feature
+
+    feature1, feature2 (np.ndarray): numpy array containing coordinates of feature
+    out (str): file name to save plot to
+    macro_feature1, macrofeature2 (np.ndarray): see feature1; highlighted points
+    weights (np.ndarray): numpy array containing weights of the respective data points
+    label1, label2 (str): Label for the features
+    clip_to_greater_zero (bool): Consider only data points where feature1 > 0
+    """
+    if clip_to_greater_zero:
+        mask = [dq > 0 for dq in feature1]
+        feature1 = [f1[m] for m, f1 in zip(mask, feature1)]
+        feature2 = [f2[m] for m, f2 in zip(mask, feature2)]
+        if weights is not None:
+            weights = [w[m] for m, w in zip(mask, weights)]
+
+    pplt.use_style(
+        figsize=4.8, colors="pastel_autumn", true_black=True, latex=False,
+    )
+
+    if weights is None:
+        weights = np.full(feature1.shape, 1)
+
+    plt.scatter(feature1, feature2, c="k", s=weights, label="Initial Transition Matrix")
+    if macro_feature1 is not None and macro_feature2 is not None:
+        plt.scatter(macro_feature1, macro_feature2, c="r", s=weights, label="Macrostate Transition Matrix")
+
+    ax.set_xlabel(label1)
+    ax.set_ylabel(label2)
+   
+    ax.legend()
+    
+    plt.savefig(out)
 
 
 ### REPORT ###################################################################

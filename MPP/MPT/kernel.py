@@ -23,6 +23,7 @@ class MPTKernel(object):
             - P: probability
             - KL: Kullback-Leibler
             - JS: Jensen-Shannon
+            - F: Use only feature kernel
         term:
             - +: sum
             - *: product
@@ -38,6 +39,9 @@ class MPTKernel(object):
         elif self.similarity == "KL" or self.similarity == "JS":
             self.a = 0
             self.b = 1
+        elif self.similarity == "F":
+            self.a = 0
+            self.b = 0
         # self.a = a
         # self.b = b
         self.c = 0
