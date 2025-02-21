@@ -45,13 +45,10 @@ class MPT(object):
         self.tlag = tlag
         self.pop_thr, self.q_min = macrostate_thresholds
         self.limits = limits
-        if self.limits is None:
-            tmat, states = mh.msm.estimate_markov_model(self.traj, self.tlag)
-        else:
-            tmat, states = mh.msm.estimate_markov_model(
-                utils.get_multi_state_traj(self.traj, self.limits),
-                self.tlag,
-            )
+        tmat, states = mh.msm.estimate_markov_model(
+            utils.get_multi_state_traj(self.traj, self.limits),
+            self.tlag,
+        )
         self.tmat = tmat.astype(np.float64)
         _, self.pop = np.unique(self.traj, return_counts=True)
         self.n_states = len(states)
@@ -175,10 +172,11 @@ class MPT(object):
         """Calculate implied timescales"""
         self._timescales = np.zeros((self.n_runs, ntimescales), dtype=dtype)
         for i, traj in enumerate(self.macrotraj.T):
-            if self.limits is None:
-                self._timescales[i, :] = mh.msm.implied_timescales(traj, [self.tlag], ntimescales=ntimescales)[0]
-            else:
-                self._timescales[i, :] = mh.msm.implied_timescales(utils.get_multi_state_traj(traj, self.limits), [self.tlag], ntimescales=ntimescales)[0]
+            self._timescales[i, :] = mh.msm.implied_timescales(
+                utils.get_multi_state_traj(traj, self.limits),
+                [self.tlag],
+                ntimescales=ntimescales
+            )[0]
 
     def plot_implied_timescales(self, out, use_ref=True, scale=1):
         """
@@ -191,10 +189,7 @@ class MPT(object):
         else:
             ref_traj = self.traj
 
-        if self.limits is None:
-            macrotraj = self.macrotraj[:, self.n_i]
-        else:
-            macrotraj = utils.get_multi_state_traj(self.macrotraj[:, self.n_i], self.limits)
+        macrotraj = utils.get_multi_state_traj(self.macrotraj[:, self.n_i], self.limits)
 
         plot.plot_implied_timescales(
             [ref_traj, macrotraj],
@@ -274,13 +269,10 @@ class MPT(object):
         
         self.n_runs = self.Z.shape[0]
         # n: number of macrostates
-        if self.limits is None:
-            tmat, states = mh.msm.estimate_markov_model(self.traj, self.tlag)
-        else:
-            tmat, states = mh.msm.estimate_markov_model(
-                utils.get_multi_state_traj(self.traj, self.limits),
-                self.tlag,
-            )
+        tmat, states = mh.msm.estimate_markov_model(
+            utils.get_multi_state_traj(self.traj, self.limits),
+            self.tlag,
+        )
         self.tmat = tmat.astype(np.float_)
         _, self.pop = np.unique(self.traj, return_counts=True)
         self.n_states = len(states)
@@ -378,7 +370,14 @@ class MPT(object):
         """The reference property."""
         if self._reference is None:
             k = kernel_module.MPTKernel()
-            self._reference = MPT(self.traj, self.tlag, self.feature_traj, macrostate_thresholds=(self.pop_thr, self.q_min), limits=self.limits, quiet=True)
+            self._reference = MPT(
+                self.traj,
+                self.tlag,
+                self.feature_traj,
+                macrostate_thresholds=(self.pop_thr, self.q_min),
+                limits=self.limits,
+                quiet=True
+            )
             self._reference.mpt(k)
         return self._reference
 
@@ -478,3 +477,6 @@ class MPT(object):
 
     def plot_relative_implied_timescales(self, out):
         plot.plot_relative_implied_timescales(self, out)
+
+    def plot_ck_test(self, out, frame_length=0.2):
+        chapman_kolmogorov(self, out, frame_length)

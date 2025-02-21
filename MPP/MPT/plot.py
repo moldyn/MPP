@@ -951,7 +951,7 @@ def plot_correlation_evolution(
         weights=None,
         label1="feature 1",
         label2="feature 2",
-        clip_to_greater_zero=True,
+        clip_to_greater_zero=None,
     ):
     """
     Plot two features as a function of time.
@@ -959,10 +959,10 @@ def plot_correlation_evolution(
     feature1, feature2 (list[np.ndarray]): list containing coordinates of feature as numpy array
     weights (list[np.ndarray]): list containing weights of the respective data points as numpy array
     label1, label2 (str): Label for the features
-    clip_to_greater_zero (bool): Consider only data points where feature1 > 0
+    clip_to_greater_zero (list[np.ndarray]): Consider only data points where np.ndarray > 0
     """
-    if clip_to_greater_zero:
-        mask = [dq > 0 for dq in feature1]
+    if clip_to_greater_zero is not None:
+        mask = [dq > 0 for dq in clip_to_greater_zero]
         feature1 = [f1[m] for m, f1 in zip(mask, feature1)]
         feature2 = [f2[m] for m, f2 in zip(mask, feature2)]
         if weights is not None:
@@ -990,6 +990,7 @@ def plot_correlation_evolution(
 
     ani = animation.ArtistAnimation(fig=fig, artists=artists, interval=500)
     ani.save(filename=out, writer="ffmpeg")
+    plt.close()
     # plt.show()
     # ani.save(out, writer="pillow")
 
@@ -999,10 +1000,10 @@ def plot_pearson(
         feature2,
         out,
         title="Correlation of Two Features",
-        clip_to_greater_zero=True,
+        clip_to_greater_zero=None,
     ):
-    if clip_to_greater_zero:
-        mask = [dq > 0 for dq in feature1]
+    if clip_to_greater_zero is not None:
+        mask = [dq > 0 for dq in clip_to_greater_zero]
         feature1 = [f1[m] for m, f1 in zip(mask, feature1)]
         feature2 = [f2[m] for m, f2 in zip(mask, feature2)]
 
@@ -1014,10 +1015,20 @@ def plot_pearson(
     ]).T
     l = len(r[0])
 
-    fig, ax = plt.subplots(1, 1, figsize=(l/30, 6))
+    fig, ax = plt.subplots(1, 1, figsize=(4, 3))
 
-    ax.plot(r[0], label="Pearson correlation coefficient")
-    ax.plot(r[1], label="p-value (exact distribution)")
+    ax.plot(r[0], label="Pearson r")
+    # ax.invert_yaxis()
+    # ax.plot(r[1], label="p-value (exact distribution)")
+
+    num_transitions = np.array([len(f) for f in feature1])
+    max_transitions = max(num_transitions)
+    num_transitions = num_transitions / max_transitions
+    ax.plot(num_transitions, label="Transitions P > 0")
+    secax_y2 = ax.secondary_yaxis("right", (lambda x: x * max_transitions, lambda x: x * max_transitions))
+    ax.set_ylabel("p value")
+    secax_y2.set_ylabel("Number of Transitions")
+
     lim = (0, 261)
     ax.hlines(0, lim[0], lim[1], colors="k", lw=1)
     ax.hlines(
@@ -1026,7 +1037,7 @@ def plot_pearson(
         [lim[1]] * 2,
         colors="grey",
         linestyle="dashed",
-        label="p-value = 0.05",
+        # label="p-value = 0.05",
     )
     
     ax.set_title(title)
@@ -1037,6 +1048,7 @@ def plot_pearson(
     ax.legend()
 
     plt.savefig(out)
+    plt.close()
 
 
 def plot_correlation_scatter(
@@ -1046,9 +1058,12 @@ def plot_correlation_scatter(
         macro_feature1=None,
         macro_feature2=None,
         weights=None,
+        macro_weights=None,
         label1="feature 1",
         label2="feature 2",
-        clip_to_greater_zero=True,
+        title="Correlation Scatter Plot",
+        clip_to_greater_zero=None,
+        clip_to_greater_zero_macro=None,
     ):
     """
     Scatter plot two features of a model, optionally add macro feature
@@ -1058,14 +1073,26 @@ def plot_correlation_scatter(
     macro_feature1, macrofeature2 (np.ndarray): see feature1; highlighted points
     weights (np.ndarray): numpy array containing weights of the respective data points
     label1, label2 (str): Label for the features
-    clip_to_greater_zero (bool): Consider only data points where feature1 > 0
+    clip_to_greater_zero (np.ndarray): Consider only data points where array > 0
     """
-    if clip_to_greater_zero:
-        mask = [dq > 0 for dq in feature1]
-        feature1 = [f1[m] for m, f1 in zip(mask, feature1)]
-        feature2 = [f2[m] for m, f2 in zip(mask, feature2)]
+    if clip_to_greater_zero is not None:
+        mask = clip_to_greater_zero > 0
+        feature1 = feature1[mask]
+        feature2 = feature2[mask]
         if weights is not None:
-            weights = [w[m] for m, w in zip(mask, weights)]
+            weights = weights[mask]
+
+    if clip_to_greater_zero_macro is not None:
+        mask = clip_to_greater_zero_macro > 0
+        macro_feature1 = macro_feature1[mask]
+        macro_feature2 = macro_feature2[mask]
+        if macro_weights is not None:
+            macro_weights = macro_weights[mask]
+
+    if macro_weights is not None:
+        macro_weights = np.sqrt(macro_weights)
+        macro_weights = macro_weights / macro_weights.max() * 19
+        macro_weights += 1
 
     pplt.use_style(
         figsize=4.8, colors="pastel_autumn", true_black=True, latex=False,
@@ -1073,17 +1100,58 @@ def plot_correlation_scatter(
 
     if weights is None:
         weights = np.full(feature1.shape, 1)
+    else:
+        weights = np.sqrt(weights)
+        weights = weights / weights.max() * 39
+        weights += 1
 
-    plt.scatter(feature1, feature2, c="k", s=weights, label="Initial Transition Matrix")
+    fig, ax = plt.subplots(1, 1, figsize=(4, 3))
+
+    ax.scatter(feature1, feature2, c="k", s=weights, label="Microstates")
     if macro_feature1 is not None and macro_feature2 is not None:
-        plt.scatter(macro_feature1, macro_feature2, c="r", s=weights, label="Macrostate Transition Matrix")
+        if macro_weights is None:
+            macro_weights = np.full(macro_feature1.shape, 1)
+        ax.scatter(macro_feature1, macro_feature2, c="r", s=macro_weights, label="Macrostates")
 
     ax.set_xlabel(label1)
     ax.set_ylabel(label2)
+    ax.set_title(title)
    
     ax.legend()
     
     plt.savefig(out)
+    plt.close()
+
+
+### CHAPMAN-KOLMOGOROV TEST ##################################################
+
+def chapman_kolmogorov(mpt, out, frame_length=0.2):
+    """Chapman-Kolmogorov Test. Frame length in ns"""
+    ck = mh.msm.tests.chapman_kolmogorov_test(
+        utils.get_multi_state_traj(mpt.macrotraj[:, mpt.n_i], mpt.limits),
+        [50, 50, 50, 50, 50],
+        4000,
+        # int(1550*frame_length),
+    )
+    pplt.use_style(
+        figsize=4.8, colors="pastel_autumn", true_black=True, latex=False,
+    )
+
+    nrows, ncols = utils.get_grid_format(mpt.n_macrostates[mpt.n_i])
+    for chunk in mh.plot._ck_test._split_array(np.arange(1, mpt.n_macrostates[mpt.n_i]+1), nrows * ncols):
+        fig = mh.plot.plot_ck_test(
+            ck=ck,
+            states=chunk,
+            frames_per_unit=1/frame_length,
+            unit="ns",
+            grid=(ncols, nrows),
+        )
+
+    for ax in fig.axes:
+        for text in ax.texts:
+            text.set_position((0.15, 0.2))
+    plt.savefig(out)
+    plt.close()
 
 
 ### REPORT ###################################################################

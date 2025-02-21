@@ -215,7 +215,7 @@ class FeatureKernel(object):
         return self.n_full_feature
 
 class MultiFeatureKernel(object):
-    def __init__(self, feature_traj, microstate_traj, feature_type=np.float64, traj_type=np.uint16, similarity="KL"):
+    def __init__(self, feature_traj, microstate_traj, feature_type=np.float64, traj_type=np.uint16, similarity="JS"):
         """
         feature_traj: either N or NxM, N being the number of frames and M the
                 number of features

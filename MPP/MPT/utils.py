@@ -312,7 +312,7 @@ def dq_kernel_P(full_tmat, mask=None):
 def dq_kernel_fnc(full_feature, mask=None):
     """Kernel for difference in fraction of native contacts"""
     if mask is None:
-        mask = np.full(full_tmat.shape[0], True)
+        mask = np.full(full_feature.shape[0], True)
     n = mask.sum()
     c = list(combinations(range(n), 2))
     return abs(np.diff(full_feature[mask][c]).flatten())
@@ -342,7 +342,7 @@ def dq_kernel_KLP(full_tmat, mask=None):
 def dq_kernel_JSC(full_feature, mask=None):
     """Kernel for Jensen-Shannon contacts"""
     if mask is None:
-        mask = np.full(full_tmat.shape[0], True)
+        mask = np.full(full_feature.shape[0], True)
     feature = full_feature[np.ix_(mask)]
     r = np.roll(np.arange(mask.sum()-1, -1, -1), 1).cumsum()
     start = r[:-1]
@@ -361,7 +361,7 @@ def dq_kernel_JSC(full_feature, mask=None):
 def dq_kernel_pop(full_pop, mask=None):
     """Kernel for sum of population of merged states"""
     if mask is None:
-        mask = np.full(full_tmat.shape[0], True)
+        mask = np.full(full_pop.shape[0], True)
     n = mask.sum()
     c = list(combinations(range(n), 2))
     return full_pop[mask][c].sum(axis=1)
@@ -369,7 +369,7 @@ def dq_kernel_pop(full_pop, mask=None):
 def dq_kernel_origin_pop(full_pop, mask=None):
     """Kernel for sum of population of merged states"""
     if mask is None:
-        mask = np.full(full_tmat.shape[0], True)
+        mask = np.full(full_pop.shape[0], True)
     n = mask.sum()
     c = np.array(list(combinations(range(n), 2))).T[0]
     return full_pop[mask][c]
@@ -576,6 +576,8 @@ def find_state_lengths(arr):
 
 def get_multi_state_traj(trajs: np.ndarray, limits: np.ndarray):
     """Load trajectory containing several concatenated trajectories"""
+    if limits is None:
+        return trajs
     trajectories = []
     current_position = 0
     for l in limits:
