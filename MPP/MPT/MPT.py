@@ -4,6 +4,7 @@ import warnings
 import numpy as np
 import msmhelper as mh
 import matplotlib.pyplot as plt
+import mdtraj as md
 
 from tqdm import tqdm
 from typing import Callable, List
@@ -338,8 +339,8 @@ class MPT(object):
     def plot_sankey(self, out, ax=None, scale=1):
         plot.plot_sankey(self, self.reference, out, ax=ax, scale=scale)
 
-    def plot_macrotraj(self, out):
-        plot.plot_state_trajectory(self.macrotraj[:, self.n_i], out)
+    def plot_macrotraj(self, out, row_length=0.2):
+        plot.plot_state_trajectory(self.macrotraj[:, self.n_i], out, row_length=row_length)
 
     @property
     def shannon_entropy(self):
@@ -401,7 +402,7 @@ class MPT(object):
         elif value.min() == 0:
             self._traj = value.astype(traj_type) + 1
             self._traj_base = 0
-            warnings.warn("Still 1-based trajecttory used, thus, trajectory was shifted to 1-based.")
+            warnings.warn("Still 1-based trajectory used, thus, trajectory was shifted to 1-based.")
         else:
             raise ValueError("trajectory must be 0 or 1 based")
 
@@ -479,4 +480,20 @@ class MPT(object):
         plot.plot_relative_implied_timescales(self, out)
 
     def plot_ck_test(self, out, frame_length=0.2):
-        chapman_kolmogorov(self, out, frame_length)
+        """"frame_length in ns"""
+        plot.chapman_kolmogorov(self, out, frame_length)
+
+    def draw_random_frames(self, out, n=20):
+        """
+        Draw n random frames for each macrostate
+
+        out (str): Path to directory where to save the pdb files
+        n (int): number of frames to draw randomly
+        """
+        for state in np.arange(self.n_macrostates[self.n_i]) + 1:
+            frames_in_state = np.where(self.macrotraj[:, self.n_i]==state)[0]
+            drawn_frames = np.random.choice(frames_in_state, size=n, replace=False)
+            for i, frame in enumerate(drawn_frames):
+                f = md.load_xtc(self.xtc_trajectory_file, top=self.topology_file, frame=frame)
+                f.save_pdb(os.path.join(out, f"S{state}_{i:02d}.pdb"))
+

@@ -866,11 +866,25 @@ def plot_rmsd(vars, row_heights, helices=None, filename=None, num_x_labels=8):
 
 ### TRAJECTORY ###############################################################
 
-def plot_state_trajectory(trajectory, filename):
+def plot_state_trajectory(trajectory, filename, row_length=0.2):
+    """
+    Plot state trajectory
+
+    trajectory (np.ndarray): state trajectory
+    filename (str): file name to save the plot to
+    row_length (int|float):
+        row_length > 1: number of frames in each row
+        0 < row_length <= 1: fraction of total frames per row (1/n_rows)
+    """
+    if row_length > 1:
+        x_max = int(row_length)
+    elif row_length > 0:
+        x_max = int(np.ceil(trajectory.shape[0] * row_length))
+    else:
+        raise ValueError("row_lengthg must be > 0")
+
     # Calculate unique states and their lengths
     unique_states, lengths = utils.find_state_lengths(trajectory)
-    x_max = 1.53e5
-    x_max = 45001
     n_rows = int(np.ceil(trajectory.shape[0] / x_max))
     
     # Set up figure size proportional to data
