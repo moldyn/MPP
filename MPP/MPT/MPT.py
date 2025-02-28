@@ -59,6 +59,7 @@ class MPT(object):
         else:
             self.add_feature(np.ones(traj.shape), feature_type)
 
+        self.Z = None
         self._timescales = None
         self._linkage = None
         self._macro_pop = None
@@ -234,21 +235,23 @@ class MPT(object):
 
     def save_Z(self, out, n_i="all"):
         """Save Z matrix"""
-        if out.endswith(".Z.npy"):
-            pass
-        elif out.endswith(".Z"):
+        if not out.endswith(".npy"):
             out += ".npy"
-        elif out.endswith(".npy"):
-            out = out[:-4] + ".Z.npy"
-        else:
-            out += ".Z.npy"
+        # if out.endswith(".Z.npy"):
+        #     pass
+        # elif out.endswith(".Z"):
+        #     out += ".npy"
+        # elif out.endswith(".npy"):
+        #     out = out[:-4] + ".Z.npy"
+        # else:
+        #     out += ".Z.npy"
 
-        if os.path.exists(out):
-            if input("File exists. Overwrite? [y|n] ") == "y":
-                os.remove(out)
-            else:
-                print("Z matrix not saved.")
-                return None
+        # if os.path.exists(out):
+        #     if input("File exists. Overwrite? [y|n] ") == "y":
+        #         os.remove(out)
+        #     else:
+        #         print("Z matrix not saved.")
+        #         return None
 
         if n_i == "all":
             np.save(out, self.Z)
@@ -280,6 +283,8 @@ class MPT(object):
         self.full_pop = np.zeros((self.n_runs, 2*self.n_states-1), dtype=np.uint32)
         self.full_pop[:, :self.n_states] = self.pop
         self.full_pop[:, self.n_states:] = self.Z[:, :, 3]
+
+        self.assign_macrostates()
 
     @property
     def linkage(self):

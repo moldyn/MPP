@@ -1,143 +1,642 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+
+import os
+import yaml
+from pathlib import Path
+import argparse
 
 import numpy as np
 import MPT
-from plot import plot_dendrogram
-from core import assign_macrostates
-import time
-
-import prettypyplot as pplt
-from matplotlib import pyplot as plt
 import msmhelper as mh
-from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+import prettypyplot as pplt
+from scipy.stats import pearsonr
+from itertools import combinations
+from tqdm import tqdm
 
-traj = np.loadtxt("/home/fg149/Dokumente/data_production/MPT/MPT/hp35.selected_contacts.gaussian10f_microstates_pcs5_p153", dtype=int)
-feature_traj = np.loadtxt("/home/fg149/Dokumente/data_production/MPT/MPT/hp35.mindists2.gaussian10f.q")
-multi_feature_traj = np.loadtxt("/home/fg149/Dokumente/data_production/MPT/MPT/hp35.mindists2")
-out_base = "/home/fg149/Dokumente/data_production/MPT/MPT/"
-out = out_base + "img/hp35_dendrogram_kl_fnc.pdf"
-out2 = out_base + "img/hp35_dendrogram_det.pdf"
-out3 = out_base + "img/hp35_dendrogram_test.pdf"
-#out_it = "/home/fg149/Dokumente/data_production/MPT/MPT/hp35_implied_timescales_det.pdf"
-out_it = out_base + "hp35_implied_timescales_test2.pdf"
-out_sc = out_base + "img/stoch_hist.pdf"
-lagtime = 50 # 10 ns
-n_macrostates = 12
 
-#Z, full_pop = MPT.mpt(traj, lagtime, kernel=MPT.smpt_kernel, method="p", param=.5)
-#Z, full_pop = MPT.mpt(traj, lagtime, kernel=MPT.kernel.MPTKernel(), method="n", param=2)
-#kernel = MPT.kernel.MPTKernel()
-mpt_kernel = MPT.kernel.MPTKernel()
-kl_kernel = MPT.kernel.KLKernel()
-smpt_kernel = MPT.kernel.SMPTKernel(method="n", param=2)
-smpt_kernel2 = MPT.kernel.SMPTKernel(method="p", param=0.5)
-# Z, full_pop = MPT.mpt(traj, lagtime, kernel=kernel)
-#Z_n = Z[:-n_macrostates+1, :2]
 
-c1 = [2, 1, 9, 5]
-c2 = [12, 13, 8, 11, 7, 10]
-c3 = [18, 17, 19, 20]
-c4 = [26, 24, 28]
-c5 = [33, 29, 34]
-c6 = [40, 39, 41, 38]
-c7 = [16, 14, 15]
-contacts = c1 + c2 + c3 + c4 + c5 + c6 + c7
+source_root = "/data/evaluation/MPP/stochastic_MPP_Felix/data_source/"
 
-feature_kernel = MPT.kernel.FeatureKernel(multi_feature_traj, traj, sigma=0.5)
-pca_feature_kernel = MPT.kernel.PCAFeatureKernel(multi_feature_traj, traj, sigma=0.5)
-kl_feature_kernel = MPT.kernel.MultiFeatureKullbackLeiblerKernel(multi_feature_traj, traj, sigma=1, features=contacts)
 
-# pca = PCA(n_components=3)
-# mft = pca.fit_transform(multi_feature_traj)
+### HP35 #####################################################################
 
-mpt = MPT.MPT(traj, lagtime)
-# mpt.mpt(mpt_kernel)#, feature_kernel=pca_feature_kernel)
-# mpt.mpt(mpt_kernel, feature_kernel=kl_feature_kernel)
-mpt.mpt(mpt_kernel, feature_kernel=feature_kernel)
-#mpt.mpt(kl_kernel)
-mpt.add_feature(feature_traj)
-#mpt.add_feature(multi_feature_traj)
-# mpt.add_feature(mft)
+limits = None
+multi_feature_raw = np.loadtxt(source_root + "hp35.mindists2")
+microtraj = np.loadtxt(source_root + "hp35.selected_contacts.gaussian10f_microstates_pcs5_p153")
+cluster_file = source_root + "hp35.mindist2.mosaic_clusters"
 
-# first is min population, second is min Q
-mpt.assign_macrostates(0.005, 0.5)
-#np.savetxt(out_base + "hp35_det_macrotraj", mpt.macrotraj, fmt="%.0f")
-mpt.plot(out3)
+multi_feature_bool = multi_feature_raw < 0.45
+feature_traj = multi_feature_bool.mean(axis=1)
 
-#mpt.plot(out)
-# mpt1 = MPT.MPT(traj, lagtime)
-# mpt1.mpt(smpt_kernel, n=5)#, feature_kernel=feature_kernel)
-# mpt1.add_feature(feature_traj)
-# mpt1.assign_macrostates(0.005, 0.5)
-# mpt1.macro_to_micro_feature()
-# mpt1.plot_macro_feature(out_sc, [(
-#     mpt.macrostate_assignment[0],
-#     mpt.macrostate_feature[0],
-#     "r",
-#     "Reference",
-# )])
-#mpt1.plot_time_scales(out_it)
+topology_file = source_root + "villin_crystal_number360K.pdb"
+xtc_file = source_root + "pnas2012-2f4k-360K-protein-fit.xtc"
 
-# Plot heatmaps comparing all stochastic clusterings
-# S, n = mpt1 * mpt1
-# for i in range(10):
-#     d0 = ((np.diff(S[i], axis=0)) ** 2).mean() / S[i].shape[0]
-#     d1 = ((np.diff(S[i], axis=1)) ** 2).mean() / S[i].shape[1]
+tlag = 50
+pop_min = 0.005
+q_min = 0.5
+
+root = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/HP35/"
+
+
+### PDZ3 #####################################################################
+
+# limits = np.loadtxt(source_root + "PDZ3/limits", dtype=int)
+# multi_feature_raw = np.loadtxt(source_root + "PDZ3/dist_all")
+# microtraj = np.loadtxt(source_root + "PDZ3/microstates_p100")
+# cluster_file = source_root + "PDZ3/clusters"
 #
-#     #title = f"clustering {i}; mean {n[i]*100:.2f}"
-#     #title = f"clustering {i}; mean {np.sqrt((d0+d1)/2)*100:.2f}"
-#     title = f"clustering {i}; mean {np.sqrt((d0+d1)/2):.2f}"
-#     MPT.plot_heatmap(S[i], out_base + f"img/h/{i}.png", title)
-#     plt.close()
-
-
-# mpt2 = MPT.SMPT(traj, lagtime)
-# mpt2.mpt(smpt_kernel2)#, feature_kernel=feature_kernel)
-# mpt2.add_feature(feature_traj)
-# mpt2.assign_macrostates(0.005, 0.5)
-
-
-# trajs = [mpt.traj, mpt.macrotraj]#, mpt1.macrotraj]#, mpt2.macrotraj]
-# titles = ["microstate traj", "MPT"]#, "SMPTn2"]#, "SMPTp50"]
-# trajs = [mpt.traj]#, mpt.macrotraj, mpt1.macrotraj]#, mpt2.macrotraj]
-# titles = ["microstate traj"]#, "MPT", "SMPTn2"]#, "SMPTp50"]
-lagtimes = np.arange(1, 201, 5)
-
-#MPT.plot_implied_timescales(trajs, lagtimes, out_it, titles[1:2], first_ref=True)#, frame_length=0.2)
-
-
-#pplt.use_style(figsize=(6, 2.5), latex=False, colors='pastel_autumn')
-
-#lagtimes = np.arange(1, 150, 5)
-#fig, axs = plt.subplots(2, 2)
-#for ax, traj in zip(axs.flatten(), [mpt.traj, mpt.macrotraj, mpt1.macrotraj, mpt2.macrotraj]):
-# for traj in [mpt.traj, mpt.macrotraj, mpt1.macrotraj, mpt2.macrotraj]:
-#     it = mh.msm.implied_timescales(traj, lagtimes, ntimescales=3)
-#     print(it.sum(axis=1))
-#     print()
-
-#     plot_impl_times(it, ax)
-#     ax.set_yscale("log")
-#     ax.set_xticklabels(["0", "10", "20", "30"])
+# multi_feature_bool = multi_feature_raw < 0.45
+# feature_traj = multi_feature_bool.mean(axis=1)
 #
-# plt.show()
-
-# smpt = MPT.SMPT(traj, lagtime)
-# smpt.mpt(smpt_kernel, n=10)
-# smpt.set_macrostates(n_macrostates)
-# smpt.add_feature(feature_traj)
-
-# smpt2 = MPT.SMPT(traj, lagtime)
-# smpt2.mpt(smpt_kernel2, 10)
-# smpt2.set_macrostates(n_macrostates - 1)
-# smpt2.add_feature(feature_traj)
-
-##### Eval stoch
-
-#MPT.evaluate_stochastic_clustering(mpt1, mpt, out2)
-
-#mpt.plot(out)
+# tlag = 50
+# pop_min = 0.05
+# q_min = 0.8
+#
+# root = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/PDZ3/"
 
 
-# implied timescales:
-# mh.msm.timescales.implied_timescales([mpt2._macrotraj.astype(int), mpt3._macrotraj.astype(int), mpt._macrotraj.astype(int)], [1, 5, 20, lagtime, 200])
+class Data:
+    def __init__(self, yaml_file):
+        with open(yaml_file, "r") as f:
+            self.d = yaml.safe_load(f)
+
+        self.source = self.d["source"]
+        self.out = self.d["out"]
+
+        self.microtraj = np.loadtxt(os.path.join(
+            self.source,
+            self.d["microstate trajectory"]
+        ), dtype=np.uint32)
+        self.mtraj_raw = np.loadtxt(os.path.join(
+            self.source,
+            self.d["multi feature trajectory"],
+        ))
+        self.limits = None if self.d["limits"] is None else np.loadtxt(self.d["limits"], dtype=np.uint64)
+        self.mfeature_traj = self.mtraj_raw < 0.45
+        self.feature_traj = self.mfeature_traj.mean(axis=1)
+        self.cluster = os.path.join(self.source, self.d["cluster file"])
+
+        self.top = os.path.join(self.source, self.d["topology file"])
+        self.xtc = os.path.join(self.source, self.d["xtc file"])
+
+        self.tlag = self.d["tlag"]
+        self.pop_min = self.d["pop_min"]
+        self.q_min = self.d["q_min"]
+
+        self.lumping_dir = None
+        self.kernel = None
+        self.feature_kernel = None
+
+        self.n_random_frames = 20
+        self.use_ref = True
+
+
+
+### RUN ######################################################################
+
+def process_lumpings(lumpings, data, func, mpts=None):
+    """Perform lumpings"""
+    if mpts is None:
+        mpts = [None] * len(lumpings)
+    for i, lumping in tqdm(enumerate(lumpings)):
+        kernel = MPT.kernel.MPTKernel(similarity=lumpings[lumping]["kernel similarity"])
+        data.use_ref = True
+        if lumpings[lumping]["feature kernel"] is None:
+            feature_kernel = 1
+            if lumpings[lumping]["kernel similarity"] == "P":
+                data.use_ref = False
+        elif lumpings[lumping]["feature kernel"] == "fnc":
+            feature_kernel = MPT.kernel.FeatureKernel(
+                feature_traj,
+                microtraj,
+            )
+        elif lumpings[lumping]["feature kernel"] == "JS":
+            feature_kernel = MPT.kernel.MultiFeatureKernel(
+                multi_feature_bool,
+                microtraj,
+            )
+        else:
+            raise ValueError("feature kernel must be None, fnc or JS.")
+
+        data.lumping_dir = os.path.join(data.out, lumping)
+        Path(data.lumping_dir).mkdir(parents=True, exist_ok=True)
+        data.kernel = kernel
+        data.feature_kernel = feature_kernel
+
+
+        if mpts[i] is None:
+            mpts[i] = MPT.MPT(
+                data.microtraj,
+                data.tlag,
+                data.feature_traj,
+                macrostate_thresholds=(data.pop_min, data.q_min),
+                limits=data.limits,
+                quiet=True,
+            )
+        mpts[i] = func(mpts[i], data)
+    return mpts
+
+
+def mpp(mpt, data):
+    """Performs MPP and saves Z matrix"""
+    mpt.mpt(
+        data.kernel,
+        feature_kernel=data.feature_kernel,
+    )
+    mpt.save_Z(os.path.join(data.lumping_dir, "Z.npy"))
+    return mpt
+
+
+def standard_plots(mpt, data):
+    if mpt.Z is None:
+        mpt.from_Z(os.path.join(data.lumping_dir, "Z.npy"))
+    out = data.lumping_dir
+    Path(out).mkdir(parents=True, exist_ok=True)
+    print("Plotting dendrogram...")
+    mpt.plot(os.path.join(out + "dendrogram.pdf"), scale=1)
+    print("Plotting implied timescales...")
+    mpt.plot_implied_timescales(os.path.join(out + "timescales.pdf"), use_ref=data.use_ref, scale=1)
+    print("Plotting Sankey diagram...")
+    mpt.plot_sankey(os.path.join(out + "sankey.pdf"), scale=1)
+    print("Plotting contact representation...")
+    mpt.plot_contact_rep(data.mtraj_raw, data.cluster, os.path.join(out + "contact_rep.pdf"), scale=1.4)
+    print("Plotting trajectory...")
+    mpt.plot_macrotraj(os.path.join(out + "macrotraj.pdf"), row_length=0.1)
+    print("Performing Chapman Kolmogorov test...")
+    mpt.plot_ck_test(os.path.join(out + "ck_test.pdf"), frame_length=0.2)
+    return mpt
+
+def draw_random_frames(mpt, data):
+    if mpt.Z is None:
+        mpt.from_Z(os.path.join(data.lumping_dir, "Z.npy"))
+    Path(os.path.join(data.lumping_dir + "random_frames/")).mkdir(parents=True, exist_ok=True)
+    mpt.topology_file = data.top
+    mpt.xtc_trajectory_file = data.xtc
+    mpt.draw_random_frames(os.path.join(data.lumping_dir + "random_frames/"), n=data.n_random_frames)
+    return mpt
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        prog="Perform MPP on MD simulation data",
+        description=(
+            "This program allows for the analysis of MD data utilizing the "
+            "most probable path algorithm. It allows for easy plotting of "
+            "different quality measures."
+        ),
+    )
+    parser.add_argument(
+        "data_specification",
+        help=(
+            "yaml file containing specification of files and parameters of "
+            "the simulation"
+        ),
+        type=argparse.FileType('r', encoding='latin-1'),
+    )
+    parser.add_argument(
+        "lumping_grid",
+        help=(
+            "yaml file defining the lumpings to perform and where to store "
+            "them."
+        ),
+        type=argparse.FileType('r', encoding='latin-1'),
+    )
+    parser.add_argument(
+        "-Z",
+        help="Perform MPP and write the Z matrix.",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-p",
+        "--standard-plots",
+        help="Plot standard plots for specified lumpings",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-r",
+        "--draw-random",
+        help="Draw N random frames for each macrostate",
+        metavar="N",
+        type=int,
+    )
+    return parser.parse_args()
+    
+
+def main():
+    args = parse_args()
+
+    # Parse input files
+    data = Data(args.data_specification.name)
+    with open(args.lumping_grid.name, "r") as f:
+        lumpings = yaml.safe_load(f)
+
+    mpts = [None] * len(lumpings)
+    if args.Z:
+        mpts = process_lumpings(lumpings, data, mpp, mpts)
+    if args.standard_plots:
+        mpts = process_lumpings(lumpings, data, standard_plots, mpts)
+    if args.draw_random:
+        data.n_random_frames = args.draw_random
+        mpts = process_lumpings(lumpings, data, standard_plots, mpts)
+
+if __name__ == "__main__":
+    main()
+
+
+# lumpings = {
+#     "ref/": {
+#         "kernel similarity": "P",
+#         "feature kernel": None,
+#     },
+#
+#     "fnc/": {
+#         "kernel similarity": "F",
+#         "feature kernel": "fnc",
+#     },
+#
+#     "kl/": {
+#         "kernel similarity": "KL",
+#         "feature kernel": None,
+#     },
+#
+#     "js/": {
+#         "kernel similarity": "F",
+#         "feature kernel": "JS",
+#     },
+#
+#     "ref_fnc/": {
+#         "kernel similarity": "P",
+#         "feature kernel": "fnc",
+#     },
+#
+#     "ref_js/": {
+#         "kernel similarity": "P",
+#         "feature kernel": "JS",
+#     },
+#
+#     "kl_fnc/": {
+#         "kernel similarity": "KL",
+#         "feature kernel": "fnc",
+#     },
+#
+#     "kl_js/": {
+#         "kernel similarity": "KL",
+#         "feature kernel": "JS",
+#     },
+# }
+
+
+
+# for lumping in lumpings:
+#     kernel = MPT.kernel.MPTKernel(similarity=lumpings[lumping]["kernel similarity"])
+#     use_ref = True
+#     if lumpings[lumping]["feature kernel"] is None:
+#         feature_kernel = 1
+#         if lumpings[lumping]["kernel similarity"] == "P":
+#             use_ref = False
+#     elif lumpings[lumping]["feature kernel"] == "fnc":
+#         feature_kernel = MPT.kernel.FeatureKernel(
+#             feature_traj,
+#             microtraj,
+#         )
+#     elif lumpings[lumping]["feature kernel"] == "JS":
+#         feature_kernel = MPT.kernel.MultiFeatureKernel(
+#             multi_feature_bool,
+#             microtraj,
+#         )
+#     else:
+#         raise ValueError("feature kernel must be 1, single or multi.")
+#     mpt = MPT.MPT(
+#         microtraj,
+#         tlag,
+#         feature_traj,
+#         macrostate_thresholds=(pop_min, q_min),
+#         limits=limits,
+#     )
+#     mpt.mpt(
+#         kernel,
+#         feature_kernel=feature_kernel,
+#     )
+#     mpt.topology_file = topology_file
+#     mpt.xtc_trajectory_file = xtc_file
+#     plots(mpt, root + lumping, use_ref=lumpings[lumping]["use_ref"])
+
+
+
+# kernel = MPT.kernel.MPTKernel()
+# mpt = MPT.MPT(
+#     microtraj,
+#     tlag,
+#     feature_traj,
+#     macrostate_thresholds=(pop_min, q_min),
+#     limits=limits,
+# )
+# mpt.mpt(kernel)
+# mpt.topology_file = topology_file
+# mpt.xtc_trajectory_file = xtc_file
+# plots(mpt, root + "ref/", use_ref=False)
+
+
+
+# kernel = MPT.kernel.MPTKernel()
+# feature_kernel = MPT.kernel.FeatureKernel(
+#     feature_traj,
+#     microtraj,
+# )
+# mpt_rfnc = MPT.MPT(
+#     microtraj,
+#     tlag,
+#     feature_traj,
+#     macrostate_thresholds=(pop_min, q_min),
+#     limits=limits,
+# )
+# mpt_rfnc.mpt(
+#     kernel,
+#     feature_kernel=feature_kernel,
+# )
+# plots(mpt, root + "ref_fnc/")
+#
+#
+# kernel = MPT.kernel.MPTKernel(
+#     similarity="KL",
+# )
+# multi_feature_kernel = MPT.kernel.MultiFeatureKernel(
+#     multi_feature_bool,
+#     microtraj,
+#     similarity="JS",
+# )
+# mpt_kljs = MPT.MPT(
+#     microtraj,
+#     tlag,
+#     feature_traj,
+#     macrostate_thresholds=(pop_min, q_min),
+#     limits=limits,
+# )
+# mpt_kljs.mpt(
+#     kernel,
+#     feature_kernel=multi_feature_kernel,
+# )
+# plots(mpt, root + "kl_js/")
+#
+#
+# kernel = MPT.kernel.MPTKernel(
+#     similarity="KL",
+#     term="*",
+# )
+# mpt_kl = MPT.MPT(
+#     microtraj,
+#     tlag,
+#     feature_traj,
+#     macrostate_thresholds=(pop_min, q_min),
+#     limits=limits,
+# )
+# mpt_kl.mpt(kernel)
+# plots(mpt, root + "kl/")
+#
+#
+# kernel = MPT.kernel.MPTKernel(
+#     similarity="F",
+# )
+# feature_kernel = MPT.kernel.FeatureKernel(
+#     feature_traj,
+#     microtraj,
+# )
+# mpt_fnc = MPT.MPT(
+#     microtraj,
+#     tlag,
+#     feature_traj,
+#     macrostate_thresholds=(pop_min, q_min),
+#     limits=limits,
+# )
+# mpt_fnc.mpt(
+#     kernel,
+#     feature_kernel=feature_kernel,
+# )
+# plots(mpt_fnc, root + "fnc/")
+#
+#
+# kernel = MPT.kernel.MPTKernel(
+#     similarity="F",
+# )
+# multi_feature_kernel = MPT.kernel.MultiFeatureKernel(
+#     multi_feature_bool,
+#     microtraj,
+#     similarity="JS",
+# )
+# mpt_js = MPT.MPT(
+#     microtraj,
+#     tlag,
+#     feature_traj,
+#     macrostate_thresholds=(pop_min, q_min),
+#     limits=limits,
+# )
+# mpt_js.mpt(
+#     kernel,
+#     feature_kernel=multi_feature_kernel,
+# )
+# plots(mpt_fnc, root + "js/")
+
+
+# kernel = MPT.kernel.MPTKernel(
+#     param=2,
+#     similarity="KL",
+#     term="*",
+# )
+# multi_feature_kernel = MPT.kernel.MultiFeatureKernel(
+#     multi_feature_bool,
+#     microtraj,
+#     similarity="JS",
+# )
+# mpt_kljs_n2 = MPT.MPT(
+#     microtraj,
+#     tlag,
+#     feature_traj,
+#     macrostate_thresholds=(pop_min, q_min),
+#     limits=limits,
+# )
+# mpt_kljs_n2.mpt(
+#     kernel,
+#     feature_kernel=multi_feature_kernel,
+#     n=100,
+# )
+#
+# its_max = np.argmax(mpt_kljs_n2.timescales[:, 0])
+# mpt_kljs_n2.n_i = its_max
+# plots(mpt_fnc, root + "kl_js_n2/")
+
+
+
+
+
+
+
+### Plot Pearson correlation coefficients in the course of a lumping ofr all lumpings
+
+# for mpp, dir, lab in tqdm(zip(
+#     [mpt, mpt_fnc, mpt_rfnc, mpt_kl, mpt_js, mpt_kljs],
+#     ["ref/", "fnc/", "ref_fnc/", "kl/", "js/", "kl_js/"],
+#     ["Ref", "fnc", "Ref + fnc", r"$D_\mathrm{KL}$", r"$D_\mathrm{JS}$", r"$D_\mathrm{KL} + D_\mathrm{JS}$"]
+# )):
+#     Z = mpp.Z
+#     tmat = mpp.tmat
+#     pop = mpp.pop
+#
+#     full_tmat, full_pop = MPT.utils.calc_full_tmat(tmat, pop, Z)
+#     dq_full_tmat = MPT.utils.dq(full_tmat[0], Z[0])
+#     # dq_full_pop = MPT.utils.dq(full_pop[0], Z[0], similarity="pop")
+#     dq_full_klp = MPT.utils.dq(full_tmat[0], Z[0], similarity="KLP")
+#     dq_full_feature = MPT.utils.dq(
+#         feature_kernel.full_feature_from_Z(Z)[0],
+#         Z[0],
+#         similarity="fnc",
+#     )
+#     dq_full_multi_feature = MPT.utils.dq(
+#         multi_feature_kernel.full_feature_from_Z(Z)[0],
+#         Z[0],
+#         similarity="JSC",
+#     )
+#     name = ["P", "fnc", "KLP", "JSC"]
+#     labels = ["P", r"$\Delta$fnc", r"$D_\mathrm{KL}$", r"$D_\mathrm{JS}$"]
+#     features = [
+#         dq_full_tmat,
+#         dq_full_feature,
+#         dq_full_klp,
+#         dq_full_multi_feature,
+#     ]
+#     iter = combinations(zip(name, labels, features), 2)
+#     for (n1, l1, f1), (n2, l2, f2) in iter:
+#         print(f"{lab}: {l1} - {l2}")
+#         out = root + dir + f"pearson_{n1}_{n2}.pdf"
+#         MPT.plot.plot_pearson(
+#             f1,
+#             f2,
+#             out,
+#             title=f"{lab}: {l1} - {l2} Correlation",
+#             clip_to_greater_zero=dq_full_tmat,
+#         )
+
+
+
+### Correlation Scatter Plot
+
+# for mpp, dir, lab in tqdm(zip(
+#     [mpt, mpt_fnc, mpt_rfnc, mpt_kl, mpt_js, mpt_kljs],
+#     ["ref/", "fnc/", "ref_fnc/", "kl/", "js/", "kl_js/"],
+#     ["Ref", "fnc", "Ref + fnc", r"$D_\mathrm{KL}$", r"$D_\mathrm{JS}$", r"$D_\mathrm{KL} + D_\mathrm{JS}$"]
+# )):
+#     Z = mpp.Z
+#     tmat = mpp.tmat
+#     pop = mpp.pop
+#     macro_tmat = mpp.macro_tmat[0]
+#     macro_pop = mpp.macro_pop[0]
+#     macro_traj = mpp.macrotraj[:, 0]
+#
+#     dq_full_tmat = MPT.utils.dq(tmat)
+#     dq_full_pop = MPT.utils.dq(pop, similarity="origin pop")
+#     dq_full_klp = MPT.utils.dq(tmat, similarity="KLP")
+#     dq_full_feature = MPT.utils.dq(
+#         feature_kernel.full_feature[:feature_kernel.n_states],
+#         similarity="fnc",
+#     )
+#     dq_full_multi_feature = MPT.utils.dq(
+#         multi_feature_kernel.full_feature[:multi_feature_kernel.n_states],
+#         similarity="JSC",
+#     )
+#
+#     dq_macro_tmat = MPT.utils.dq(macro_tmat)
+#     dq_macro_pop = MPT.utils.dq(macro_pop, similarity="origin pop")
+#     dq_macro_klp = MPT.utils.dq(macro_tmat, similarity="KLP")
+#     mfk = MPT.kernel.FeatureKernel(feature_traj, macro_traj)
+#     dq_macro_feature = MPT.utils.dq(
+#         mfk.full_feature[:mfk.n_states],
+#         similarity="fnc",
+#     )
+#     mmfk = MPT.kernel.MultiFeatureKernel(multi_feature_bool, mpp.macrotraj[:, 0])
+#     dq_macro_multi_feature = MPT.utils.dq(
+#         mmfk.full_feature[:mmfk.n_states],
+#         similarity="JSC",
+#     )
+#
+#
+#     name = ["P", "fnc", "KLP", "JSC"]
+#     labels = ["P", r"$\Delta$fnc", r"$D_\mathrm{KL}$", r"$D_\mathrm{JS}$"]
+#     features = [
+#         dq_full_tmat,
+#         dq_full_feature,
+#         dq_full_klp,
+#         dq_full_multi_feature,
+#     ]
+#     macro_features = [
+#         dq_macro_tmat,
+#         dq_macro_feature,
+#         dq_macro_klp,
+#         dq_macro_multi_feature,
+#     ]
+#     iter = combinations(zip(name, labels, features, macro_features), 2)
+#     for (n1, l1, f1, mf1), (n2, l2, f2, mf2) in iter:
+#         print(f"{lab}: {l1} - {l2}")
+#         out = root + dir + f"correlation_scatter_{n1}_{n2}.pdf"
+#         MPT.plot.plot_correlation_scatter(
+#             f1,
+#             f2,
+#             out,
+#             macro_feature1=mf1,
+#             macro_feature2=mf2,
+#             weights=dq_full_pop,
+#             macro_weights=dq_macro_pop,
+#             label1=l1,
+#             label2=l2,
+#             clip_to_greater_zero=dq_full_tmat,
+#             clip_to_greater_zero_macro=dq_macro_tmat,
+#             title=f"{lab}: {l1} - {l2} Correlation",
+#         )
+
+
+
+
+### Microstates correlations
+
+# mpp = mpt_fnc
+#
+# Z = mpp.Z
+# tmat = mpp.tmat
+# pop = mpp.pop
+#
+# dq_full_tmat = MPT.utils.dq(tmat)
+# dq_full_pop = MPT.utils.dq(pop, similarity="origin pop")
+# dq_full_klp = MPT.utils.dq(tmat, similarity="KLP")
+# dq_full_feature = MPT.utils.dq(
+#     feature_kernel.full_feature[:feature_kernel.n_states],
+#     similarity="fnc",
+# )
+# dq_full_multi_feature = MPT.utils.dq(
+#     multi_feature_kernel.full_feature[:multi_feature_kernel.n_states],
+#     similarity="JSC",
+# )
+#
+# name = ["P", "fnc", "KLP", "JSC"]
+# labels = ["P", r"$\Delta$fnc", r"$D_\mathrm{KL}$", r"$D_\mathrm{JS}$"]
+# features = [
+#     dq_full_tmat,
+#     dq_full_feature,
+#     dq_full_klp,
+#     dq_full_multi_feature,
+# ]
+#
+# dir = "microstates/"
+#
+# iter = combinations(zip(name, labels, features), 2)
+# for (n1, l1, f1), (n2, l2, f2) in iter:
+#     # print(f"{lab}: {l1} - {l2}")
+#     out = root + dir + f"correlation_scatter_{n1}_{n2}.pdf"
+#     MPT.plot.plot_correlation_scatter(
+#         f1,
+#         f2,
+#         out,
+#         weights=dq_full_pop,
+#         label1=l1,
+#         label2=l2,
+#         clip_to_greater_zero=dq_full_tmat,
+#         title=f"{l1} - {l2} Correlation",
+#     )
