@@ -587,7 +587,7 @@ def get_multi_state_traj(trajs: np.ndarray, limits: np.ndarray):
     trajectories = []
     current_position = 0
     for l in limits:
-        trajectories.append(trajs[current_position:current_position+l])
+        trajectories.append(trajs[current_position:int(current_position+l)])
         current_position += l
     return trajectories
 

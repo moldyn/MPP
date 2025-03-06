@@ -180,11 +180,12 @@ class MPT(object):
                 ntimescales=ntimescales
             )[0]
 
-    def plot_implied_timescales(self, out, use_ref=True, scale=1):
+    def plot_implied_timescales(self, out, use_ref=True, scale=1, frame_length=0.2):
         """
         out: File to write plot
         use_ref: If it for reference trajectory should be plotted
         scale: scaling factor for plot
+        frame_length: frame length in ns
         """
         if use_ref:
             ref_traj = self.reference.macrotraj[:, 0]
@@ -198,6 +199,7 @@ class MPT(object):
             # [self.traj, self.macrotraj[:, self.n_i]],
             np.arange(1, 227, 5),
             out,
+            frame_length=frame_length,
             first_ref=True,
             scale=scale,
         )
