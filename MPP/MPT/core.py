@@ -363,7 +363,7 @@ def cluster(
             [NDArray[np.float_], NDArray[np.int_], NDArray[np.bool_]],
             [np.int_, np.int_, NDArray[np.bool_]]
         ]=kern.MPTKernel(),
-        feature_kernel = 1,
+        feature_kernel = None,
     ) -> (NDArray[np.float_], NDArray[np.int_]):
     """
     cluster
@@ -415,14 +415,14 @@ def cluster(
     # i: Z[i, 0] and Z[i, 1] are combined to cluster n + i
     Z = np.zeros((n-1, 4), dtype=np.float32)
 
-    if feature_kernel != 1:
+    if feature_kernel:
         feature_kernel.reset()
     for i in range(n-1):
         # Index of new state
         new_state = n + i
 
         # Use feature only for determination of target state
-        if feature_kernel != 1:
+        if feature_kernel:
             # state, target_state, mask = kernel(feature_kernel * full_tmat, full_states, mask)
             state, target_state, mask = kernel(full_tmat, full_states, mask, feature_kernel)
             feature_kernel.update(state, target_state, new_state)

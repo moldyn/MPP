@@ -7,11 +7,6 @@ import argparse
 
 import numpy as np
 import MPT
-import msmhelper as mh
-import matplotlib.pyplot as plt
-import prettypyplot as pplt
-from scipy.stats import pearsonr
-from itertools import combinations
 from tqdm import tqdm
 
 
@@ -66,7 +61,7 @@ def process_lumpings(lumpings, data, func, mpts=None):
         kernel = MPT.kernel.MPTKernel(similarity=lumpings[lumping]["kernel similarity"])
         data.use_ref = True
         if lumpings[lumping]["feature kernel"] is None:
-            feature_kernel = 1
+            feature_kernel = None
             if lumpings[lumping]["kernel similarity"] == "P":
                 data.use_ref = False
         elif lumpings[lumping]["feature kernel"] == "fnc":
@@ -166,6 +161,13 @@ def parse_args():
         type=argparse.FileType('r', encoding='latin-1'),
     )
     parser.add_argument(
+        "-o",
+        "--out-path",
+        help=(
+            "Override output directory set by config file"
+        ),
+    )
+    parser.add_argument(
         "-Z",
         help="Perform MPP and write the Z matrix.",
         action="store_true",
@@ -191,6 +193,8 @@ def main():
 
     # Parse input files
     data = Data(args.data_specification.name)
+    if args.o:
+        data.out = args.out
     with open(args.lumping_grid.name, "r") as f:
         lumpings = yaml.safe_load(f)
 

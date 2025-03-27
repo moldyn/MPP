@@ -47,11 +47,11 @@ class MPTKernel(object):
         self.c = 0
         self.term = term
 
-    def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=1):
-        if feature_kernel == 1:
-            self.c = 0
-        else:
+    def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=None):
+        if feature_kernel:
             self.c = 1
+        else:
+            self.c = 0
         # Select state with least self transition probability
         mask_state = np.argmin(np.diag(full_tmat)[mask])
         # Get correct state index
@@ -69,16 +69,31 @@ class MPTKernel(object):
             trans_probs = trans_probs[cutoff_mask]
 
         trans_probs /= trans_probs.sum()
-
+    
         # If Kullback-Leibler divergence is used
         if self.similarity == "KL":
             t = full_tmat[mask][:, mask].copy()
             np.fill_diagonal(t, trans_probs)
-            f1 = utils.kullback_leibler(trans_probs, t)
+            epsilon=1e-6
+            dkl = scy.stats.entropy(
+                trans_probs + epsilon,
+                t + epsilon,
+                axis=1,
+            )
+            f1 = self.weighting_function(dkl)
+            # f1 = utils.kullback_leibler(trans_probs, t)
         elif self.similarity == "JS":
             t = full_tmat[mask][:, mask].copy()
             np.fill_diagonal(t, trans_probs)
-            f1 = utils.jensen_shannon(trans_probs, t)
+            p = trans_probs.copy()
+            q = t
+            if p.ndim == 1:
+                p = np.expand_dims(p, axis=0)
+            if q.ndim == 1:
+                q = np.expand_dims(q, axis=0)
+            djs = scy.spatial.distance.jensenshannon(p, q, axis=1) ** 2
+            f1 = self.weighting_function(djs)
+            # f1 = utils.jensen_shannon(trans_probs, t)
         else:
             f1 = 0
 
@@ -89,7 +104,7 @@ class MPTKernel(object):
 
         tr_prob = trans_probs / trans_probs.sum()
 
-        if feature_kernel != 1:
+        if feature_kernel:
             f2 = feature_kernel.apply(full_tmat[state], state, mask)
         else:
             f2 = 0
@@ -137,6 +152,10 @@ class MPTKernel(object):
 
     def __repr__(self):
         return f"<class MPTKernel>"
+    
+    def weighting_function(self, dq):
+        sigma = np.sqrt(np.var(dq))
+        return np.exp(-dq**2 / (2 * sigma**2))
 
 
 ### FEATURE KERNEL ###########################################################
@@ -177,9 +196,13 @@ class FeatureKernel(object):
         self.full_pop[self.n_states:] = 0
         self.full_feature[self.n_states:] = 0
 
+    # def weighting_function(self, dq):
+    #     a = 1 / (2 * self.sigma ** 2)
+    #     return np.exp(-a * np.abs(dq) ** self.b)
+
     def weighting_function(self, dq):
-        a = 1 / (2 * self.sigma ** 2)
-        return np.exp(-a * np.abs(dq) ** self.b)
+        sigma = np.sqrt(np.var(dq))
+        return np.exp(-dq**2 / (2 * sigma**2))
 
     def apply(self, trans_probs, state, mask):
         f = (trans_probs * self.weighting_function(
@@ -269,17 +292,39 @@ class MultiFeatureKernel(object):
             + self.full_feature[target] * self.full_pop[target]
         ) / self.full_pop[new_state]
     
-    def kl(self, state, mask):
-        return utils.kullback_leibler(
-            self.full_feature[state],
-            self.full_feature[mask]
+    def weighting_function(self, dq):
+        sigma = np.sqrt(np.var(dq))
+        return np.exp(-dq**2 / (2 * sigma**2))
+
+    # def kl(self, state, mask):
+    #     return utils.kullback_leibler(
+    #         self.full_feature[state],
+    #         self.full_feature[mask]
+    #     )
+
+    def kl(self, state, mask, epsilon=1e-6):
+        dkl = scy.stats.entropy(
+            self.full_feature[state] + epsilon,
+            self.full_feature[mask] + epsilon,
+            axis=1,
         )
+        return self.weighting_function(dkl)
+
+    # def js(self, state, mask):
+    #     return utils.jensen_shannon(
+    #         self.full_feature[state],
+    #         self.full_feature[mask]
+    #     )
 
     def js(self, state, mask):
-        return utils.jensen_shannon(
-            self.full_feature[state],
-            self.full_feature[mask]
-        )
+        p = self.full_feature[state]
+        q = self.full_feature[mask]
+        if p.ndim == 1:
+            p = np.expand_dims(p, axis=0)
+        if q.ndim == 1:
+            q = np.expand_dims(q, axis=0)
+        djs = scy.spatial.distance.jensenshannon(p, q, axis=1) ** 2
+        return self.weighting_function(djs)
 
     def full_feature_from_Z(self, Z):
         # Ensure that Z is 3D

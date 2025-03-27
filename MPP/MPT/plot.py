@@ -1219,7 +1219,7 @@ def report_stochastic(cl, ref, multi_feature, cluster_file, out, frame_length=0.
     runs = f"{cl.n_runs} clusterings"
     thresholds = f"pop: \\SI{{{cl.pop_thr*100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
 
-    if cl.feature_kernel != 1:
+    if cl.feature_kernel:
         feature_kernel = f"\\verb|{cl.feature_kernel}|"
         feature_params = f"$\\sigma$={cl.feature_kernel.sigma}, b={cl.feature_kernel.b}"
     else:
@@ -1335,7 +1335,7 @@ def report_1v1(cl, ref, multi_feature, cluster_file, out, frame_length=0.2):
         mode = ""
     thresholds = f"pop: \\SI{{{cl.pop_thr*100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
 
-    if cl.feature_kernel != 1:
+    if cl.feature_kernel:
         feature_kernel = f"\\verb|{cl.feature_kernel}|"
         feature_params = f"$\\sigma$={cl.feature_kernel.sigma}, b={cl.feature_kernel.b}"
     else:
@@ -1508,7 +1508,7 @@ def report_(cl, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
     its = f"rel its: ${cl.timescales[n_i, 0] / ref.timescales[0, 0]:.2f}\\cdot t_\\mathrm{{ref}}$"
     thresholds = f"pop: \\SI{{{cl.pop_thr*100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
 
-    if cl.feature_kernel != 1:
+    if cl.feature_kernel:
         feature_kernel = f"\\verb|{cl.feature_kernel}|"
         feature_params = f"$\\sigma$={cl.feature_kernel.sigma}, b={cl.feature_kernel.b}"
     else:
