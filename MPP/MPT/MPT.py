@@ -79,7 +79,7 @@ class MPT(object):
             [NDArray[np.float_], NDArray[np.int_], NDArray[np.bool_]],
             [np.int_, np.int_, NDArray[np.bool_]]
         ]=kernel_module.MPTKernel(),
-        feature_kernel = 1,
+        feature_kernel = None,
         n: int = 1,
     ) -> (NDArray[np.float_], NDArray[np.int_]):
         """Perform MPT"""

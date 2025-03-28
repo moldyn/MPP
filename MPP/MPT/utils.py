@@ -211,6 +211,23 @@ def calc_full_tmat(tmat, pop, Z):
             # full_tmat[run, :, n_states+i] = fm[:, n_states+i]
     return full_tmat, full_pop
 
+def Z_to_mask(Z):
+    """
+    Calculate the mask for each lumping step.
+    Z (Nx4): Z matric
+    """
+    # n1 = n-1
+    n1 = Z.shape[0]
+    n = n1 + 1
+    m = np.zeros((n1, 2 * n - 1), dtype=bool)
+    m[0, :n] = True
+    for k, (i, j) in enumerate(Z[:, :2].astype(int)):
+        m[k, [i, j]] = False
+        m[k, k + n] = True
+        if k < n-2:
+            m[k+1] = m[k]
+    return m
+
 def get_macrostate_tmat_from_assignment(tmat, pop, macrostate_assignment):
     """
     tmat: initial transitition matrix (NxN)
@@ -297,6 +314,12 @@ def jensen_shannon(p, q):
 def shannon_entropy(p):
     p = p / sum(p)
     return -(p * np.log(p)).sum() / np.log(p.shape[0])
+
+def weighting_function(dq):
+    if dq.shape[0] == 1:
+        return np.exp(-dq)
+    sigma = np.sqrt(np.var(dq))
+    return np.exp(-dq**2 / (2 * sigma**2))
 
 ### Delta function for correlation plot ######################################
 
