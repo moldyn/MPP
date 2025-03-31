@@ -221,11 +221,11 @@ def Z_to_mask(Z):
     n = n1 + 1
     m = np.zeros((n1, 2 * n - 1), dtype=bool)
     m[0, :n] = True
-    for k, (i, j) in enumerate(Z[:, :2].astype(int)):
-        m[k, [i, j]] = False
-        m[k, k + n] = True
-        if k < n-2:
-            m[k+1] = m[k]
+    for k, (i, j) in enumerate(Z[:-1, :2].astype(int)):
+        m[k+1] = m[k]
+        m[k+1, [i, j]] = False
+        m[k+1, k + n] = True
+        # if k < n-2:
     return m
 
 def get_macrostate_tmat_from_assignment(tmat, pop, macrostate_assignment):
