@@ -456,7 +456,7 @@ class MPT(object):
         return self._rmsd
 
     def save_rmsd(self, out):
-        np.save(out, self._rmsd)
+        np.save(out, self.rmsd)
 
     def load_rmsd(self, f_name):
         self._rmsd = np.load(f_name)

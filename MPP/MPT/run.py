@@ -173,7 +173,7 @@ def parse_args():
         action="store_true",
     )
     parser.add_argument(
-        "-p",
+        "-s",
         "--standard-plots",
         help="Plot standard plots for specified lumpings",
         action="store_true",
@@ -184,6 +184,12 @@ def parse_args():
         help="Draw N random frames for each macrostate",
         metavar="N",
         type=int,
+    )
+    parser.add_argument(
+        "-p",
+        "--plot",
+        nargs="+",
+        help="Generate listed plots. Possible arguments include dendrogram, contacts, sankey, rmsd, macrotraj, timescales and more. (not yet implemented)"
     )
     return parser.parse_args()
     
