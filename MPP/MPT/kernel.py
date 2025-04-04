@@ -17,10 +17,10 @@ __all__ = [
 ### MERGING KERNEL ###########################################################
 
 class MPTKernel(object):
-    def __init__(self, method="n", param=1, cutoff=0, similarity="P", term="*"):
+    def __init__(self, method="n", param=1, cutoff=0, similarity="T", term="*"):
         """
         similarity:
-            - P: probability
+            - T: transition probability
             - KL: Kullback-Leibler
             - JS: Jensen-Shannon
             - F: Use only feature kernel
@@ -33,13 +33,13 @@ class MPTKernel(object):
         self.param = param
         self.cutoff = cutoff
         self.similarity = similarity
-        if self.similarity == "P":
+        if self.similarity == "T":
             self.a = 1
             self.b = 0
         elif self.similarity == "KL" or self.similarity == "JS":
             self.a = 0
             self.b = 1
-        elif self.similarity == "F":
+        elif self.similarity is None or self.similarity == "none":
             self.a = 0
             self.b = 0
         # self.a = a

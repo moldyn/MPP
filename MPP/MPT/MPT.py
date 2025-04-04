@@ -6,6 +6,7 @@ import msmhelper as mh
 import matplotlib.pyplot as plt
 import mdtraj as md
 
+from pathlib import Path
 from tqdm import tqdm
 from typing import Callable, List
 from numpy.typing import NDArray
@@ -36,7 +37,7 @@ class MPT(object):
             # traj: List[NDArray[np.int_]],
             traj: NDArray[np.int_],
             tlag: int,
-            feature_traj: NDArray[np.float_]=None,
+            feature_traj: NDArray[float]=None,
             feature_type=np.float64,
             macrostate_thresholds: tuple = (0.005, 0.5),
             limits=None,
@@ -76,12 +77,12 @@ class MPT(object):
     def mpt(
         self,
         kernel: Callable[
-            [NDArray[np.float_], NDArray[np.int_], NDArray[np.bool_]],
+            [NDArray[float], NDArray[np.int_], NDArray[np.bool_]],
             [np.int_, np.int_, NDArray[np.bool_]]
         ]=kernel_module.MPTKernel(),
         feature_kernel = None,
         n: int = 1,
-    ) -> (NDArray[np.float_], NDArray[np.int_]):
+    ) -> (NDArray[float], NDArray[np.int_]):
         """Perform MPT"""
         self.n_runs = n
         self.kernel = kernel
@@ -104,7 +105,7 @@ class MPT(object):
             )
         self.assign_macrostates()
 
-    def add_feature(self, feature_traj: NDArray[np.float_], feature_type=np.float64):
+    def add_feature(self, feature_traj: NDArray[float], feature_type=np.float64):
         """Add feature data to instance"""
         self.feature_traj = feature_traj.astype(feature_type)
         self.feature = np.zeros(self.n_states, dtype=feature_type)
@@ -279,7 +280,7 @@ class MPT(object):
             utils.get_multi_state_traj(self.traj, self.limits),
             self.tlag,
         )
-        self.tmat = tmat.astype(np.float_)
+        self.tmat = tmat.astype(float)
         _, self.pop = np.unique(self.traj, return_counts=True)
         self.n_states = len(states)
         self.full_pop = np.zeros((self.n_runs, 2*self.n_states-1), dtype=np.uint32)
@@ -489,6 +490,24 @@ class MPT(object):
     def plot_ck_test(self, out, frame_length=0.2):
         """"frame_length in ns"""
         plot.chapman_kolmogorov(self, out, frame_length)
+
+    def draw_random_frames_indices(self, out=None, n=20):
+        """
+        Draw n random frames for each macrostate
+
+        out (str): Path to directory where to save the .random[n] files
+        n (int): number of frames to draw randomly
+        """
+        drawn_frames = np.empty((self.n_macrostates[self.n_i], n), dtype=int)
+        for state in np.arange(self.n_macrostates[self.n_i]):
+            frames_in_state = np.where(self.macrotraj[:, self.n_i]==state+1)[0]
+            drawn_frames[state] = np.random.choice(frames_in_state, size=n, replace=False)
+        if out:
+            for s, i in enumerate(drawn_frames):
+                Path(os.path.join(out, f"{s+1:02d}")).mkdir(parents=True, exist_ok=True)
+                np.savetxt(os.path.join(out, f"{s+1:02d}", f".frames"), i, fmt="%.0f")
+        else:
+            return drawn_frames
 
     def draw_random_frames(self, out, n=20):
         """

@@ -55,7 +55,7 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1):
 
     ax = root.plot_tree(ax)
 
-    ax.set_ylabel(r'metastability $Q_\mathrm{min}$')
+    ax.set_ylabel(r'Metastability $T_{ii}$')
     ax.set_xlabel('microstates')
     ax.set_xlim(-0.005 * n_states, 1.005 * n_states)
     ax.set_ylim(0, 1.05)
@@ -65,7 +65,7 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1):
     bins = np.linspace(0, 1, 11)
     norm = Normalize(bins[0], bins[-1])
     # label = r'$\langle Q \rangle_\text{state} $'
-    label = 'fraction of native contacts'
+    label = r'Fraction of Native Contacts $q$'
 
     cmappable = ScalarMappable(norm, cmap)
     plt.sca(ax)
@@ -111,7 +111,7 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1):
     ax_mat.tick_params(axis='y', length=0, width=0)
     ax_mat.set_xlim(ax.get_xlim())
     ax.set_xlabel('')
-    ax_mat.set_xlabel('macrostates')
+    ax_mat.set_xlabel('Macrostates')
     ax_mat.set_ylabel('')
     fig.align_ylabels([ax, ax_mat])
 

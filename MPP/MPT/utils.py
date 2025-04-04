@@ -32,7 +32,7 @@ def feature_mean(traj: np.ndarray, feature: np.ndarray):
 
     
 def get_micro(
-        Z: NDArray[np.float_],
+        Z: NDArray[float],
         i: int,
         microstates: List[int]
     ) -> List[int]:
@@ -84,7 +84,7 @@ def translate_traj(
     return macrotraj + 1
 
 def macro_traj(
-        Z: NDArray[np.float_],
+        Z: NDArray[float],
         traj: NDArray[np.int_],
         n_macrostates: int
     ) -> NDArray[np.int_]:
@@ -92,7 +92,7 @@ def macro_traj(
     Create macrostate trajectory from Z matrix, microstate trajectory and
     number of macrostates.
 
-    Z (NDArray[np.float_]): Z matrix as of cluster
+    Z (NDArray[float]): Z matrix as of cluster
     traj (NDArray[np.int_v]): microstate trajectory
     n_macrostates (int): number of macrostates to create
 

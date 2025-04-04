@@ -357,23 +357,23 @@ class BinaryTreeNode(NodeMixin):
 
 
 def cluster(
-        tmat: NDArray[np.float_],
+        tmat: NDArray[float],
         pop: NDArray[np.int_],
         kernel: Callable[
-            [NDArray[np.float_], NDArray[np.int_], NDArray[np.bool_]],
+            [NDArray[float], NDArray[np.int_], NDArray[np.bool_]],
             [np.int_, np.int_, NDArray[np.bool_]]
         ]=kern.MPTKernel(),
         feature_kernel = None,
-    ) -> (NDArray[np.float_], NDArray[np.int_]):
+    ) -> (NDArray[float], NDArray[np.int_]):
     """
     cluster
     -------
     Perform full clustering for a transition matrix, given populations and a
     kernel.
 
-    tmat (NDArray[np.float_]): transition matrix, e. g. from
+    tmat (NDArray[float]): transition matrix, e. g. from
             mh.msm.estimate_markov_model
-    pop (NDArray[np.float_]): populations of microstates
+    pop (NDArray[float]): populations of microstates
     kernel: kernel object that determines the next merge
 
     returns Z (np.ndarray), full_pop (np.ndarray):
