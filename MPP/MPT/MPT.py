@@ -503,9 +503,11 @@ class MPT(object):
             frames_in_state = np.where(self.macrotraj[:, self.n_i]==state+1)[0]
             drawn_frames[state] = np.random.choice(frames_in_state, size=n, replace=False)
         if out:
+            Path(os.path.join(out)).mkdir(parents=True, exist_ok=True)
             for s, i in enumerate(drawn_frames):
-                Path(os.path.join(out, f"{s+1:02d}")).mkdir(parents=True, exist_ok=True)
-                np.savetxt(os.path.join(out, f"{s+1:02d}", f".frames"), i, fmt="%.0f")
+                # Path(os.path.join(out, f"{s+1:02d}")).mkdir(parents=True, exist_ok=True)
+                # np.savetxt(os.path.join(out, f"{s+1:02d}", f".frames.ndx"), i, fmt="%.0f", header="[frames]")
+                np.savetxt(os.path.join(out, f"{s+1:02d}.ndx"), i, fmt="%.0f", header="[frames]")
         else:
             return drawn_frames
 

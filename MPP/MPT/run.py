@@ -36,7 +36,10 @@ class Data:
 
         self.top = os.path.join(self.source, self.d["topology file"])
         self.xtc = os.path.join(self.source, self.d["xtc file"])
-        self.helices = np.loadtxt(os.path.join(self.source, self.d["helices"]), dtype=int)
+        self.helices = None if self.d["helices"] is None else np.loadtxt(
+            os.path.join(self.source, self.d["helices"]),
+            dtype=int
+        )
 
         self.tlag = self.d["tlag"]
         self.pop_min = self.d["pop_min"]
@@ -64,10 +67,12 @@ class Data:
 
     def get_rmsd(self, out, overwrite=False):
         """out: rmsd.npy"""
+        if not out.endswith(".npy"):
+            out += ".npy"
         if os.path.exists(out) and not overwrite:
             self.mpp.load_rmsd(out)
         else:
-            self.mpp.save_save(out)
+            self.mpp.save_rmsd(out)
 
 
 ### RUN ######################################################################
@@ -127,11 +132,15 @@ def plot(data, out, kind="dendrogram", scale=1):
     elif kind == "contacts":
         data.mpp.plot_contact_rep(data.mtraj_raw, data.cluster, out, scale=scale)
     elif kind == "macrotraj":
-        data.mpp.plot_macrotraj(out, row_length=1/10)
+        row_length = 1 / 10
+        if data.limits is not None:
+            row_length = 1 / len(data.limits)
+        data.mpp.plot_macrotraj(out, row_length=row_length)
     elif kind == "ck_test":
         data.mpp.plot_ck_test(out, frame_length=0.2)
     elif kind == "rmsd":
-        data.mpp.plot_rmsd(out, frame_length=0.2)
+        data.get_rmsd(os.path.splitext(out)[0] + ".npy")
+        data.mpp.plot_rmsd(out, helices=data.helices)
 
 
 def draw_random_frames(mpt, data):

@@ -932,16 +932,38 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
         ax.grid(True)
 
     if helices is not None:
+        line_start = 1
         helices_ax = axs[-1, 0]
-        helices_ax.plot([1, rmsds.shape[1]], [0.5, 0.5]) #, c="k")
+        # helices_ax.plot([1, rmsds.shape[1]], [0.5, 0.5]) #, c="k")
         for start, end in helices:
-            start -= 0.5
-            end += 0.5
-            rect = patches.Rectangle(
-                (start, 0.3),  # Position of the block
-                end - start, 0.4, # color='black'
-            )
+            if start > 0:
+                # Helices
+                start -= 0.5
+                end += 0.5
+                rect = patches.Rectangle(
+                    (start, 0.3),  # Position of the block
+                    end - start, 0.4, # color='black'
+                    lw=2,
+                )
+            else:
+                # Sheets
+                start, end = -start, -end
+                start -= 0.5
+                end += 0.5
+                rect = patches.Rectangle(
+                    (start, 0.3),  # Position of the block
+                    end - start, 0.4, # color='black'
+                    # fc="#2a9d8f",
+                    fc="white",
+                    # fc="#ffffffff",
+                    ec="#264653",
+                    # hatch="/",
+                    lw=2,
+                )
+            helices_ax.plot([line_start, start], [0.5, 0.5], solid_capstyle="butt", c="#264653", lw=2)
+            line_start = end
             helices_ax.add_patch(rect)
+        helices_ax.plot([line_start, rmsds.shape[1]], [0.5, 0.5], solid_capstyle="butt", c="#264653", lw=2)
        
         helices_ax.set_ylim((0, 1))
         helices_ax.set_ylabel("H")
@@ -998,7 +1020,6 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2):
     # Set up figure size proportional to data
     width = max(6, x_max * 0.0001)  # Minimum width of 6 inches
     height = max(2, (unique_states.max() - unique_states.min() + 1) * 0.05 * n_rows + 0.6)  # Minimum height of 4 inches
-    
     
     # Use a logarithmic color scale for lengths
     norm = colors.LogNorm(vmin=lengths.min(), vmax=lengths.max())
