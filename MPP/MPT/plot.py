@@ -3,8 +3,7 @@
 plot.py
 ==================
 
-Plot dendrogram from linkage and qmin. Most of the code originates from
-procss_mpp.py from Daniel Nagel.
+Various plot functions used in this package.
 """
 
 import os
@@ -32,7 +31,7 @@ plt.rcParams['font.family'] = 'sans-serif'
 ### DENDROGRAM ###############################################################
 
 
-def plot_tree(root, macrostate_assignment, output_file, scale=1):
+def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
     """
     Plot the dendrogram from a given state tree of BinaryTreeNode.
     """
@@ -58,7 +57,7 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1):
     ax.set_ylabel(r'Metastability $T_{ii}$')
     ax.set_xlabel('microstates')
     ax.set_xlim(-0.005 * n_states, 1.005 * n_states)
-    ax.set_ylim(0, 1.05)
+    ax.set_ylim(offset, 1.05)
 
     # plot legend
     cmap = plt.get_cmap('plasma_r', 10)
@@ -160,7 +159,7 @@ def evaluate_stochastic_clustering(mpt1, mpt2, out):
 
 ### IMPLIED TIMESCALES #######################################################
 
-def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, first_ref=False, scale=1):
+def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, first_ref=False, scale=1, use_ref=True):
     """
     frame_length in ns / frame
     """
@@ -206,7 +205,10 @@ def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, f
             max_it = max(it.max(), max_it)
 
         if first_ref:
-            _plot_impl_times(it_ref, lagtimes_ns, ax, ls=":")
+            if not use_ref:
+                _plot_impl_times(it_ref, lagtimes_ns, ax, ls="--")
+            else:
+                _plot_impl_times(it_ref, lagtimes_ns, ax, ls=":")
         _plot_impl_times(it, lagtimes_ns, ax)
         ax.set_yscale("log")
         ax.set_title(title)
@@ -250,6 +252,8 @@ def _plot_impl_times(impl_times, lagtimes, ax, ls="-"):
     for idx, impl_time in enumerate(impl_times.T):
         if ls == ":":
             label = f'$t_{{\\mathrm{{ref}},{idx + 1}}}$'
+        elif ls == "--":
+            label = f'$t_{{\\mathrm{{mic}},{idx + 1}}}$'
         else:
             label = f'$t_{idx + 1}$'
         ax.plot(lagtimes, impl_time, label=label, color=colors[idx], ls=ls)
@@ -890,14 +894,14 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
         n_plots = rmsds.shape[0]
 
     pplt.use_style(
-        figsize=(8, 6) , colors="pastel_autumn", true_black=True, latex=False,
+        figsize=(8.6, 6) , colors="pastel_autumn", true_black=True, latex=False,
     )
     fig, axs = plt.subplots(
         n_plots,
-        2,
+        3,
         sharex="col",
-        figsize=(8, 6),
-        width_ratios=[6, 1],
+        # figsize=(8.6, 6),
+        width_ratios=[6, 1, 1],
         gridspec_kw={'wspace':0, 'hspace':0},
     )
 
@@ -905,7 +909,10 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     pops = pops / pops.sum()
     ylim_hist = 0, 1.05 * pops.max()
 
-    for i, ((ax, hist_ax), rmsd, pop) in enumerate(zip(axs[:-1] if helices is not None else axs, rmsds, pops)):
+    rmsd_sums = rmsds.sum(axis=1)
+    ylim_rmsd = 0, 1.05 * rmsd_sums.max()
+
+    for i, ((ax, hist_ax, rmsd_ax), rmsd, pop) in enumerate(zip(axs[:-1] if helices is not None else axs, rmsds, pops)):
         rect = patches.Rectangle(
             (0, 0.3),  # Position of the block
             pop, 0.4, # color='black'
@@ -914,6 +921,23 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
         hist_ax.set_xlim(ylim_hist)
         hist_ax.set_yticks([], [])
         hist_ax.grid(False)
+
+        rect = patches.Rectangle(
+            (0, 0.3),  # Position of the block
+            rmsd.sum(), 0.4, # color='black'
+        )
+        rmsd_ax.add_patch(rect)
+        rmsd_ax.set_xlim(ylim_rmsd)
+        rmsd_ax.set_yticks([], [])
+        rmsd_ax.grid(False)
+        # rmsd_ax.text(
+        #     1.1,
+        #     0.5,
+        #     f"{rmsd.sum():.0f} nm",
+        #     horizontalalignment='center',
+        #     verticalalignment='center',
+        #     transform=rmsd_ax.transAxes,
+        # )
 
         ax.plot(np.arange(rmsd.shape[0])+1, rmsd)
         ax.fill_between(
@@ -938,11 +962,13 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
         for start, end in helices:
             if start > 0:
                 # Helices
-                start -= 0.5
-                end += 0.5
+                start -= 0.3
+                end += 0.3
                 rect = patches.Rectangle(
                     (start, 0.3),  # Position of the block
                     end - start, 0.4, # color='black'
+                    fc="#264653",
+                    ec="#264653",
                     lw=2,
                 )
             else:
@@ -953,11 +979,8 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
                 rect = patches.Rectangle(
                     (start, 0.3),  # Position of the block
                     end - start, 0.4, # color='black'
-                    # fc="#2a9d8f",
                     fc="white",
-                    # fc="#ffffffff",
                     ec="#264653",
-                    # hatch="/",
                     lw=2,
                 )
             helices_ax.plot([line_start, start], [0.5, 0.5], solid_capstyle="butt", c="#264653", lw=2)
@@ -972,17 +995,24 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
 
         axs[-1, 1].grid(False)
         axs[-1, 1].set_yticks([], [])
+        axs[-1, 2].grid(False)
+        axs[-1, 2].set_yticks([], [])
 
     hist_ticks = axs[-1, 1].get_xticks()
     hist_labels = axs[-1, 1].get_xticklabels()
-    # hist_labels = [f"{float(i._text)/1000:.0f}k" for i in hist_labels]
     hist_labels[0] = ""
     axs[-1, 1].set_xticks(hist_ticks, hist_labels)
+
+    rmsd_ticks = axs[-1, 2].get_xticks()
+    rmsd_labels = axs[-1, 2].get_xticklabels()
+    rmsd_labels[0] = ""
+    axs[-1, 2].set_xticks(rmsd_ticks, rmsd_labels)
 
     axs[-1, 0].xaxis.set_major_locator(MultipleLocator(5))
     axs[-1, 0].xaxis.set_minor_locator(MultipleLocator(1))
     axs[-1, 0].set_xlabel("Residue")
     axs[-1, 1].set_xlabel("Population")
+    axs[-1, 2].set_xlabel(r"$\sum$ RMSD / nm")
     fig.supylabel("Macrostate; RMSD Variance / nm")
 
     # Save to file if filename is provided

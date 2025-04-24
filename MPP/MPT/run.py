@@ -94,6 +94,9 @@ def setup_mpp(dij, gij, data):
     else:
         raise ValueError("feature kernel must be None, q or JS.")
 
+    if dij == "T" and gij == "none":
+        data.use_ref = False
+
     data.kernel = kernel
     data.feature_kernel = feature_kernel
 
@@ -124,7 +127,7 @@ def plot(data, out, kind="dendrogram", scale=1):
     kind: dendrogram, timescales, sankey, contacts, macrotraj, ck_test, rmsd
     """
     if kind == "dendrogram":
-        data.mpp.plot(out, scale=scale)
+        data.mpp.plot(out, scale=scale, offset=0.0)
     elif kind == "timescales":
         data.mpp.plot_implied_timescales(out, scale=scale, frame_length=0.2, use_ref=data.use_ref)
     elif kind == "sankey":

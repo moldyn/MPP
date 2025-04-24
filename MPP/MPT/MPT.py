@@ -144,9 +144,9 @@ class MPT(object):
             for j, mb in enumerate(ma.astype(bool)):
                 self.micro_feature[mb, i] = mf[j]
 
-    def plot(self, out: str, scale=1):
+    def plot(self, out: str, scale=1, offset=0):
         """Plot dendrogram"""
-        plot.plot_tree(self.tree[self.n_i], self.macrostate_assignment[self.n_i], out, scale=scale)
+        plot.plot_tree(self.tree[self.n_i], self.macrostate_assignment[self.n_i], out, scale=scale, offset=offset)
     
     def __add__(self, other):
         """'+' operator is used to calculate similarity"""
@@ -203,6 +203,7 @@ class MPT(object):
             frame_length=frame_length,
             first_ref=True,
             scale=scale,
+            use_ref=use_ref,
         )
 
     def plot_timescales(self, out):
