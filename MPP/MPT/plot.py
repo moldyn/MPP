@@ -900,7 +900,6 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
         n_plots,
         3,
         sharex="col",
-        # figsize=(8.6, 6),
         width_ratios=[6, 1, 1],
         gridspec_kw={'wspace':0, 'hspace':0},
     )
@@ -909,7 +908,7 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     pops = pops / pops.sum()
     ylim_hist = 0, 1.05 * pops.max()
 
-    rmsd_sums = rmsds.sum(axis=1)
+    rmsd_sums = rmsds[:, 2:-2].sum(axis=1)
     ylim_rmsd = 0, 1.05 * rmsd_sums.max()
 
     for i, ((ax, hist_ax, rmsd_ax), rmsd, pop) in enumerate(zip(axs[:-1] if helices is not None else axs, rmsds, pops)):
@@ -924,20 +923,12 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
 
         rect = patches.Rectangle(
             (0, 0.3),  # Position of the block
-            rmsd.sum(), 0.4, # color='black'
+            rmsd[2:-2].sum(), 0.4, # color='black'
         )
         rmsd_ax.add_patch(rect)
         rmsd_ax.set_xlim(ylim_rmsd)
         rmsd_ax.set_yticks([], [])
         rmsd_ax.grid(False)
-        # rmsd_ax.text(
-        #     1.1,
-        #     0.5,
-        #     f"{rmsd.sum():.0f} nm",
-        #     horizontalalignment='center',
-        #     verticalalignment='center',
-        #     transform=rmsd_ax.transAxes,
-        # )
 
         ax.plot(np.arange(rmsd.shape[0])+1, rmsd)
         ax.fill_between(
@@ -1014,6 +1005,165 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     axs[-1, 1].set_xlabel("Population")
     axs[-1, 2].set_xlabel(r"$\sum$ RMSD / nm")
     fig.supylabel("Macrostate; RMSD Variance / nm")
+
+    # Save to file if filename is provided
+    plt.tight_layout()
+    if filename:
+        plt.savefig(filename, bbox_inches="tight", dpi=100)
+    else:
+        plt.show()
+    plt.close()
+
+def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
+    """
+    Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
+
+    Parameters:
+    - vars (np.ndarray): The 2D NumPy array to plot. Values must be positive for logarithmic scaling.
+    - row_heights (np.ndarray): 1D array defining the height of each row.
+    - helices (np.ndarray): Array with start and end points for blocks to be indicated in the bottom row.
+    - filename (str, optional): If provided, saves the heatmap to this file.
+    """
+    # Ensure all values are positive for logarithmic scaling
+    if np.any(rmsds <= 0):
+        raise ValueError("All values in `rmsds` must be positive for logarithmic scaling.")
+    
+    if rmsds.shape[0] != len(pops):
+        raise ValueError("Length of `pops` must match the number of rows in `rmsds`.")
+
+    if helices is not None:
+        n_plots = rmsds.shape[0] + 1
+    else:
+        n_plots = rmsds.shape[0]
+
+    pplt.use_style(
+        figsize=(8.6, 6) , colors="pastel_autumn", true_black=True, latex=False,
+    )
+    fig, axs = plt.subplots(
+        n_plots,
+        3,
+        sharex="col",
+        width_ratios=[6, 1, 1],
+        gridspec_kw={'wspace':0, 'hspace':0},
+    )
+
+    delta_rmsd = rmsds
+    delta_rmsd[1:] = rmsds[1:] - rmsds[:-1]
+    rmsds = delta_rmsd
+
+    rmsd_max = rmsds.max()
+    rmsd_min = rmsds.min()
+    rmsd_delta = rmsd_max - rmsd_min
+
+    ylim = rmsd_min - rmsd_delta * 0.1, rmsd_max + rmsd_delta * 0.15
+    pops = pops / pops.sum()
+    ylim_hist = 0, 1.05 * pops.max()
+
+    rmsd_sums = rmsds.sum(axis=1)
+    ylim_rmsd = 0, 1.05 * rmsd_sums.max()
+
+    for i, ((ax, hist_ax, rmsd_ax), rmsd, pop) in enumerate(zip(axs[:-1] if helices is not None else axs, rmsds, pops)):
+        rect = patches.Rectangle(
+            (0, 0.3),  # Position of the block
+            pop, 0.4, # color='black'
+        )
+        hist_ax.add_patch(rect)
+        hist_ax.set_xlim(ylim_hist)
+        hist_ax.set_yticks([], [])
+        hist_ax.grid(False)
+
+        rect = patches.Rectangle(
+            (0, 0.3),  # Position of the block
+            rmsd.sum(), 0.4, # color='black'
+        )
+        rmsd_ax.add_patch(rect)
+        rmsd_ax.set_xlim(ylim_rmsd)
+        rmsd_ax.set_yticks([], [])
+        rmsd_ax.grid(False)
+
+        ax.plot(np.arange(rmsd.shape[0])+1, rmsd)
+        ax.fill_between(
+            np.arange(rmsd.shape[0])+1,
+            # [ylim[0]]*rmsd.shape[0],
+            [0]*rmsd.shape[0],
+            rmsd,
+            alpha=0.5,
+            # facecolor="none",
+            # hatch="/",
+        )
+
+        # ax.set_yscale("log")
+        # ax.set_ylabel(f"{i+1}")
+        ax.set_ylabel(f"{i+1}-{i}")
+        # ax.set_ylabel(f"{i+1}-{i}", rotation=90, position=(-0.2, 0))
+        ax.set_xlim((0.5, rmsd.shape[0] + 0.5))
+        ax.set_ylim(ylim)
+        ax.grid(True)
+
+    if helices is not None:
+        line_start = 1
+        helices_ax = axs[-1, 0]
+        # helices_ax.plot([1, rmsds.shape[1]], [0.5, 0.5]) #, c="k")
+        for start, end in helices:
+            if start > 0:
+                # Helices
+                start -= 0.3
+                end += 0.3
+                rect = patches.Rectangle(
+                    (start, 0.3),  # Position of the block
+                    end - start, 0.4, # color='black'
+                    fc="#264653",
+                    ec="#264653",
+                    lw=2,
+                )
+            else:
+                # Sheets
+                start, end = -start, -end
+                start -= 0.5
+                end += 0.5
+                rect = patches.Rectangle(
+                    (start, 0.3),  # Position of the block
+                    end - start, 0.4, # color='black'
+                    fc="white",
+                    ec="#264653",
+                    lw=2,
+                )
+            helices_ax.plot([line_start, start], [0.5, 0.5], solid_capstyle="butt", c="#264653", lw=2)
+            line_start = end
+            helices_ax.add_patch(rect)
+        helices_ax.plot([line_start, rmsds.shape[1]], [0.5, 0.5], solid_capstyle="butt", c="#264653", lw=2)
+       
+        helices_ax.set_ylim((0, 1))
+        helices_ax.set_ylabel("H")
+        helices_ax.set_yticks([], [])
+        helices_ax.grid(False)
+
+        axs[-1, 1].grid(False)
+        axs[-1, 1].set_yticks([], [])
+        axs[-1, 2].grid(False)
+        axs[-1, 2].set_yticks([], [])
+
+    
+    axs[0, 0].set_ylim(0.5 * rmsds[0].min(), 2 * rmsds[0].max())
+    axs[0, 0].set_yscale("log")
+    axs[0, 0].set_ylabel("1") #, rotation=90)
+
+    hist_ticks = axs[-1, 1].get_xticks()
+    hist_labels = axs[-1, 1].get_xticklabels()
+    hist_labels[0] = ""
+    axs[-1, 1].set_xticks(hist_ticks, hist_labels)
+
+    rmsd_ticks = axs[-1, 2].get_xticks()
+    rmsd_labels = axs[-1, 2].get_xticklabels()
+    rmsd_labels[0] = ""
+    axs[-1, 2].set_xticks(rmsd_ticks, rmsd_labels)
+
+    axs[-1, 0].xaxis.set_major_locator(MultipleLocator(5))
+    axs[-1, 0].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[-1, 0].set_xlabel("Residue")
+    axs[-1, 1].set_xlabel("Population")
+    axs[-1, 2].set_xlabel(r"$\sum$ $\Delta$RMSD / nm")
+    fig.supylabel(r"$\Delta$Macrostate; $\Delta$RMSD Variance / nm")
 
     # Save to file if filename is provided
     plt.tight_layout()

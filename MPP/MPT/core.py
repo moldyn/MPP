@@ -9,6 +9,7 @@ __all__ = [
     "cluster",
 ]
 
+import sys
 import numpy as np
 from typing import Callable
 from numpy.typing import NDArray
@@ -20,6 +21,7 @@ from anytree.iterators import PreOrderIter
 import MPT.utils as utils
 import MPT.kernel as kern
 
+sys.setrecursionlimit(2020)
 
 class BinaryTreeNode(NodeMixin):
     def __init__(

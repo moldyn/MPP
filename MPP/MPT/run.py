@@ -16,7 +16,6 @@ class Data:
             self.d = yaml.safe_load(f)
 
         self.source = self.d["source"]
-        self.out = self.d["out"]
 
         self.microtraj = np.loadtxt(os.path.join(
             self.source,
@@ -108,8 +107,8 @@ def setup_mpp(dij, gij, data):
         limits=data.limits,
         quiet=True,
     )
-    data.mpp.topology_file = data.top
-    data.mpp.xtc_trajectory_file = data.xtc
+    # data.mpp.topology_file = data.top
+    # data.mpp.xtc_trajectory_file = data.xtc
     return data
 
 
@@ -142,8 +141,14 @@ def plot(data, out, kind="dendrogram", scale=1):
     elif kind == "ck_test":
         data.mpp.plot_ck_test(out, frame_length=0.2)
     elif kind == "rmsd":
-        data.get_rmsd(os.path.splitext(out)[0] + ".npy")
+        # data.get_rmsd(os.path.splitext(out)[0] + ".npy")
+        data.get_rmsd(os.path.join(os.path.dirname(out), "rmsd.npy"))
         data.mpp.plot_rmsd(out, helices=data.helices)
+    elif kind == "delta_rmsd":
+        data.get_rmsd(os.path.join(os.path.dirname(out), "rmsd.npy"))
+        data.mpp.plot_delta_rmsd(out, helices=data.helices)
+    else:
+        raise ValueError(f"Unknown kind: {kind}")
 
 
 def draw_random_frames(mpt, data):
@@ -176,26 +181,14 @@ def parse_args():
         ),
         type=argparse.FileType('r', encoding='latin-1'),
     )
-    # parser.add_argument(
-    #     "lumping_grid",
-    #     help=(
-    #         "yaml file defining the lumpings to perform and where to store "
-    #         "them."
-    #     ),
-    #     type=argparse.FileType('r', encoding='latin-1'),
-    # )
     parser.add_argument(
         "d",
-        # "-d",
-        # "--dij",
         help=(
             "dij to be used."
         )
     )
     parser.add_argument(
         "g",
-        # "-g",
-        # "--gij",
         help=(
             "gij to be used."
         )
@@ -206,12 +199,10 @@ def parse_args():
         help=(
             "Override output directory set by config file"
         ),
-        # nargs="+",
     )
     parser.add_argument(
         "-Z",
         help="Perform MPP and write the Z matrix.",
-        # action="store_true",
     )
     parser.add_argument(
         "-r",
@@ -223,7 +214,6 @@ def parse_args():
     parser.add_argument(
         "-p",
         "--plot",
-        # nargs="+",
         help="Generate listed plots. Possible arguments include dendrogram, contacts, sankey, rmsd, macrotraj, timescales and more. (not yet implemented)"
     )
     return parser.parse_args()
@@ -234,8 +224,6 @@ def main():
 
     # Parse input files
     data = Data(args.data_specification.name)
-    # if args.o:
-    #     data.out = args.out
     data = setup_mpp(args.d, args.g, data)
     data.perform_mpp(args.Z)
 
@@ -246,19 +234,6 @@ def main():
     if args.draw_random:
         write_random_frames_indices(data.mpp, args.out, args.draw_random)
 
-
-
-    # with open(args.lumping_grid.name, "r") as f:
-    #     lumpings = yaml.safe_load(f)
-
-    # mpts = [None] * len(lumpings)
-    # if args.Z:
-    #     mpts = process_lumpings(lumpings, data, mpp, mpts)
-    # if args.standard_plots:
-    #     mpts = process_lumpings(lumpings, data, standard_plots, mpts)
-    # if args.draw_random:
-    #     data.n_random_frames = args.draw_random
-    #     mpts = process_lumpings(lumpings, data, draw_random_frames, mpts)
 
 if __name__ == "__main__":
     main()

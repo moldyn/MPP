@@ -475,6 +475,9 @@ class MPT(object):
     def plot_rmsd(self, out, helices=None):
         plot.plot_rmsd(self.rmsd, self.macro_pop[self.n_i], helices, out)
 
+    def plot_delta_rmsd(self, out, helices=None):
+        plot.plot_delta_rmsd(self.rmsd, self.macro_pop[self.n_i], helices, out)
+
     def plot_contact_rep(self, multi_feature_traj, cluster_file, out, scale=1):
         plot.contact_rep(
             multi_feature_traj,
