@@ -27,4 +27,3 @@ dependencies:
       - scikit-learn
       - scipy
       - seaborn
-prefix: /home/fg149/miniconda3/envs/mpp

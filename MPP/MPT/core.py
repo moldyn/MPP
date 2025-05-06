@@ -136,6 +136,9 @@ class BinaryTreeNode(NodeMixin):
     @right.setter
     def right(self, node):
         if node is not None and node.parent is not None:
+            print(self.name)
+            print(node.name)
+            print(node.parent.name)
             raise ValueError("Node already has a parent")
         if self._right is not None:
             self._right.parent = None
@@ -396,9 +399,9 @@ def cluster(
     full_pop = np.zeros(2 * n - 1, dtype=pop.dtype.type)
     full_pop[:n] = pop
 
-    if tmat.shape[0] < 2**8:
+    if tmat.shape[0] < 2**7:
         states_type = np.uint8
-    elif tmat.shape[0] < 2**16:
+    elif tmat.shape[0] < 2**15:
         states_type = np.uint16
     else:
         states_type = np.uint32

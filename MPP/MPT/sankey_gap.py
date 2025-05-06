@@ -190,14 +190,14 @@ def sankey(
         colorPalette = sns.color_palette(palette, len(allLabels))
         for i, label in enumerate(allLabels):
             colorDict[label] = colorPalette[i]
-    else:
-        missing = [label for label in allLabels if label not in colorDict.keys()]
-        if missing:
-            msg = (
-                "The colorDict parameter is missing values for the following labels : "
-            )
-            msg += "{}".format(", ".join(missing))
-            raise ValueError(msg)
+    # else:
+    #     missing = [label for label in allLabels if label not in colorDict.keys()]
+    #     if missing:
+    #         msg = (
+    #             "The colorDict parameter is missing values for the following labels : "
+    #         )
+    #         msg += "{}".format(", ".join(missing))
+    #         raise ValueError(msg)
     LOGGER.debug("The colordict value are : %s", colorDict)
 
     # Determine widths of individual strips

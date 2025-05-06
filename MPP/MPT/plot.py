@@ -188,9 +188,11 @@ def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, f
         min_it = it_ref.min()
         max_it = it_ref.max()
 
+    tlag = lagtimes[-1] / 4.5 * frame_length
     lagtimes_ns = lagtimes * frame_length
     for ax, traj, title in zip(axs.flatten(), trajs, titles):
-        ax.axvline(10, color='pplt:grid')
+        # ax.axvline(10, color='pplt:grid')
+        ax.axvline(tlag, color='pplt:grid')
         # ax.yaxis.set_major_formatter(mtick.LogFormatterSciNotation)
         it = mh.msm.implied_timescales(traj, lagtimes, ntimescales=3)
         # change from frames to ns
@@ -1213,7 +1215,8 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2):
     else:
         figsize = (width, height)
 
-    fig, axs = plt.subplots(n_rows, 1, sharex=True, figsize=figsize, gridspec_kw={'wspace':0, 'hspace':0})
+    fig, axs = plt.subplots(n_rows, 1, sharex=True, figsize=figsize, gridspec_kw={'wspace':0, 'hspace':0}, squeeze=False)
+    axs = axs[:, 0]
     axi = 0
 
     # Plot each state occurrence as a line segment
@@ -1222,17 +1225,13 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2):
         x_end = x_start + length  # Calculate end position of this segment on the x-axis
         color = cmap(norm(length))  # Color based on the length, logarithmically scaled
 
-        if x_end <= x_max:
-            # Plot the line segment for the current state
-            # plt.plot([x_start, x_end], [state, state], color=color, linewidth=3, solid_capstyle='butt')
-            axs[axi].plot([x_start, x_end], [state, state], color=color, linewidth=3, solid_capstyle='butt')
-        else:
+        while x_end > x_max:
             axs[axi].plot([x_start, x_max], [state, state], color=color, linewidth=3, solid_capstyle='butt')
             x_end -= x_max
             x_start = 0
             axi += 1
-            axs[axi].plot([x_start, x_end], [state, state], color=color, linewidth=3, solid_capstyle='butt')
-            
+        axs[axi].plot([x_start, x_end], [state, state], color=color, linewidth=3, solid_capstyle='butt')
+
         
         # Move x_start to the end of the current segment for the next one
         x_start = x_end

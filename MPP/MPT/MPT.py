@@ -195,10 +195,12 @@ class MPT(object):
 
         macrotraj = utils.get_multi_state_traj(self.macrotraj[:, self.n_i], self.limits)
 
+        dtlag = max(1, int(1 / frame_length))
         plot.plot_implied_timescales(
             [ref_traj, macrotraj],
             # [self.traj, self.macrotraj[:, self.n_i]],
-            np.arange(1, 227, 5),
+            # np.arange(1, 227, 5),
+            np.arange(1, 4.5 * self.tlag + dtlag, dtlag, dtype=int),
             out,
             frame_length=frame_length,
             first_ref=True,
@@ -397,9 +399,9 @@ class MPT(object):
         return self._traj
     @traj.setter
     def traj(self, value):
-        if value.max() < 2**8:
+        if value.max() < 2**7:
             traj_type = np.uint8
-        elif value.max() < 2**16:
+        elif value.max() < 2**15:
             traj_type = np.uint16
         else:
             traj_type = np.uint32

@@ -56,6 +56,8 @@ class MPTKernel(object):
         mask_state = np.argmin(np.diag(full_tmat)[mask])
         # Get correct state index
         state = states_not_merged[mask][mask_state][0]
+        ms = mask.sum()
+
         mask[state] = False
     
         trans_probs = full_tmat[state][mask]
@@ -129,6 +131,7 @@ class MPTKernel(object):
 
         # transitions contains indices for masked tmat
         transitions = np.argsort(trans_probs)[::-1]
+        # print(mask.sum())
         if self.method == "p":
             t_prob_norm = trans_probs / trans_probs.sum()
             options = [0]
@@ -136,6 +139,7 @@ class MPTKernel(object):
                 options.append(options[-1]+1)
             # p_options_norm = t_prob_norm[options]
         elif self.method == "n":
+            # print(trans_probs)
             options = list(range(self.param))[:trans_probs.shape[0]]
         else:
             raise ValueError("Method must be either 'p' or 'n'.")

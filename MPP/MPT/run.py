@@ -20,7 +20,7 @@ class Data:
         self.microtraj = np.loadtxt(os.path.join(
             self.source,
             self.d["microstate trajectory"]
-        ), dtype=np.uint32)
+        ), dtype=np.uint16)
         self.mtraj_raw = np.loadtxt(os.path.join(
             self.source,
             self.d["multi feature trajectory"],
@@ -40,6 +40,7 @@ class Data:
             dtype=int
         )
 
+        self.frame_length = self.d["frame length"]
         self.tlag = self.d["tlag"]
         self.pop_min = self.d["pop_min"]
         self.q_min = self.d["q_min"]
@@ -107,8 +108,10 @@ def setup_mpp(dij, gij, data):
         limits=data.limits,
         quiet=True,
     )
-    # data.mpp.topology_file = data.top
-    # data.mpp.xtc_trajectory_file = data.xtc
+    if os.path.exists(data.top):
+        data.mpp.topology_file = data.top
+    if os.path.exists(data.xtc):
+        data.mpp.xtc_trajectory_file = data.xtc
     return data
 
 
@@ -128,18 +131,21 @@ def plot(data, out, kind="dendrogram", scale=1):
     if kind == "dendrogram":
         data.mpp.plot(out, scale=scale, offset=0.0)
     elif kind == "timescales":
-        data.mpp.plot_implied_timescales(out, scale=scale, frame_length=0.2, use_ref=data.use_ref)
+        data.mpp.plot_implied_timescales(out, scale=scale, frame_length=data.frame_length, use_ref=data.use_ref)
     elif kind == "sankey":
         data.mpp.plot_sankey(out, scale=scale)
     elif kind == "contacts":
         data.mpp.plot_contact_rep(data.mtraj_raw, data.cluster, out, scale=scale)
     elif kind == "macrotraj":
-        row_length = 1 / 10
+        traj_length = data.microtraj.shape[0]
+        n_macrostates = data.mpp.n_macrostates[0]
+        row_length = 1 / int(np.round(np.sqrt(traj_length) / (np.sqrt(n_macrostates) * 30)))
+        # row_length = 1 / 6
         if data.limits is not None:
             row_length = 1 / len(data.limits)
         data.mpp.plot_macrotraj(out, row_length=row_length)
     elif kind == "ck_test":
-        data.mpp.plot_ck_test(out, frame_length=0.2)
+        data.mpp.plot_ck_test(out, frame_length=data.frame_length)
     elif kind == "rmsd":
         # data.get_rmsd(os.path.splitext(out)[0] + ".npy")
         data.get_rmsd(os.path.join(os.path.dirname(out), "rmsd.npy"))
