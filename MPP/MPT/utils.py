@@ -443,11 +443,11 @@ def dq(full_feature, Z=None, similarity="P"):
 
 ### RMSD #####################################################################
 
-def load_traj(topfile, trajfile, atom_selection="all", frames=None):
+def load_traj(topfile, trajfile, atom_selection="all", frames=None, stride=None):
     print("Loading trajectory...")
     top = md.load_topology(topfile)
     if frames is None:
-        return md.load_xtc(trajfile, top=top, atom_indices=top.select(atom_selection))
+        return md.load_xtc(trajfile, top=top, atom_indices=top.select(atom_selection), stride=stride)
     else:
         return md.join([md.load_xtc(
             trajfile,
@@ -546,7 +546,7 @@ def opt_num_batches(n):
 def calc_rmsd(mpt, n_i=None):
     if n_i is None:
         n_i = mpt.n_i
-    t = load_traj(mpt.topology_file, mpt.xtc_trajectory_file, atom_selection="name CA")
+    t = load_traj(mpt.topology_file, mpt.xtc_trajectory_file, atom_selection="name CA", stride=mpt.xtc_stride)
     mean_frames = []
     rmsd = np.empty([mpt.n_macrostates[n_i], t.n_atoms])
     for j in range(mpt.n_macrostates[n_i]):

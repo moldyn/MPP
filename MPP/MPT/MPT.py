@@ -73,6 +73,7 @@ class MPT(object):
         self._xtc_trajectory_file = None
         self._rmsd = None
         self.n_i = 0
+        self.xtc_stride = None
 
     def mpt(
         self,

@@ -33,12 +33,21 @@ class Data:
         self.feature_traj = self.mfeature_traj.mean(axis=1)
         self.cluster = os.path.join(self.source, self.d["cluster file"])
 
-        self.top = os.path.join(self.source, self.d["topology file"])
-        self.xtc = os.path.join(self.source, self.d["xtc file"])
-        self.helices = None if self.d["helices"] is None else np.loadtxt(
-            os.path.join(self.source, self.d["helices"]),
-            dtype=int
-        )
+        if "topology file" in self.d:
+            self.top = os.path.join(self.source, self.d["topology file"])
+        else:
+            self.top = None
+        if "xtc file" in self.d:
+            self.xtc = os.path.join(self.source, self.d["xtc file"])
+        else:
+            self.xtc = None
+        if "helices" in self.d:
+            self.helices = np.loadtxt(
+                os.path.join(self.source, self.d["helices"]),
+                dtype=int
+            )
+        else:
+            self.helices = None
 
         self.frame_length = self.d["frame length"]
         self.tlag = self.d["tlag"]
@@ -112,6 +121,7 @@ def setup_mpp(dij, gij, data):
         data.mpp.topology_file = data.top
     if os.path.exists(data.xtc):
         data.mpp.xtc_trajectory_file = data.xtc
+    data.mpp.xtc_stride = data.d.get("xtc stride", None)
     return data
 
 
@@ -211,6 +221,14 @@ def parse_args():
         help="Perform MPP and write the Z matrix.",
     )
     parser.add_argument(
+        "--rmsd",
+        help="Generate and write RMSD to file.",
+    )
+    parser.add_argument(
+        "--xtc-stride",
+        help="Read every nth frame.",
+    )
+    parser.add_argument(
         "-r",
         "--draw-random",
         help="Draw N random frames for each macrostate",
@@ -232,6 +250,9 @@ def main():
     data = Data(args.data_specification.name)
     data = setup_mpp(args.d, args.g, data)
     data.perform_mpp(args.Z)
+
+    if args.rmsd:
+        data.get_rmsd(args.rmsd, overwrite=True)
 
     # for p in args.plot:
     if args.plot:
