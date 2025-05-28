@@ -11,6 +11,7 @@ from os.path import splitext
 
 import numpy as np
 import prettypyplot as pplt
+import matplotlib as mpl
 from matplotlib import pyplot as plt
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize, LinearSegmentedColormap, LogNorm, ListedColormap
@@ -61,12 +62,10 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
 
     # plot legend
     cmap = plt.get_cmap('plasma_r', 10)
-    bins = np.linspace(0, 1, 11)
-    norm = Normalize(bins[0], bins[-1])
     # label = r'$\langle Q \rangle_\text{state} $'
     label = r'Fraction of Native Contacts $q$'
 
-    cmappable = ScalarMappable(norm, cmap)
+    cmappable = ScalarMappable(root.feature_norm, cmap)
     plt.sca(ax)
     pplt.colorbar(cmappable, width='5%', label=label, position='top')
 
@@ -159,7 +158,17 @@ def evaluate_stochastic_clustering(mpt1, mpt2, out):
 
 ### IMPLIED TIMESCALES #######################################################
 
-def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, first_ref=False, scale=1, use_ref=True):
+def plot_implied_timescales(
+        trajs,
+        lagtimes,
+        out,
+        titles="",
+        frame_length=0.2,
+        first_ref=False,
+        scale=1,
+        use_ref=True,
+        ntimescales=3,
+    ):
     """
     frame_length in ns / frame
     """
@@ -167,7 +176,8 @@ def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, f
         ref_traj = trajs.pop(0)
     x, y = utils.get_grid_format(len(trajs))
     # pplt.use_style(figsize=(2*x, 2*y), latex=False, colors='pastel_autumn')
-    pplt.use_style(figsize=(2.8*scale, 3.2*scale), latex=False, colors='pastel_autumn')
+    # pplt.use_style(figsize=(2.8*scale, 3.2*scale), latex=False, colors='pastel_autumn')
+    pplt.use_style(figsize=(3.8*scale, 3.2*scale), latex=False, colors='pastel_autumn')
     fig, axs = plt.subplots(y, x, sharex=True, sharey=True)
     plt.grid(False)
     if not isinstance(axs, np.ndarray):
@@ -182,7 +192,7 @@ def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, f
     max_it = None
     
     if first_ref:
-        it_ref = mh.msm.implied_timescales(ref_traj, lagtimes, ntimescales=3)
+        it_ref = mh.msm.implied_timescales(ref_traj, lagtimes, ntimescales=ntimescales)
         # change from frames to ns
         it_ref *= frame_length
         min_it = it_ref.min()
@@ -194,7 +204,7 @@ def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, f
         # ax.axvline(10, color='pplt:grid')
         ax.axvline(tlag, color='pplt:grid')
         # ax.yaxis.set_major_formatter(mtick.LogFormatterSciNotation)
-        it = mh.msm.implied_timescales(traj, lagtimes, ntimescales=3)
+        it = mh.msm.implied_timescales(traj, lagtimes, ntimescales=ntimescales)
         # change from frames to ns
         it *= frame_length
         if min_it == None:
@@ -216,7 +226,7 @@ def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, f
         ax.set_title(title)
 
     for ax in axs.flatten():
-        ax.set_ylim(min(min_it * 0.9, int(lagtimes_ns.shape[0] / 4)), max_it * 1.1)
+        ax.set_ylim(min(min_it * 0.9, int(lagtimes_ns.shape[0] / 4)), max_it * 1.5)
 
     if len(axs.shape) == 2:
         for ax in axs[-1]:
@@ -238,11 +248,12 @@ def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, f
 
     # Reorder the handles and labels manually to achieve column-major ordering
     # desired_order = [0, 3, 1, 4, 2, 5]  # Indices in column-major order
-    desired_order = [3, 0, 4, 1, 5, 2]  # Indices in column-major order
+    # desired_order = [3, 0, 4, 1, 5, 2]  # Indices in column-major order
+    desired_order = np.array([(i+ntimescales, i) for i in range(ntimescales)]).flatten()
     handles = [handles[i] for i in desired_order]
     labels = [labels[i] for i in desired_order]
 
-    pplt.legend(handles=handles, labels=labels, outside='top', frameon=False, ncols=3)
+    pplt.legend(handles=handles, labels=labels, outside='top', frameon=False, ncols=ntimescales)
 
     plt.tight_layout()
     plt.savefig(out)
@@ -250,7 +261,7 @@ def plot_implied_timescales(trajs, lagtimes, out, titles="", frame_length=0.2, f
 
 def _plot_impl_times(impl_times, lagtimes, ax, ls="-"):
     """Plot the implied timescales"""
-    colors = ['#264653', '#2A9D8F', '#E9C46A']
+    colors = ['#264653', '#2A9D8F', '#E9C46A', '#f4a261', '#e76f51'] * 4
     for idx, impl_time in enumerate(impl_times.T):
         if ls == ":":
             label = f'$t_{{\\mathrm{{ref}},{idx + 1}}}$'
@@ -895,14 +906,16 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     else:
         n_plots = rmsds.shape[0]
 
+    w = 0.08 * rmsds.shape[1] + 3 # 8.6
+    h = 1 + 0.4 * n_plots # 6
     pplt.use_style(
-        figsize=(8.6, 6) , colors="pastel_autumn", true_black=True, latex=False,
+        figsize=(w, h) , colors="pastel_autumn", true_black=True, latex=False,
     )
     fig, axs = plt.subplots(
         n_plots,
         3,
         sharex="col",
-        width_ratios=[6, 1, 1],
+        width_ratios=[rmsds.shape[1], 8, 8],
         gridspec_kw={'wspace':0, 'hspace':0},
     )
 
@@ -1004,14 +1017,14 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     axs[-1, 0].xaxis.set_major_locator(MultipleLocator(5))
     axs[-1, 0].xaxis.set_minor_locator(MultipleLocator(1))
     axs[-1, 0].set_xlabel("Residue")
-    axs[-1, 1].set_xlabel("Population")
-    axs[-1, 2].set_xlabel(r"$\sum$ RMSD / nm")
+    axs[-1, 1].set_xlabel("Population", rotation=20)
+    axs[-1, 2].set_xlabel(r"$\sum$ RMSD / nm", rotation = 20)
     fig.supylabel("Macrostate; RMSD Variance / nm")
 
     # Save to file if filename is provided
     plt.tight_layout()
     if filename:
-        plt.savefig(filename, bbox_inches="tight", dpi=100)
+        plt.savefig(filename, dpi=192) # , bbox_inches="tight"
     else:
         plt.show()
     plt.close()
@@ -1038,19 +1051,22 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     else:
         n_plots = rmsds.shape[0]
 
+    w = 0.08 * rmsds.shape[1] + 3 # 8.6
+    h = 1 + 0.4 * n_plots # 6
     pplt.use_style(
-        figsize=(8.6, 6) , colors="pastel_autumn", true_black=True, latex=False,
+        figsize=(w, h) , colors="pastel_autumn", true_black=True, latex=False,
     )
     fig, axs = plt.subplots(
         n_plots,
         3,
         sharex="col",
-        width_ratios=[6, 1, 1],
+        width_ratios=[rmsds.shape[1], 8, 8],
         gridspec_kw={'wspace':0, 'hspace':0},
     )
 
     delta_rmsd = rmsds
-    delta_rmsd[1:] = rmsds[1:] - rmsds[:-1]
+    # delta_rmsd[1:] = rmsds[1:] - rmsds[:-1]
+    delta_rmsd[1:] = rmsds[1:] - rmsds[0]
     rmsds = delta_rmsd
 
     rmsd_max = rmsds.max()
@@ -1076,7 +1092,7 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
 
         rect = patches.Rectangle(
             (0, 0.3),  # Position of the block
-            rmsd.sum(), 0.4, # color='black'
+            abs(rmsd).sum(), 0.4, # color='black'
         )
         rmsd_ax.add_patch(rect)
         rmsd_ax.set_xlim(ylim_rmsd)
@@ -1095,8 +1111,8 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
         )
 
         # ax.set_yscale("log")
-        # ax.set_ylabel(f"{i+1}")
-        ax.set_ylabel(f"{i+1}-{i}")
+        ax.set_ylabel(f"{i+1}")
+        # ax.set_ylabel(f"{i+1}-{i}")
         # ax.set_ylabel(f"{i+1}-{i}", rotation=90, position=(-0.2, 0))
         ax.set_xlim((0.5, rmsd.shape[0] + 0.5))
         ax.set_ylim(ylim)
@@ -1148,7 +1164,7 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     
     axs[0, 0].set_ylim(0.5 * rmsds[0].min(), 2 * rmsds[0].max())
     axs[0, 0].set_yscale("log")
-    axs[0, 0].set_ylabel("1") #, rotation=90)
+    # axs[0, 0].set_ylabel("1") #, rotation=90)
 
     hist_ticks = axs[-1, 1].get_xticks()
     hist_labels = axs[-1, 1].get_xticklabels()
@@ -1163,14 +1179,14 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     axs[-1, 0].xaxis.set_major_locator(MultipleLocator(5))
     axs[-1, 0].xaxis.set_minor_locator(MultipleLocator(1))
     axs[-1, 0].set_xlabel("Residue")
-    axs[-1, 1].set_xlabel("Population")
-    axs[-1, 2].set_xlabel(r"$\sum$ $\Delta$RMSD / nm")
-    fig.supylabel(r"$\Delta$Macrostate; $\Delta$RMSD Variance / nm")
+    axs[-1, 1].set_xlabel("Population", rotation=20)
+    axs[-1, 2].set_xlabel(r"$\sum$ |$\Delta$RMSD| / nm", rotation=20)
+    fig.supylabel(r"$\Delta$Macrostate; $\Delta$RMSD Variance / nm wrt. 1st State")
 
     # Save to file if filename is provided
     plt.tight_layout()
     if filename:
-        plt.savefig(filename, bbox_inches="tight", dpi=100)
+        plt.savefig(filename, dpi=192) # , bbox_inches="tight"
     else:
         plt.show()
     plt.close()
@@ -1178,7 +1194,7 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
 
 ### TRAJECTORY ###############################################################
 
-def plot_state_trajectory(trajectory, filename, row_length=0.2):
+def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2):
     """
     Plot state trajectory
 
@@ -1187,6 +1203,7 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2):
     row_length (int|float):
         row_length > 1: number of frames in each row
         0 < row_length <= 1: fraction of total frames per row (1/n_rows)
+    frame_length (float): frame length in ns
     """
     if row_length > 1:
         x_max = int(row_length)
@@ -1195,27 +1212,45 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2):
     else:
         raise ValueError("row_lengthg must be > 0")
 
+    frame_length /= 1000.0
     # Calculate unique states and their lengths
     unique_states, lengths = utils.find_state_lengths(trajectory)
+    lengths = lengths * frame_length
     n_rows = int(np.ceil(trajectory.shape[0] / x_max))
     
     # Set up figure size proportional to data
     width = max(6, x_max * 0.0001)  # Minimum width of 6 inches
     height = max(2, (unique_states.max() - unique_states.min() + 1) * 0.05 * n_rows + 0.6)  # Minimum height of 4 inches
+    x_max *= frame_length
     
     # Use a logarithmic color scale for lengths
-    norm = colors.LogNorm(vmin=lengths.min(), vmax=lengths.max())
-    cmap = plt.cm.viridis
+    norm_len = colors.LogNorm(vmin=lengths.min(), vmax=lengths.max())
+    cmap_len = plt.cm.viridis
    
     # plt.figure(figsize=(width, height))
-    # a4 = True
-    a4 = False
+    a4 = True
+    # a4 = False
     if a4:
         figsize = (11.7, 8.3)
     else:
-        figsize = (width, height)
+        figsize = (width*1.5, height*1.5)
 
-    fig, axs = plt.subplots(n_rows, 1, sharex=True, figsize=figsize, gridspec_kw={'wspace':0, 'hspace':0}, squeeze=False)
+    u_states = np.unique(unique_states)
+    # cmap = mpl.cm.viridis
+    # cmap = mpl.cm.nipy_spectral
+    cmap = mpl.cm.turbo
+    # norm = mpl.colors.BoundaryNorm(np.concatenate([[0], u_states, [u_states.max() + 1]]) + 0.5, cmap.N)
+    norm = mpl.colors.BoundaryNorm(np.concatenate([[0], u_states]) + 0.5, cmap.N)
+
+    fig, axs = plt.subplots(
+        n_rows,
+        1,
+        sharex=True,
+        figsize=figsize,
+        gridspec_kw={'wspace':0, 'hspace':0},
+        squeeze=False,
+        layout='compressed',
+    )
     axs = axs[:, 0]
     axi = 0
 
@@ -1223,14 +1258,27 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2):
     x_start = 0  # Initial x-coordinate for the first segment
     for state, length in zip(unique_states, lengths):
         x_end = x_start + length  # Calculate end position of this segment on the x-axis
-        color = cmap(norm(length))  # Color based on the length, logarithmically scaled
+        # color = cmap(norm(length))  # Color based on the length, logarithmically scaled
+        color = cmap(norm(state))
 
         while x_end > x_max:
-            axs[axi].plot([x_start, x_max], [state, state], color=color, linewidth=3, solid_capstyle='butt')
+            axs[axi].plot(
+                [x_start, x_max],
+                [state, state],
+                color=color[:3],
+                linewidth=3,
+                solid_capstyle='butt',
+            )
             x_end -= x_max
             x_start = 0
             axi += 1
-        axs[axi].plot([x_start, x_end], [state, state], color=color, linewidth=3, solid_capstyle='butt')
+        axs[axi].plot(
+            [x_start, x_end],
+            [state, state],
+            color=color,
+            linewidth=3,
+            solid_capstyle='butt',
+        )
 
         
         # Move x_start to the end of the current segment for the next one
@@ -1244,9 +1292,13 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2):
     
     # Label axes and set title
     # fig.supxlabel("Index in State Sequence")
+    cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=axs, orientation="vertical", label="Macrostate")
+    cbar.set_ticks(ticks=u_states, labels=u_states, minor=False)
+    fig.axes[-1].tick_params(length=0)
+
     fig.supylabel("State Index")
     # fig.supxlabel("Frames")
-    axs[-1].set_xlabel("Frames")
+    axs[-1].set_xlabel(r"t / $\mu$s")
     # plt.title("Line Plot of State Trajectory with Length-Color Coding")
   
     for ax in axs:
@@ -1258,7 +1310,7 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2):
     # plt.ylim(np.min(unique_states) - 0.2, np.max(unique_states) + 0.2)
   
     # plt.subplots_adjust(wspace=0, hspace=0)
-    plt.tight_layout()
+    # plt.tight_layout()
     # Save the plot to the specified file
     plt.savefig(filename)
     plt.close()  # Close the plot to free memory

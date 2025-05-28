@@ -122,6 +122,7 @@ def setup_mpp(dij, gij, data):
     if os.path.exists(data.xtc):
         data.mpp.xtc_trajectory_file = data.xtc
     data.mpp.xtc_stride = data.d.get("xtc stride", None)
+    data.mpp.frame_length = data.frame_length
     return data
 
 
@@ -141,7 +142,9 @@ def plot(data, out, kind="dendrogram", scale=1):
     if kind == "dendrogram":
         data.mpp.plot(out, scale=scale, offset=0.0)
     elif kind == "timescales":
-        data.mpp.plot_implied_timescales(out, scale=scale, frame_length=data.frame_length, use_ref=data.use_ref)
+        if "n timescales" in data.d:
+            data.mpp.calc_timescales(data.d["n timescales"])
+        data.mpp.plot_implied_timescales(out, scale=scale, use_ref=data.use_ref)
     elif kind == "sankey":
         data.mpp.plot_sankey(out, scale=scale)
     elif kind == "contacts":
@@ -149,13 +152,13 @@ def plot(data, out, kind="dendrogram", scale=1):
     elif kind == "macrotraj":
         traj_length = data.microtraj.shape[0]
         n_macrostates = data.mpp.n_macrostates[0]
-        row_length = 1 / int(np.round(np.sqrt(traj_length) / (np.sqrt(n_macrostates) * 30)))
-        # row_length = 1 / 6
+        # row_length = 1 / int(np.round(np.sqrt(traj_length) / (np.sqrt(n_macrostates) * 30)))
+        row_length = 1 / 6
         if data.limits is not None:
             row_length = 1 / len(data.limits)
         data.mpp.plot_macrotraj(out, row_length=row_length)
     elif kind == "ck_test":
-        data.mpp.plot_ck_test(out, frame_length=data.frame_length)
+        data.mpp.plot_ck_test(out)
     elif kind == "rmsd":
         # data.get_rmsd(os.path.splitext(out)[0] + ".npy")
         data.get_rmsd(os.path.join(os.path.dirname(out), "rmsd.npy"))

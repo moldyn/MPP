@@ -41,7 +41,8 @@ class MPT(object):
             feature_type=np.float64,
             macrostate_thresholds: tuple = (0.005, 0.5),
             limits=None,
-            quiet=False
+            quiet=False,
+            frame_length=0.2,
     ):
         self.traj = traj
         self.tlag = tlag
@@ -74,6 +75,7 @@ class MPT(object):
         self._rmsd = None
         self.n_i = 0
         self.xtc_stride = None
+        self.frame_length = frame_length
 
     def mpt(
         self,
@@ -182,12 +184,11 @@ class MPT(object):
                 ntimescales=ntimescales
             )[0]
 
-    def plot_implied_timescales(self, out, use_ref=True, scale=1, frame_length=0.2):
+    def plot_implied_timescales(self, out, use_ref=True, scale=1):
         """
         out: File to write plot
         use_ref: If it for reference trajectory should be plotted
         scale: scaling factor for plot
-        frame_length: frame length in ns
         """
         if use_ref:
             ref_traj = self.reference.macrotraj[:, 0]
@@ -196,17 +197,18 @@ class MPT(object):
 
         macrotraj = utils.get_multi_state_traj(self.macrotraj[:, self.n_i], self.limits)
 
-        dtlag = max(1, int(1 / frame_length))
+        dtlag = max(1, int(1 / self.frame_length))
         plot.plot_implied_timescales(
             [ref_traj, macrotraj],
             # [self.traj, self.macrotraj[:, self.n_i]],
             # np.arange(1, 227, 5),
             np.arange(1, 4.5 * self.tlag + dtlag, dtlag, dtype=int),
             out,
-            frame_length=frame_length,
+            frame_length=self.frame_length,
             first_ref=True,
             scale=scale,
             use_ref=use_ref,
+            ntimescales=self.timescales.shape[1],
         )
 
     def plot_timescales(self, out):
@@ -352,7 +354,7 @@ class MPT(object):
         plot.plot_sankey(self, self.reference, out, ax=ax, scale=scale)
 
     def plot_macrotraj(self, out, row_length=0.2):
-        plot.plot_state_trajectory(self.macrotraj[:, self.n_i], out, row_length=row_length)
+        plot.plot_state_trajectory(self.macrotraj[:, self.n_i], out, row_length=row_length, frame_length=self.frame_length)
 
     @property
     def shannon_entropy(self):
@@ -460,6 +462,14 @@ class MPT(object):
             self._rmsd, self.mean_frames = utils.calc_rmsd(self)
         return self._rmsd
 
+    @property
+    def frame_length(self):
+        """The frame_length property. Frame length in ns."""
+        return self._frame_length
+    @frame_length.setter
+    def frame_length(self, value):
+        self._frame_length = value
+
     def save_rmsd(self, out):
         np.save(out, self.rmsd)
 
@@ -494,9 +504,8 @@ class MPT(object):
     def plot_relative_implied_timescales(self, out):
         plot.plot_relative_implied_timescales(self, out)
 
-    def plot_ck_test(self, out, frame_length=0.2):
-        """"frame_length in ns"""
-        plot.chapman_kolmogorov(self, out, frame_length)
+    def plot_ck_test(self, out):
+        plot.chapman_kolmogorov(self, out, self.frame_length)
 
     def draw_random_frames_indices(self, out=None, n=20):
         """

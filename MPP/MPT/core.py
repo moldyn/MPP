@@ -14,6 +14,7 @@ import numpy as np
 from typing import Callable
 from numpy.typing import NDArray
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
 
 from anytree import NodeMixin
 from anytree.iterators import PreOrderIter
@@ -72,6 +73,10 @@ class BinaryTreeNode(NodeMixin):
         self._x_origin = None
         self._x_target = None
         self._y_origin = None
+        
+        self._bins = None
+        self._feature_norm = None
+        self._colors = None
 
     @property
     def population(self):
@@ -258,18 +263,48 @@ class BinaryTreeNode(NodeMixin):
         return self._assigned_macrostate
 
     @property
+    def bins(self):
+        """The bins property."""
+        if self.is_root and self._bins is None:
+            leaf_features = [l.feature for l in self.leaves]
+            min_feature = min(leaf_features)
+            max_feature = max(leaf_features)
+            self._bins = np.linspace(min_feature, max_feature, 11)
+            # self._bins[0] *= 0.9
+            # self._bins[-1] *= 1.1
+        if self.is_root:
+            return self._bins
+        else:
+            return self.root.bins
+
+    @property
+    def feature_norm(self):
+        """The feature_norm property."""
+        if self.is_root and self._feature_norm is None:
+            self._feature_norm = Normalize(self.bins[0], self.bins[-1])
+        if self.is_root:
+            return self._feature_norm
+        else:
+            return self.root.feature_norm
+
+    @property
+    def colors(self):
+        """The colors property."""
+        if self.is_root and self._colors is None:
+            cmap = plt.get_cmap('plasma_r', 10)
+            self._colors = [cmap(idx) for idx in range(cmap.N)]
+        if self.is_root:
+            return self._colors
+        else:
+            return self.root.colors
+
+    @property
     def color(self):
         """Color according to feature."""
-        steps = 10
-        cmap = plt.get_cmap('plasma_r', steps)
-        colors = [cmap(idx) for idx in range(cmap.N)]
-        feature_norm = np.linalg.norm(self.feature)
-
-        bins = np.linspace(0, 1, steps + 1)
-        for color, rlower, rhigher in zip(colors, bins[:-1], bins[1:]):
-            if rlower <= feature_norm <= rhigher:
+        # for color, rlower, rhigher in zip(self.colors, self.bins[:-1], self.bins[1:]):
+        for color, rlower, rhigher in zip(self.colors, np.arange(0, 1, 0.1), np.arange(0.1, 1.1, 0.1)):
+            if rlower <= self.feature_norm(self.feature) <= rhigher:
                 return color
-
         return "k"
 
     @property
