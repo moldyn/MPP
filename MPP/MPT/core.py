@@ -270,8 +270,6 @@ class BinaryTreeNode(NodeMixin):
             min_feature = min(leaf_features)
             max_feature = max(leaf_features)
             self._bins = np.linspace(min_feature, max_feature, 11)
-            # self._bins[0] *= 0.9
-            # self._bins[-1] *= 1.1
         if self.is_root:
             return self._bins
         else:
