@@ -7,7 +7,6 @@ import argparse
 
 import numpy as np
 import MPT
-from tqdm import tqdm
 
 
 class Data:
@@ -17,17 +16,22 @@ class Data:
 
         self.source = self.d["source"]
 
-        self.microtraj = np.loadtxt(os.path.join(
-            self.source,
-            self.d["microstate trajectory"]
-        ), dtype=np.uint16)
-        self.mtraj_raw = np.loadtxt(os.path.join(
-            self.source,
-            self.d["multi feature trajectory"],
-        ))
-        self.limits = None if self.d["limits"] is None else np.loadtxt(
-            os.path.join(self.source, self.d["limits"]),
-            dtype=np.int_,
+        self.microtraj = np.loadtxt(
+            os.path.join(self.source, self.d["microstate trajectory"]), dtype=np.uint16
+        )
+        self.mtraj_raw = np.loadtxt(
+            os.path.join(
+                self.source,
+                self.d["multi feature trajectory"],
+            )
+        )
+        self.limits = (
+            None
+            if self.d["limits"] is None
+            else np.loadtxt(
+                os.path.join(self.source, self.d["limits"]),
+                dtype=np.int_,
+            )
         )
         self.mfeature_traj = self.mtraj_raw < 0.45
         self.feature_traj = self.mfeature_traj.mean(axis=1)
@@ -43,8 +47,7 @@ class Data:
             self.xtc = None
         if "helices" in self.d:
             self.helices = np.loadtxt(
-                os.path.join(self.source, self.d["helices"]),
-                dtype=int
+                os.path.join(self.source, self.d["helices"]), dtype=int
             )
         else:
             self.helices = None
@@ -71,8 +74,11 @@ class Data:
             self.mpp.mpt(
                 self.kernel,
                 feature_kernel=self.feature_kernel,
+                n=self.d["stochastic"]["n"] if "stochastic" in self.d else 1,
             )
             self.mpp.save_Z(out)
+        if "stochastic" in self.d:
+            self.mpp.set_n_i()
 
     def get_rmsd(self, out, overwrite=False):
         """out: rmsd.npy"""
@@ -86,8 +92,19 @@ class Data:
 
 ### RUN ######################################################################
 
+
 def setup_mpp(dij, gij, data):
-    kernel = MPT.kernel.MPTKernel(similarity=dij)
+    if "stochastic" in data.d:
+        kernel = MPT.kernel.MPTKernel(
+            method=data.d["stochastic"]["method"],
+            param=data.d["stochastic"]["param"],
+            similarity=dij,
+        )
+    else:
+        kernel = MPT.kernel.MPTKernel(
+            similarity=dij,
+        )
+
     if gij == "none":
         feature_kernel = None
     elif gij == "q":
@@ -135,6 +152,7 @@ def setup_mpp(dij, gij, data):
 #     mpt.save_Z(os.path.join(data.lumping_dir, "Z.npy"))
 #     return mpt
 
+
 def plot(data, out, kind="dendrogram", scale=1):
     """
     kind: dendrogram, timescales, sankey, contacts, macrotraj, ck_test, rmsd
@@ -173,15 +191,21 @@ def plot(data, out, kind="dendrogram", scale=1):
 def draw_random_frames(mpt, data):
     if mpt.Z is None:
         mpt.from_Z(os.path.join(data.lumping_dir, "Z.npy"))
-    Path(os.path.join(data.lumping_dir + "random_frames/")).mkdir(parents=True, exist_ok=True)
+    Path(os.path.join(data.lumping_dir + "random_frames/")).mkdir(
+        parents=True, exist_ok=True
+    )
     mpt.topology_file = data.top
     mpt.xtc_trajectory_file = data.xtc
-    mpt.draw_random_frames(os.path.join(data.lumping_dir + "random_frames/"), n=data.n_random_frames)
+    mpt.draw_random_frames(
+        os.path.join(data.lumping_dir + "random_frames/"), n=data.n_random_frames
+    )
     return mpt
+
 
 def write_random_frames_indices(mpt, out, n):
     Path(os.path.join(out)).mkdir(parents=True, exist_ok=True)
     mpt.draw_random_frames_indices(out, n)
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -198,26 +222,14 @@ def parse_args():
             "yaml file containing specification of files and parameters of "
             "the simulation"
         ),
-        type=argparse.FileType('r', encoding='latin-1'),
+        type=argparse.FileType("r", encoding="latin-1"),
     )
-    parser.add_argument(
-        "d",
-        help=(
-            "dij to be used."
-        )
-    )
-    parser.add_argument(
-        "g",
-        help=(
-            "gij to be used."
-        )
-    )
+    parser.add_argument("d", help=("dij to be used."))
+    parser.add_argument("g", help=("gij to be used."))
     parser.add_argument(
         "-o",
         "--out",
-        help=(
-            "Override output directory set by config file"
-        ),
+        help=("Override output directory set by config file"),
     )
     parser.add_argument(
         "-Z",
@@ -241,10 +253,10 @@ def parse_args():
     parser.add_argument(
         "-p",
         "--plot",
-        help="Generate listed plots. Possible arguments include dendrogram, contacts, sankey, rmsd, macrotraj, timescales and more. (not yet implemented)"
+        help="Generate listed plots. Possible arguments include dendrogram, contacts, sankey, rmsd, macrotraj, timescales and more. (not yet implemented)",
     )
     return parser.parse_args()
-    
+
 
 def main():
     args = parse_args()

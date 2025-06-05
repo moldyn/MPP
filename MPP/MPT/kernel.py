@@ -16,6 +16,7 @@ __all__ = [
 
 ### MERGING KERNEL ###########################################################
 
+
 class MPTKernel(object):
     def __init__(self, method="n", param=1, cutoff=0, similarity="T", term="*"):
         """
@@ -56,10 +57,9 @@ class MPTKernel(object):
         mask_state = np.argmin(np.diag(full_tmat)[mask])
         # Get correct state index
         state = states_not_merged[mask][mask_state][0]
-        ms = mask.sum()
 
         mask[state] = False
-    
+
         trans_probs = full_tmat[state][mask]
 
         # Apply cutoff as suggested by Lukas (report 8)
@@ -71,12 +71,12 @@ class MPTKernel(object):
             trans_probs = trans_probs[cutoff_mask]
 
         trans_probs /= trans_probs.sum()
-    
+
         # If Kullback-Leibler divergence is used
         if self.similarity == "KL":
             t = full_tmat[mask][:, mask].copy()
             np.fill_diagonal(t, trans_probs)
-            epsilon=1e-6
+            epsilon = 1e-6
             dkl = scy.stats.entropy(
                 trans_probs + epsilon,
                 t + epsilon,
@@ -114,7 +114,7 @@ class MPTKernel(object):
         if self.term == "+":
             trans_probs = self.a * tr_prob + self.b * f1 + self.c * f2
             if not isinstance(trans_probs, np.ndarray) and trans_probs == 0:
-                trans_probs = np.array([1.0]) 
+                trans_probs = np.array([1.0])
         elif self.term == "*":
             trans_probs = 1
             if self.a != 0:
@@ -123,7 +123,7 @@ class MPTKernel(object):
                 trans_probs *= f1
             if self.c != 0:
                 if not isinstance(f2, np.ndarray) and f2 == 0:
-                    f2 = np.array([1.0]) 
+                    f2 = np.array([1.0])
                 trans_probs *= f2
         trans_probs = np.nan_to_num(trans_probs, copy=False, nan=1e-6)
         if trans_probs.sum() == 0:
@@ -135,19 +135,23 @@ class MPTKernel(object):
         if self.method == "p":
             t_prob_norm = trans_probs / trans_probs.sum()
             options = [0]
-            while t_prob_norm[options].sum() <= self.param and len(options) < np.count_nonzero(trans_probs):
-                options.append(options[-1]+1)
+            while t_prob_norm[options].sum() <= self.param and len(
+                options
+            ) < np.count_nonzero(trans_probs):
+                options.append(options[-1] + 1)
             # p_options_norm = t_prob_norm[options]
         elif self.method == "n":
             # print(trans_probs)
-            options = list(range(self.param))[:trans_probs.shape[0]]
+            options = list(range(self.param))[: trans_probs.shape[0]]
         else:
             raise ValueError("Method must be either 'p' or 'n'.")
-     
+
         p_options = trans_probs[transitions[options]]
 
-        mask_target_state = np.random.choice(transitions[options], p=p_options / sum(p_options))
-    
+        mask_target_state = np.random.choice(
+            transitions[options], p=p_options / sum(p_options)
+        )
+
         if self.cutoff > 0 and self.cutoff < 1:
             target_state = states_not_merged[mask][cutoff_mask][mask_target_state][0]
         else:
@@ -155,13 +159,22 @@ class MPTKernel(object):
         return state, target_state, mask
 
     def __repr__(self):
-        return f"<class MPTKernel>"
-    
+        return "<class MPTKernel>"
+
 
 ### FEATURE KERNEL ###########################################################
 
+
 class FeatureKernel(object):
-    def __init__(self, feature_traj, microstate_traj, sigma=0.05, b=2, feature_type=np.float64, traj_type=np.uint16):
+    def __init__(
+        self,
+        feature_traj,
+        microstate_traj,
+        sigma=0.05,
+        b=2,
+        feature_type=np.float64,
+        traj_type=np.uint16,
+    ):
         """
         feature_traj: either N, N being the number of frames and M the
                 number of features
@@ -178,32 +191,35 @@ class FeatureKernel(object):
 
     def __repr__(self):
         return "<class FeatureKernel>"
-    
+
     def _init_feature(self, microstate_traj):
         states, pop = np.unique(microstate_traj, return_counts=True)
         self.n_states = states.shape[0]
         # Populations for all states incl intermediate states
-        self.full_pop = np.zeros(2*self.n_states-1, dtype=np.uint32)
-        self.full_pop[:self.n_states] = pop
+        self.full_pop = np.zeros(2 * self.n_states - 1, dtype=np.uint32)
+        self.full_pop[: self.n_states] = pop
         # corresponding feature values
-        self.full_feature = np.zeros(2*self.n_states-1, dtype=self.feature_traj.dtype.type)
+        self.full_feature = np.zeros(
+            2 * self.n_states - 1, dtype=self.feature_traj.dtype.type
+        )
         for i in range(self.n_states):
-            self.full_feature[i] = self.feature_traj[
-                microstate_traj == i+1
-            ].mean()
+            self.full_feature[i] = self.feature_traj[microstate_traj == i + 1].mean()
 
     def reset(self):
-        self.full_pop[self.n_states:] = 0
-        self.full_feature[self.n_states:] = 0
+        self.full_pop[self.n_states :] = 0
+        self.full_feature[self.n_states :] = 0
 
     # def weighting_function(self, dq):
     #     a = 1 / (2 * self.sigma ** 2)
     #     return np.exp(-a * np.abs(dq) ** self.b)
 
     def apply(self, trans_probs, state, mask):
-        f = (trans_probs * utils.weighting_function(
-            np.abs(self.full_feature - self.full_feature[state])
-        ))[mask]
+        f = (
+            trans_probs
+            * utils.weighting_function(
+                np.abs(self.full_feature - self.full_feature[state])
+            )
+        )[mask]
         f -= f.min()
         if f.sum() != 0:
             return f / f.sum()
@@ -213,7 +229,7 @@ class FeatureKernel(object):
     def update(self, origin, target, new_state):
         self.full_pop[new_state] = self.full_pop[[origin, target]].sum()
         self.full_feature[new_state] = (
-            self.full_feature[origin] * self.full_pop[origin] \
+            self.full_feature[origin] * self.full_pop[origin]
             + self.full_feature[target] * self.full_pop[target]
         ) / self.full_pop[new_state]
 
@@ -221,20 +237,30 @@ class FeatureKernel(object):
         # Ensure that Z is 3D
         if Z.ndim == 2:
             Z = Z.reshape((1, *Z.shape))
-    
+
         full_dim = 2 * self.n_states - 1
 
         self.n_full_feature = np.empty((Z.shape[0], full_dim))
-        self.n_full_feature[:, :self.n_states] = self.full_feature[:self.n_states]
+        self.n_full_feature[:, : self.n_states] = self.full_feature[: self.n_states]
         for run, z in enumerate(Z):
             self.reset()
             for i, (origin, target) in enumerate(z[:, :2].astype(int)):
                 self.update(origin, target, self.n_states + i)
-            self.n_full_feature[run, self.n_states:] = self.full_feature[self.n_states:]
+            self.n_full_feature[run, self.n_states :] = self.full_feature[
+                self.n_states :
+            ]
         return self.n_full_feature
 
+
 class MultiFeatureKernel(object):
-    def __init__(self, feature_traj, microstate_traj, feature_type=np.float64, traj_type=np.uint16, similarity="JS"):
+    def __init__(
+        self,
+        feature_traj,
+        microstate_traj,
+        feature_type=np.float64,
+        traj_type=np.uint16,
+        similarity="JS",
+    ):
         """
         feature_traj: either N or NxM, N being the number of frames and M the
                 number of features
@@ -250,23 +276,26 @@ class MultiFeatureKernel(object):
 
     def __repr__(self):
         return "<class MultiFeatureKernel>"
-    
+
     def _init_feature(self, microstate_traj):
         states, pop = np.unique(microstate_traj, return_counts=True)
         self.n_states = states.shape[0]
         # Populations for all states incl intermediate states
-        self.full_pop = np.zeros(2*self.n_states-1, dtype=np.uint32)
-        self.full_pop[:self.n_states] = pop
+        self.full_pop = np.zeros(2 * self.n_states - 1, dtype=np.uint32)
+        self.full_pop[: self.n_states] = pop
         # corresponding feature values
-        self.full_feature = np.zeros((2*self.n_states-1, self.feature_traj.shape[1]), dtype=self.feature_traj.dtype.type)
+        self.full_feature = np.zeros(
+            (2 * self.n_states - 1, self.feature_traj.shape[1]),
+            dtype=self.feature_traj.dtype.type,
+        )
         for i in range(self.n_states):
-            self.full_feature[i] = self.feature_traj[
-                microstate_traj == i+1
-            ].mean(axis=0)
+            self.full_feature[i] = self.feature_traj[microstate_traj == i + 1].mean(
+                axis=0
+            )
 
     def reset(self):
-        self.full_pop[self.n_states:] = 0
-        self.full_feature[self.n_states:] = 0
+        self.full_pop[self.n_states :] = 0
+        self.full_feature[self.n_states :] = 0
 
     def apply(self, trans_prob, state, mask):
         if self.similarity == "KL":
@@ -284,10 +313,10 @@ class MultiFeatureKernel(object):
     def update(self, origin, target, new_state):
         self.full_pop[new_state] = self.full_pop[[origin, target]].sum()
         self.full_feature[new_state] = (
-            self.full_feature[origin] * self.full_pop[origin] \
+            self.full_feature[origin] * self.full_pop[origin]
             + self.full_feature[target] * self.full_pop[target]
         ) / self.full_pop[new_state]
-    
+
     # def kl(self, state, mask):
     #     return utils.kullback_leibler(
     #         self.full_feature[state],
@@ -322,14 +351,18 @@ class MultiFeatureKernel(object):
         # Ensure that Z is 3D
         if Z.ndim == 2:
             Z = Z.reshape((1, *Z.shape))
-    
+
         full_dim = 2 * self.n_states - 1
 
-        self.n_full_feature = np.empty((Z.shape[0], full_dim, self.feature_traj.shape[1]))
-        self.n_full_feature[:, :self.n_states] = self.full_feature[:self.n_states]
+        self.n_full_feature = np.empty(
+            (Z.shape[0], full_dim, self.feature_traj.shape[1])
+        )
+        self.n_full_feature[:, : self.n_states] = self.full_feature[: self.n_states]
         for run, z in enumerate(Z):
             self.reset()
             for i, (origin, target) in enumerate(z[:, :2].astype(int)):
                 self.update(origin, target, self.n_states + i)
-            self.n_full_feature[run, self.n_states:] = self.full_feature[self.n_states:]
+            self.n_full_feature[run, self.n_states :] = self.full_feature[
+                self.n_states :
+            ]
         return self.n_full_feature

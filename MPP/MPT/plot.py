@@ -14,7 +14,12 @@ import prettypyplot as pplt
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from matplotlib.cm import ScalarMappable
-from matplotlib.colors import Normalize, LinearSegmentedColormap, LogNorm, ListedColormap
+from matplotlib.colors import (
+    Normalize,
+    LinearSegmentedColormap,
+    LogNorm,
+    ListedColormap,
+)
 from matplotlib import colors
 from matplotlib.cbook import boxplot_stats
 import matplotlib.animation as animation
@@ -27,7 +32,7 @@ import MPT.utils as utils
 from MPT.sankey_gap import sankey
 import MPT.kernel as krnl
 
-plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams["font.family"] = "sans-serif"
 
 ### DENDROGRAM ###############################################################
 
@@ -39,15 +44,15 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
     n_states = len(root.leaves)
 
     # setup matplotlib
-    pplt.use_style(figsize=3.2*scale, figratio='golden', true_black=True)
-    plt.rcParams['font.family'] = 'sans-serif'
+    pplt.use_style(figsize=3.2 * scale, figratio="golden", true_black=True)
+    plt.rcParams["font.family"] = "sans-serif"
 
     fig, (ax, ax_mat) = plt.subplots(
         2,
         1,
         gridspec_kw={
-            'hspace': 0.05,
-            'height_ratios': [9, 1],
+            "hspace": 0.05,
+            "height_ratios": [9, 1],
         },
     )
     for key, spine in ax_mat.spines.items():
@@ -55,19 +60,20 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
 
     ax = root.plot_tree(ax)
 
-    ax.set_ylabel(r'Metastability $T_{ii}$')
-    ax.set_xlabel('microstates')
+    ax.set_ylabel(r"Metastability $T_{ii}$")
+    ax.set_xlabel("microstates")
     ax.set_xlim(-0.005 * n_states, 1.005 * n_states)
     ax.set_ylim(offset, 1.05)
 
     # plot legend
-    cmap = plt.get_cmap('plasma_r', 10)
+    cmap = plt.get_cmap("plasma_r", 10)
     # label = r'$\langle Q \rangle_\text{state} $'
-    label = r'Fraction of Native Contacts $q$'
+    # label = r"Fraction of Native Contacts $q$"
+    label = r"Fraction of Contacts $q$"
 
     cmappable = ScalarMappable(root.feature_norm, cmap)
     plt.sca(ax)
-    pplt.colorbar(cmappable, width='5%', label=label, position='top')
+    pplt.colorbar(cmappable, width="5%", label=label, position="top")
 
     # bring microstates in the right order
     macrostate_assignment = macrostate_assignment[:, [l.name for l in root.leaves]]
@@ -75,7 +81,8 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
     yticks = np.arange(0.5, 1.5 + macrostate_assignment.shape[0])
     xticks = np.arange(0, n_states + 1)
     cmap = LinearSegmentedColormap.from_list(
-        'binary', [(0, 0, 0, 0), (0, 0, 0, 1)],
+        "binary",
+        [(0, 0, 0, 0), (0, 0, 0, 1)],
     )
 
     xvals = 0.5 * (xticks[:-1] + xticks[1:])
@@ -85,11 +92,11 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
         pplt.text(
             xmean,
             yticks[idx] - (yticks[1] - yticks[0]),
-            f'{idx + 1:.0f}',
+            f"{idx + 1:.0f}",
             ax=ax_mat,
-            va='top',
+            va="top",
             contour=True,
-            size='small',
+            size="small",
         )
 
     # Plot macrostate assignments
@@ -105,12 +112,12 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
     # set x-labels
     ax_mat.set_yticks(yticks)
     ax_mat.set_yticklabels([])
-    ax_mat.grid(visible=True, axis='y', ls='-', lw=0.5)
-    ax_mat.tick_params(axis='y', length=0, width=0)
+    ax_mat.grid(visible=True, axis="y", ls="-", lw=0.5)
+    ax_mat.tick_params(axis="y", length=0, width=0)
     ax_mat.set_xlim(ax.get_xlim())
-    ax.set_xlabel('')
-    ax_mat.set_xlabel('Macrostates')
-    ax_mat.set_ylabel('')
+    ax.set_xlabel("")
+    ax_mat.set_xlabel("Macrostates")
+    ax_mat.set_ylabel("")
     fig.align_ylabels([ax, ax_mat])
 
     ax_mat.set_xticks(np.arange(0.5, 0.5 + n_states))
@@ -129,6 +136,7 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
 
 ### SIMILARITY ###############################################################
 
+
 def evaluate_stochastic_clustering(mpt1, mpt2, out):
     """
     Plot similarity values for a reference and a stochastic clustering.
@@ -137,7 +145,7 @@ def evaluate_stochastic_clustering(mpt1, mpt2, out):
     s1, s2, s3 = S
     n_states = S.shape[1]
     x, y = utils.get_grid_format(n_states)
-    fig, axs = plt.subplots(y, x, figsize=(2*x, 2*y))
+    fig, axs = plt.subplots(y, x, figsize=(2 * x, 2 * y))
     for state, ax in enumerate(axs.flatten()[:n_states]):
         m = 0
         # Set left limit to minimum instead of 0
@@ -147,10 +155,15 @@ def evaluate_stochastic_clustering(mpt1, mpt2, out):
         ax.hist(s1[state], bins=np.linspace(m, 1, 21), color="g", alpha=0.7)
         ax.hist(s2[state], bins=np.linspace(m, 1, 21), color="b", alpha=0.7)
         ax.hist(s3[state], bins=np.linspace(m, 1, 21), color="r", alpha=0.7)
-        ax.set_title(f"state {state+1}")
+        ax.set_title(f"state {state + 1}")
     fig.supxlabel("Macrostate similarity")
     fig.supylabel(f"Count of clusterings ({sto.n_runs} clusterings)")
-    leg = plt.figlegend(["union", "reference", "clustering"], ncols=3, loc='lower center', bbox_to_anchor=(0.5, 0.05))
+    leg = plt.figlegend(
+        ["union", "reference", "clustering"],
+        ncols=3,
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.05),
+    )
     plt.tight_layout(rect=(0, 0.04, 1, 1))
     plt.savefig(out)
     plt.close()
@@ -158,17 +171,18 @@ def evaluate_stochastic_clustering(mpt1, mpt2, out):
 
 ### IMPLIED TIMESCALES #######################################################
 
+
 def plot_implied_timescales(
-        trajs,
-        lagtimes,
-        out,
-        titles="",
-        frame_length=0.2,
-        first_ref=False,
-        scale=1,
-        use_ref=True,
-        ntimescales=3,
-    ):
+    trajs,
+    lagtimes,
+    out,
+    titles="",
+    frame_length=0.2,
+    first_ref=False,
+    scale=1,
+    use_ref=True,
+    ntimescales=3,
+):
     """
     frame_length in ns / frame
     """
@@ -177,7 +191,9 @@ def plot_implied_timescales(
     x, y = utils.get_grid_format(len(trajs))
     # pplt.use_style(figsize=(2*x, 2*y), latex=False, colors='pastel_autumn')
     # pplt.use_style(figsize=(2.8*scale, 3.2*scale), latex=False, colors='pastel_autumn')
-    pplt.use_style(figsize=(3.8*scale, 3.2*scale), latex=False, colors='pastel_autumn')
+    pplt.use_style(
+        figsize=(3.8 * scale, 3.2 * scale), latex=False, colors="pastel_autumn"
+    )
     fig, axs = plt.subplots(y, x, sharex=True, sharey=True)
     plt.grid(False)
     if not isinstance(axs, np.ndarray):
@@ -190,7 +206,7 @@ def plot_implied_timescales(
 
     min_it = None
     max_it = None
-    
+
     if first_ref:
         it_ref = mh.msm.implied_timescales(ref_traj, lagtimes, ntimescales=ntimescales)
         # change from frames to ns
@@ -202,16 +218,16 @@ def plot_implied_timescales(
     lagtimes_ns = lagtimes * frame_length
     for ax, traj, title in zip(axs.flatten(), trajs, titles):
         # ax.axvline(10, color='pplt:grid')
-        ax.axvline(tlag, color='pplt:grid')
+        ax.axvline(tlag, color="pplt:grid")
         # ax.yaxis.set_major_formatter(mtick.LogFormatterSciNotation)
         it = mh.msm.implied_timescales(traj, lagtimes, ntimescales=ntimescales)
         # change from frames to ns
         it *= frame_length
-        if min_it == None:
+        if min_it is None:
             min_it = it.min()
         else:
             min_it = min(it.min(), min_it)
-        if max_it == None:
+        if max_it is None:
             max_it = it.max()
         else:
             max_it = max(it.max(), max_it)
@@ -230,16 +246,16 @@ def plot_implied_timescales(
 
     if len(axs.shape) == 2:
         for ax in axs[-1]:
-            ax.set_xlabel(r'lag time $\tau$ / ns')
+            ax.set_xlabel(r"lag time $\tau$ / ns")
         for axx in axs:
             for ax in axx[1:]:
                 plt.setp(ax.get_yticklabels(), visible=False)
         for ax in axs[:, 0]:
-            ax.set_ylabel('time scale / ns')
+            ax.set_ylabel("time scale / ns")
     elif len(axs.shape) == 1:
-        axs[0].set_ylabel('time scale / ns')
+        axs[0].set_ylabel("time scale / ns")
         for ax in axs:
-            ax.set_xlabel(r'lag time $\tau$ / ns')
+            ax.set_xlabel(r"lag time $\tau$ / ns")
         for ax in axs[1:]:
             plt.setp(ax.get_yticklabels(), visible=False)
 
@@ -249,26 +265,31 @@ def plot_implied_timescales(
     # Reorder the handles and labels manually to achieve column-major ordering
     # desired_order = [0, 3, 1, 4, 2, 5]  # Indices in column-major order
     # desired_order = [3, 0, 4, 1, 5, 2]  # Indices in column-major order
-    desired_order = np.array([(i+ntimescales, i) for i in range(ntimescales)]).flatten()
+    desired_order = np.array(
+        [(i + ntimescales, i) for i in range(ntimescales)]
+    ).flatten()
     handles = [handles[i] for i in desired_order]
     labels = [labels[i] for i in desired_order]
 
-    pplt.legend(handles=handles, labels=labels, outside='top', frameon=False, ncols=ntimescales)
+    pplt.legend(
+        handles=handles, labels=labels, outside="top", frameon=False, ncols=ntimescales
+    )
 
     plt.tight_layout()
     plt.savefig(out)
     plt.close()
 
+
 def _plot_impl_times(impl_times, lagtimes, ax, ls="-"):
     """Plot the implied timescales"""
-    colors = ['#264653', '#2A9D8F', '#E9C46A', '#f4a261', '#e76f51'] * 4
+    colors = ["#264653", "#2A9D8F", "#E9C46A", "#f4a261", "#e76f51"] * 4
     for idx, impl_time in enumerate(impl_times.T):
         if ls == ":":
-            label = f'$t_{{\\mathrm{{ref}},{idx + 1}}}$'
+            label = f"$t_{{\\mathrm{{ref}},{idx + 1}}}$"
         elif ls == "--":
-            label = f'$t_{{\\mathrm{{mic}},{idx + 1}}}$'
+            label = f"$t_{{\\mathrm{{mic}},{idx + 1}}}$"
         else:
-            label = f'$t_{idx + 1}$'
+            label = f"$t_{idx + 1}$"
         ax.plot(lagtimes, impl_time, label=label, color=colors[idx], ls=ls)
 
     xlim = lagtimes[0], lagtimes[-1]
@@ -276,7 +297,7 @@ def _plot_impl_times(impl_times, lagtimes, ax, ls="-"):
     ax.set_xlim(xlim)
     # highlight diagonal
     x_i = np.arange(ref_low, xlim[1])
-    ax.fill_between(x_i, x_i, color='pplt:grid')
+    ax.fill_between(x_i, x_i, color="pplt:grid")
     # pplt.legend(outside='right', frameon=False)
 
 
@@ -286,12 +307,14 @@ def plot_relative_implied_timescales_(cl, ref, out):
     fig, axs = plt.subplots(1, 4, figsize=(8, 2.5), sharey=True)
     for i, ax in enumerate(axs[:-1]):
         ax.hist(its[:, i], bins=20)
-        ax.set_title(f'its {i+1}')
+        ax.set_title(f"its {i + 1}")
     axs[-1].hist(its.mean(axis=1), bins=20)
-    axs[-1].set_title(f'Mean its {1}-{i+1}')
+    axs[-1].set_title(f"Mean its {1}-{i + 1}")
 
-    fig.supxlabel(r"Relative Implied Timescale $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{det}}\right)$")
-    fig.supylabel('Count of Clusterings')
+    fig.supxlabel(
+        r"Relative Implied Timescale $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{det}}\right)$"
+    )
+    fig.supylabel("Count of Clusterings")
     plt.tight_layout()
     plt.savefig(out)
     plt.close()
@@ -311,13 +334,17 @@ def plot_relative_implied_timescales(cl, out):
 
     ax1.hist(its[:, 0], bins=20)
     ax1.set_title("its 1")
-    ax1.set_xlabel(r"Relative Implied Timescale $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{ref}}\right)$")
-    ax1.set_ylabel('Count of Clusterings')
+    ax1.set_xlabel(
+        r"Relative Implied Timescale $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{ref}}\right)$"
+    )
+    ax1.set_ylabel("Count of Clusterings")
     ax2.hist(its.mean(axis=1), bins=20)
     ax2.set_title(f"Mean its {1}-{3}")
-    ax2.set_xlabel(r"Relative Implied Timescale $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{ref}}\right)$")
+    ax2.set_xlabel(
+        r"Relative Implied Timescale $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{ref}}\right)$"
+    )
 
-    bins = np.array(range(min(cl.n_macrostates)-1, max(cl.n_macrostates)+1)) + 0.5
+    bins = np.array(range(min(cl.n_macrostates) - 1, max(cl.n_macrostates) + 1)) + 0.5
 
     ax3.hist(cl.n_macrostates, bins=bins)
     ax3.set_title("n macrostates")
@@ -330,6 +357,7 @@ def plot_relative_implied_timescales(cl, out):
 
 ### SIMILARITY MATRIX ########################################################
 
+
 def plot_heatmap(a, out, title=""):
     """
     Plot heatmap from a matrix. This is supposed for a similarity matrix as
@@ -337,15 +365,14 @@ def plot_heatmap(a, out, title=""):
     """
     fig, ax = plt.subplots()
     ax.imshow(a, norm="log")
-    ax.set_aspect('equal', 'box')
+    ax.set_aspect("equal", "box")
 
     ax.set_xticks(np.arange(a.shape[1]))
     ax.set_yticks(np.arange(a.shape[0]))
     for i in range(a.shape[0]):
         for j in range(a.shape[1]):
-            #text = ax.text(j, i, f"{a[i, j]*100:.1f}",
-            text = ax.text(j, i, f"{a[i, j]:.0f}",
-                       ha="center", va="center", color="w")
+            # text = ax.text(j, i, f"{a[i, j]*100:.1f}",
+            text = ax.text(j, i, f"{a[i, j]:.0f}", ha="center", va="center", color="w")
     if title:
         ax.set_title(title)
     ax.set_xlabel("Macrostate")
@@ -353,6 +380,7 @@ def plot_heatmap(a, out, title=""):
     plt.tight_layout()
     plt.savefig(out)
     plt.close()
+
 
 def plot_tmat(a, out, title="Transition Matrix", color_thr=0.01):
     """
@@ -374,24 +402,26 @@ def plot_tmat(a, out, title="Transition Matrix", color_thr=0.01):
     # Define the colormap for the off-diagonal elements (logarithmic viridis)
     off_diag_mask = ~np.eye(a.shape[0], dtype=bool)
     off_diag_values = a[off_diag_mask]
-    
+
     # Threshold for light gray
     threshold = color_thr * off_diag_values.max()
     print(f"Threshold for probabilities: {threshold:.3f} %")
 
-    off_diag_norm = LogNorm(vmin=threshold*(1-color_thr), vmax=off_diag_values.max())
+    off_diag_norm = LogNorm(
+        vmin=threshold * (1 - color_thr), vmax=off_diag_values.max()
+    )
     off_diag_cmap = plt.cm.viridis
 
     # Create a custom colormap for off-diagonal values including light gray
     colors_list = plt.cm.viridis(np.linspace(0, 1, 256))
     gray = np.array([0.9, 0.9, 0.9, 1.0])
-    colors_list[:int(color_thr * 256)] = gray
+    colors_list[: int(color_thr * 256)] = gray
     custom_off_diag_cmap = colors.ListedColormap(colors_list)
 
     fig, ax = plt.subplots(figsize=(8, 8))
-    ax.set_aspect('equal', 'box')
+    ax.set_aspect("equal", "box")
     ax.grid(False)
-    
+
     for i in range(a.shape[0]):
         for j in range(a.shape[1]):
             value = a[i, j]
@@ -400,30 +430,50 @@ def plot_tmat(a, out, title="Transition Matrix", color_thr=0.01):
             elif i == j:
                 color = diag_cmap_custom(diag_norm(value))
             else:
-                color = gray if value < threshold else custom_off_diag_cmap(off_diag_norm(value))
+                color = (
+                    gray
+                    if value < threshold
+                    else custom_off_diag_cmap(off_diag_norm(value))
+                )
 
             ax.add_patch(patches.Rectangle((j - 0.5, i - 0.5), 1, 1, color=color))
 
             # Add text with transition probabilities
             if value != 0:
-                grayscale = np.sum(np.array(color[:3]) * np.array([0.299, 0.587, 0.114]))
-                text_color = 'white' if grayscale < 0.5 else 'black'
-                ax.text(j, i, f"{value:.2f}%", ha='center', va='center', color=text_color, fontsize=10)
+                grayscale = np.sum(
+                    np.array(color[:3]) * np.array([0.299, 0.587, 0.114])
+                )
+                text_color = "white" if grayscale < 0.5 else "black"
+                ax.text(
+                    j,
+                    i,
+                    f"{value:.2f}%",
+                    ha="center",
+                    va="center",
+                    color=text_color,
+                    fontsize=10,
+                )
 
     ax.set_xticks(np.arange(a.shape[1]))
     ax.set_yticks(np.arange(a.shape[0]))
     ax.set_xticklabels(np.arange(1, a.shape[1] + 1))
     ax.set_yticklabels(np.arange(1, a.shape[0] + 1))
-    ax.set_xlim(-0.5, a.shape[1]-0.5)
-    ax.set_ylim(-0.5, a.shape[0]-0.5)
+    ax.set_xlim(-0.5, a.shape[1] - 0.5)
+    ax.set_ylim(-0.5, a.shape[0] - 0.5)
 
     # Add a colorbar for diagonal values
-    cbar_diag = fig.colorbar(plt.cm.ScalarMappable(norm=diag_norm, cmap=diag_cmap), ax=ax, shrink=0.5)
-    cbar_diag.set_label('Self Transition Probabilities / \\%')
+    cbar_diag = fig.colorbar(
+        plt.cm.ScalarMappable(norm=diag_norm, cmap=diag_cmap), ax=ax, shrink=0.5
+    )
+    cbar_diag.set_label("Self Transition Probabilities / \\%")
 
     # Add a colorbar for off-diagonal values
-    cbar_off_diag = fig.colorbar(plt.cm.ScalarMappable(norm=off_diag_norm, cmap=custom_off_diag_cmap), ax=ax, shrink=0.5)
-    cbar_off_diag.set_label('Transitiion Probabilities / \\%')
+    cbar_off_diag = fig.colorbar(
+        plt.cm.ScalarMappable(norm=off_diag_norm, cmap=custom_off_diag_cmap),
+        ax=ax,
+        shrink=0.5,
+    )
+    cbar_off_diag.set_label("Transitiion Probabilities / \\%")
 
     if title:
         ax.set_title(title)
@@ -434,20 +484,21 @@ def plot_tmat(a, out, title="Transition Matrix", color_thr=0.01):
     plt.savefig(out)
     plt.close()
 
+
 def plot_trans_time(
-        a,
-        out,
-        tlag=50.0,
-        frame_length=0.2,
-        title=r"Transition Times $\frac{t_\mathrm{lag}}{P}$",
-        color_thr=0.01,
-    ):
+    a,
+    out,
+    tlag=50.0,
+    frame_length=0.2,
+    title=r"Transition Times $\frac{t_\mathrm{lag}}{P}$",
+    color_thr=0.01,
+):
     """
     Plot heatmap from a matrix. This is supposed for a similarity matrix as
     returned from the multiplication of two MPT objects.
     frame_length in ns
     """
-    with np.errstate(divide='ignore'):
+    with np.errstate(divide="ignore"):
         a = tlag / a * frame_length
 
     # Define the colormap for the diagonal elements (logarithmic Reds)
@@ -468,35 +519,43 @@ def plot_trans_time(
     threshold = off_diag_values.min() / color_thr
     print(f"Threshold for probabilities: {threshold:.2f} ns")
 
-    off_diag_norm = LogNorm(vmin=off_diag_values.min(), vmax=threshold/(1-color_thr))
+    off_diag_norm = LogNorm(
+        vmin=off_diag_values.min(), vmax=threshold / (1 - color_thr)
+    )
     off_diag_cmap = plt.cm.viridis_r
 
     # Create a custom colormap for off-diagonal values including light gray
     colors_list = plt.cm.viridis_r(np.linspace(0, 1, 256))
     gray = np.array([0.9, 0.9, 0.9, 1.0])
-    colors_list[int((1-color_thr) * 256):] = gray
+    colors_list[int((1 - color_thr) * 256) :] = gray
     custom_off_diag_cmap = colors.ListedColormap(colors_list)
 
     fig, ax = plt.subplots(figsize=(8, 8))
-    ax.set_aspect('equal', 'box')
+    ax.set_aspect("equal", "box")
     ax.grid(False)
-    
+
     for i in range(a.shape[0]):
         for j in range(a.shape[1]):
             value = a[i, j]
             if value == np.inf:
-                color = (1, 1, 1, 1) # Zero probabilities are white
+                color = (1, 1, 1, 1)  # Zero probabilities are white
             elif i == j:
                 color = diag_cmap_custom(diag_norm(value))
             else:
-                color = gray if value > threshold else custom_off_diag_cmap(off_diag_norm(value))
-        
+                color = (
+                    gray
+                    if value > threshold
+                    else custom_off_diag_cmap(off_diag_norm(value))
+                )
+
             ax.add_patch(patches.Rectangle((j - 0.5, i - 0.5), 1, 1, color=color))
-        
+
             # Add text with transition probabilities
             if value != np.inf:
-                grayscale = np.sum(np.array(color[:3]) * np.array([0.299, 0.587, 0.114]))
-                text_color = 'white' if grayscale < 0.5 else 'black'
+                grayscale = np.sum(
+                    np.array(color[:3]) * np.array([0.299, 0.587, 0.114])
+                )
+                text_color = "white" if grayscale < 0.5 else "black"
                 if value >= threshold:
                     pre_text = f"{value:.1g}"
                     text = pre_text[:2] + pre_text[-1]
@@ -505,22 +564,30 @@ def plot_trans_time(
                         text = f"{value:.0f}"
                     else:
                         text = f"{value:#.3g}"
-                ax.text(j, i, text, ha='center', va='center', color=text_color, fontsize=10)
+                ax.text(
+                    j, i, text, ha="center", va="center", color=text_color, fontsize=10
+                )
 
     ax.set_xticks(np.arange(a.shape[1]))
     ax.set_yticks(np.arange(a.shape[0]))
     ax.set_xticklabels(np.arange(1, a.shape[1] + 1))
     ax.set_yticklabels(np.arange(1, a.shape[0] + 1))
-    ax.set_xlim(-0.5, a.shape[1]-0.5)
-    ax.set_ylim(-0.5, a.shape[0]-0.5)
+    ax.set_xlim(-0.5, a.shape[1] - 0.5)
+    ax.set_ylim(-0.5, a.shape[0] - 0.5)
 
     # Add a colorbar for diagonal values
-    cbar_diag = fig.colorbar(plt.cm.ScalarMappable(norm=diag_norm, cmap=diag_cmap), ax=ax, shrink=0.5)
-    cbar_diag.set_label('Self Transition Times / ns')
+    cbar_diag = fig.colorbar(
+        plt.cm.ScalarMappable(norm=diag_norm, cmap=diag_cmap), ax=ax, shrink=0.5
+    )
+    cbar_diag.set_label("Self Transition Times / ns")
 
     # Add a colorbar for off-diagonal values
-    cbar_off_diag = fig.colorbar(plt.cm.ScalarMappable(norm=off_diag_norm, cmap=custom_off_diag_cmap), ax=ax, shrink=0.5)
-    cbar_off_diag.set_label('Transitiion Times / ns')
+    cbar_off_diag = fig.colorbar(
+        plt.cm.ScalarMappable(norm=off_diag_norm, cmap=custom_off_diag_cmap),
+        ax=ax,
+        shrink=0.5,
+    )
+    cbar_off_diag.set_label("Transitiion Times / ns")
 
     if title:
         ax.set_title(title)
@@ -533,6 +600,7 @@ def plot_trans_time(
 
 
 ### MACROSTATE FEATURES ######################################################
+
 
 def plot_macro_feature(micro_feature, out, ref=None, pop=None):
     """
@@ -575,7 +643,15 @@ def plot_macro_feature(micro_feature, out, ref=None, pop=None):
     plt.savefig(out)
     plt.close()
 
-def add_ref(macrostate_assignment, macrostate_feature, ax, color="r", label="Reference", weights=None):
+
+def add_ref(
+    macrostate_assignment,
+    macrostate_feature,
+    ax,
+    color="r",
+    label="Reference",
+    weights=None,
+):
     """
     Add a clustering to the histogram.
 
@@ -603,11 +679,12 @@ def add_ref(macrostate_assignment, macrostate_feature, ax, color="r", label="Ref
             c=color,
             ax=ax,
             contour=True,
-            size='small',
+            size="small",
         )
 
 
 ### CONTACT REPRESENTATION ###################################################
+
 
 def contact_rep(contacts, cluster_file, state_traj, output, grid, scale=1):
     """
@@ -625,7 +702,10 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid, scale=1):
     """
     # setup matplotlib
     pplt.use_style(
-        figsize=1.2*scale, colors='pastel_autumn', true_black=True, latex=False,
+        figsize=1.2 * scale,
+        colors="pastel_autumn",
+        true_black=True,
+        latex=False,
     )
 
     # load files
@@ -636,12 +716,15 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid, scale=1):
     n_idxs = len(contact_idxs)
     n_frames = len(contacts)
 
-    xtickpos = np.cumsum([
-        0,
-        *[
-            len(clust) for clust in clusters[:-1]
-        ],
-    ]) - 0.5
+    xtickpos = (
+        np.cumsum(
+            [
+                0,
+                *[len(clust) for clust in clusters[:-1]],
+            ]
+        )
+        - 0.5
+    )
     nrows, ncols = grid
     hspace, wspace = 0, 0
     ylims = 0, np.quantile(contacts, 0.999)
@@ -654,7 +737,7 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid, scale=1):
             sharex=True,
             sharey=True,
             squeeze=False,
-            gridspec_kw={'wspace': wspace, 'hspace': hspace},
+            gridspec_kw={"wspace": wspace, "hspace": hspace},
         )
 
         # ignore outliers
@@ -663,16 +746,15 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid, scale=1):
             pop_state = len(contacts_state) / n_frames
 
             # get colormap
-            c1, c2, c3 = pplt.categorical_color(3, 'C0')
+            c1, c2, c3 = pplt.categorical_color(3, "C0")
 
             stats = {
-                idx: boxplot_stats(contacts_state[:, idx])[0]
-                for idx in contact_idxs
+                idx: boxplot_stats(contacts_state[:, idx])[0] for idx in contact_idxs
             }
 
             for color, (key_low, key_high), label in (
-                (c3, ('whislo', 'whishi'), r'$Q_{1/3} \pm 1.5\mathrm{IQR}$'),
-                (c2, ('q1', 'q3'), r'$\mathrm{IQR} = Q_3 - Q_1$'),
+                (c3, ("whislo", "whishi"), r"$Q_{1/3} \pm 1.5\mathrm{IQR}$"),
+                (c2, ("q1", "q3"), r"$\mathrm{IQR} = Q_3 - Q_1$"),
             ):
                 ymax = [stats[idx][key_high] for idx in contact_idxs]
                 ymin = [stats[idx][key_low] for idx in contact_idxs]
@@ -687,19 +769,19 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid, scale=1):
                 )
 
             ax.hlines(
-                [stats[idx]['med'] for idx in contact_idxs],
+                [stats[idx]["med"] for idx in contact_idxs],
                 xmin=np.arange(n_idxs) - 0.5,
                 xmax=np.arange(n_idxs) + 0.5,
-                label='median',
+                label="median",
                 color=c1,
             )
 
             pplt.text(
                 0.5,
                 0.95,
-                fr'S{state} {pop_state:.1%}',
-                ha='center',
-                va='top',
+                rf"S{state} {pop_state:.1%}",
+                ha="center",
+                va="top",
                 ax=ax,
                 transform=ax.transAxes,
                 contour=True,
@@ -712,12 +794,12 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid, scale=1):
 
             ax.grid(False)
             for pos in xtickpos:
-                ax.axvline(pos, color='pplt:grid', lw=1.0)
+                ax.axvline(pos, color="pplt:grid", lw=1.0)
 
         pplt.hide_empty_axes()
         pplt.legend(
             ax=axs[0, 0],
-            outside='top',
+            outside="top",
             bbox_to_anchor=(
                 0,
                 1.0,
@@ -728,25 +810,27 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid, scale=1):
             ncol=2,
         )
         pplt.subplot_labels(
-            xlabel='contact clusters',
-            ylabel='distances [nm]',
+            xlabel="contact clusters",
+            ylabel="distances [nm]",
         )
 
         # save figure and continue
         if output is None:
-            output = f'{state_file}.contactRep.pdf'
+            plt.show()
+            # output = f"{state_file}.contactRep.pdf"
         # insert state_str between pathname and extension
         path, ext = splitext(output)
         if counter == 0:
             pplt.savefig(output)
             plt.close()
         else:
-            pplt.savefig(f'{path}.state{chunk[0]:.0f}-{chunk[-1]:.0f}{ext}')
+            pplt.savefig(f"{path}.state{chunk[0]:.0f}-{chunk[-1]:.0f}{ext}")
             plt.close()
         counter += 1
-            
+
 
 ### SANKEY ###################################################################
+
 
 def plot_sankey(cl, ref, out, ax=None, scale=1):
     features = []
@@ -755,9 +839,9 @@ def plot_sankey(cl, ref, out, ax=None, scale=1):
     ma_order = np.argsort(features)[::-1]
     colorDict = {}
     for i, o in enumerate(ma_order):
-        colorDict[str(i+1)] = cl.tree[cl.n_i].macrostates[o].color
+        colorDict[str(i + 1)] = cl.tree[cl.n_i].macrostates[o].color
     if ax is None:
-        pplt.use_style(figsize=(1.7*scale, 3.6*scale), true_black=True)
+        pplt.use_style(figsize=(1.7 * scale, 3.6 * scale), true_black=True)
     sankey(
         left=(cl.macrostates_map[cl.n_i] + 1).astype(str),
         right=(ref.macrostates_map[0] + 1).astype(str),
@@ -775,6 +859,7 @@ def plot_sankey(cl, ref, out, ax=None, scale=1):
 
 ### RMSD HEATMAP #############################################################
 
+
 def plot_rmsd_(vars, row_heights, helices=None, filename=None, num_x_labels=8):
     """
     Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
@@ -787,10 +872,14 @@ def plot_rmsd_(vars, row_heights, helices=None, filename=None, num_x_labels=8):
     """
     # Ensure all values are positive for logarithmic scaling
     if np.any(vars <= 0):
-        raise ValueError("All values in `vars` must be positive for logarithmic scaling.")
-    
+        raise ValueError(
+            "All values in `vars` must be positive for logarithmic scaling."
+        )
+
     if vars.shape[0] != len(row_heights):
-        raise ValueError("Length of `row_heights` must match the number of rows in `vars`.")
+        raise ValueError(
+            "Length of `row_heights` must match the number of rows in `vars`."
+        )
 
     # Calculate y-axis boundaries using cumulative sum of row heights
     y_boundaries = np.insert(np.cumsum(row_heights), 0, 0)
@@ -801,11 +890,13 @@ def plot_rmsd_(vars, row_heights, helices=None, filename=None, num_x_labels=8):
     # Create the heatmap with a logarithmic color scale
     # plt.figure(figsize=(4, 3))
     fig, ax = plt.subplots(figsize=(4, 3))
-    plt.pcolormesh(x_boundaries, y_boundaries, vars, cmap="viridis", norm=LogNorm(), shading='flat') # , edgecolors='black', linewidth=0.5
-        
+    plt.pcolormesh(
+        x_boundaries, y_boundaries, vars, cmap="viridis", norm=LogNorm(), shading="flat"
+    )  # , edgecolors='black', linewidth=0.5
+
     # Draw horizontal lines at each y-boundary
     for y in y_boundaries:
-        plt.axhline(y=y, color='black', linewidth=0.5)
+        plt.axhline(y=y, color="black", linewidth=0.5)
 
     if helices is not None:
         # Add the additional row at the bottom for block indicators
@@ -814,22 +905,29 @@ def plot_rmsd_(vars, row_heights, helices=None, filename=None, num_x_labels=8):
         indicator_y = -indicator_row_height * 1.2  # Position for the indicator row
 
         # Draw the white background for the indicator row
-        plt.fill_between(x_boundaries, indicator_y, 0, color='white')
+        plt.fill_between(x_boundaries, indicator_y, 0, color="white")
 
         # Draw a horizontal line across the indicator row
         indicator_line = indicator_y + 0.5 * indicator_row_height
-        plt.plot([0, vars.shape[1]], [indicator_line] * 2, color='black', linewidth=0.8)
+        plt.plot([0, vars.shape[1]], [indicator_line] * 2, color="black", linewidth=0.8)
 
         # Add black boxes for each block in 'helices'
-        block_height = indicator_row_height * 0.9  # Block height as 90% of the row height
+        block_height = (
+            indicator_row_height * 0.9
+        )  # Block height as 90% of the row height
         for start, end in helices:
             start -= 1
             rect = patches.Rectangle(
-                (start, indicator_y + 0.05 * indicator_row_height),  # Position of the block
-                end - start, block_height, color='black'
+                (
+                    start,
+                    indicator_y + 0.05 * indicator_row_height,
+                ),  # Position of the block
+                end - start,
+                block_height,
+                color="black",
             )
             ax.add_patch(rect)
-    
+
         displayed_y_ticks = [indicator_line]
         displayed_y_labels = ["H"]
 
@@ -842,18 +940,24 @@ def plot_rmsd_(vars, row_heights, helices=None, filename=None, num_x_labels=8):
     interval = max(1, num_x_ticks // (num_x_labels - 1))
     x_ticks = np.arange(0, num_x_ticks, interval)
     if x_ticks[-1] != num_x_ticks - 1:
-        x_ticks = np.append(x_ticks, num_x_ticks - 1)  # Ensure the last label aligns with the array's end
+        x_ticks = np.append(
+            x_ticks, num_x_ticks - 1
+        )  # Ensure the last label aligns with the array's end
 
     # Set y-axis labels (start from 1)
     y_ticks = y_boundaries[:-1] + np.diff(y_boundaries) / 2
     y_labels = np.arange(1, len(y_ticks) + 1)
-    
+
     # Determine spacing threshold based on figure size and row height differences
-    min_spacing = (y_boundaries[-1] - y_boundaries[0]) / len(y_ticks) * 1.0  # Minimum spacing between labels
-    
+    min_spacing = (
+        (y_boundaries[-1] - y_boundaries[0]) / len(y_ticks) * 1.0
+    )  # Minimum spacing between labels
+
     last_displayed_y = -np.inf
     for y, label in zip(y_ticks, y_labels):
-        if y - last_displayed_y >= min_spacing:  # Only display label if it's far enough from the last one
+        if (
+            y - last_displayed_y >= min_spacing
+        ):  # Only display label if it's far enough from the last one
             displayed_y_ticks.append(y)
             displayed_y_labels.append(label)
             last_displayed_y = y
@@ -863,7 +967,7 @@ def plot_rmsd_(vars, row_heights, helices=None, filename=None, num_x_labels=8):
 
     if helices is not None:
         plt.ylim(indicator_y - indicator_row_height * 0.22, y_boundaries[-1])
-    
+
     plt.ylabel("Macrostate")
     plt.xlabel("Residue")
 
@@ -884,6 +988,7 @@ def plot_rmsd_(vars, row_heights, helices=None, filename=None, num_x_labels=8):
 
 ### RMSD LINES ###############################################################
 
+
 def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     """
     Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
@@ -896,8 +1001,10 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     """
     # Ensure all values are positive for logarithmic scaling
     if np.any(rmsds <= 0):
-        raise ValueError("All values in `rmsds` must be positive for logarithmic scaling.")
-    
+        raise ValueError(
+            "All values in `rmsds` must be positive for logarithmic scaling."
+        )
+
     if rmsds.shape[0] != len(pops):
         raise ValueError("Length of `pops` must match the number of rows in `rmsds`.")
 
@@ -906,17 +1013,20 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     else:
         n_plots = rmsds.shape[0]
 
-    w = 0.08 * rmsds.shape[1] + 3 # 8.6
-    h = 1 + 0.4 * n_plots # 6
+    w = 0.08 * rmsds.shape[1] + 3  # 8.6
+    h = 1 + 0.4 * n_plots  # 6
     pplt.use_style(
-        figsize=(w, h) , colors="pastel_autumn", true_black=True, latex=False,
+        figsize=(w, h),
+        colors="pastel_autumn",
+        true_black=True,
+        latex=False,
     )
     fig, axs = plt.subplots(
         n_plots,
         3,
         sharex="col",
         width_ratios=[rmsds.shape[1], 8, 8],
-        gridspec_kw={'wspace':0, 'hspace':0},
+        gridspec_kw={"wspace": 0, "hspace": 0},
     )
 
     ylim = 0.5 * rmsds.min(), 2 * rmsds.max()
@@ -926,10 +1036,13 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     rmsd_sums = rmsds[:, 2:-2].sum(axis=1)
     ylim_rmsd = 0, 1.05 * rmsd_sums.max()
 
-    for i, ((ax, hist_ax, rmsd_ax), rmsd, pop) in enumerate(zip(axs[:-1] if helices is not None else axs, rmsds, pops)):
+    for i, ((ax, hist_ax, rmsd_ax), rmsd, pop) in enumerate(
+        zip(axs[:-1] if helices is not None else axs, rmsds, pops)
+    ):
         rect = patches.Rectangle(
             (0, 0.3),  # Position of the block
-            pop, 0.4, # color='black'
+            pop,
+            0.4,  # color='black'
         )
         hist_ax.add_patch(rect)
         hist_ax.set_xlim(ylim_hist)
@@ -938,17 +1051,18 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
 
         rect = patches.Rectangle(
             (0, 0.3),  # Position of the block
-            rmsd[2:-2].sum(), 0.4, # color='black'
+            rmsd[2:-2].sum(),
+            0.4,  # color='black'
         )
         rmsd_ax.add_patch(rect)
         rmsd_ax.set_xlim(ylim_rmsd)
         rmsd_ax.set_yticks([], [])
         rmsd_ax.grid(False)
 
-        ax.plot(np.arange(rmsd.shape[0])+1, rmsd)
+        ax.plot(np.arange(rmsd.shape[0]) + 1, rmsd)
         ax.fill_between(
-            np.arange(rmsd.shape[0])+1,
-            [ylim[0]]*rmsd.shape[0],
+            np.arange(rmsd.shape[0]) + 1,
+            [ylim[0]] * rmsd.shape[0],
             rmsd,
             alpha=0.5,
             # facecolor="none",
@@ -956,7 +1070,7 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
         )
 
         ax.set_yscale("log")
-        ax.set_ylabel(f"{i+1}")
+        ax.set_ylabel(f"{i + 1}")
         ax.set_xlim((0.5, rmsd.shape[0] + 0.5))
         ax.set_ylim(ylim)
         ax.grid(True)
@@ -972,7 +1086,8 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
                 end += 0.3
                 rect = patches.Rectangle(
                     (start, 0.3),  # Position of the block
-                    end - start, 0.4, # color='black'
+                    end - start,
+                    0.4,  # color='black'
                     fc="#264653",
                     ec="#264653",
                     lw=2,
@@ -984,16 +1099,29 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
                 end += 0.5
                 rect = patches.Rectangle(
                     (start, 0.3),  # Position of the block
-                    end - start, 0.4, # color='black'
+                    end - start,
+                    0.4,  # color='black'
                     fc="white",
                     ec="#264653",
                     lw=2,
                 )
-            helices_ax.plot([line_start, start], [0.5, 0.5], solid_capstyle="butt", c="#264653", lw=2)
+            helices_ax.plot(
+                [line_start, start],
+                [0.5, 0.5],
+                solid_capstyle="butt",
+                c="#264653",
+                lw=2,
+            )
             line_start = end
             helices_ax.add_patch(rect)
-        helices_ax.plot([line_start, rmsds.shape[1]], [0.5, 0.5], solid_capstyle="butt", c="#264653", lw=2)
-       
+        helices_ax.plot(
+            [line_start, rmsds.shape[1]],
+            [0.5, 0.5],
+            solid_capstyle="butt",
+            c="#264653",
+            lw=2,
+        )
+
         helices_ax.set_ylim((0, 1))
         helices_ax.set_ylabel("H")
         helices_ax.set_yticks([], [])
@@ -1018,16 +1146,17 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     axs[-1, 0].xaxis.set_minor_locator(MultipleLocator(1))
     axs[-1, 0].set_xlabel("Residue")
     axs[-1, 1].set_xlabel("Population", rotation=20)
-    axs[-1, 2].set_xlabel(r"$\sum$ RMSD / nm", rotation = 20)
+    axs[-1, 2].set_xlabel(r"$\sum$ RMSD / nm", rotation=20)
     fig.supylabel("Macrostate; RMSD Variance / nm")
 
     # Save to file if filename is provided
     plt.tight_layout()
     if filename:
-        plt.savefig(filename, dpi=192) # , bbox_inches="tight"
+        plt.savefig(filename, dpi=192)  # , bbox_inches="tight"
     else:
         plt.show()
     plt.close()
+
 
 def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     """
@@ -1041,8 +1170,10 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     """
     # Ensure all values are positive for logarithmic scaling
     if np.any(rmsds <= 0):
-        raise ValueError("All values in `rmsds` must be positive for logarithmic scaling.")
-    
+        raise ValueError(
+            "All values in `rmsds` must be positive for logarithmic scaling."
+        )
+
     if rmsds.shape[0] != len(pops):
         raise ValueError("Length of `pops` must match the number of rows in `rmsds`.")
 
@@ -1051,17 +1182,20 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     else:
         n_plots = rmsds.shape[0]
 
-    w = 0.08 * rmsds.shape[1] + 3 # 8.6
-    h = 1 + 0.4 * n_plots # 6
+    w = 0.08 * rmsds.shape[1] + 3  # 8.6
+    h = 1 + 0.4 * n_plots  # 6
     pplt.use_style(
-        figsize=(w, h) , colors="pastel_autumn", true_black=True, latex=False,
+        figsize=(w, h),
+        colors="pastel_autumn",
+        true_black=True,
+        latex=False,
     )
     fig, axs = plt.subplots(
         n_plots,
         3,
         sharex="col",
         width_ratios=[rmsds.shape[1], 8, 8],
-        gridspec_kw={'wspace':0, 'hspace':0},
+        gridspec_kw={"wspace": 0, "hspace": 0},
     )
 
     delta_rmsd = rmsds
@@ -1080,10 +1214,13 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     rmsd_sums = rmsds.sum(axis=1)
     ylim_rmsd = 0, 1.05 * rmsd_sums.max()
 
-    for i, ((ax, hist_ax, rmsd_ax), rmsd, pop) in enumerate(zip(axs[:-1] if helices is not None else axs, rmsds, pops)):
+    for i, ((ax, hist_ax, rmsd_ax), rmsd, pop) in enumerate(
+        zip(axs[:-1] if helices is not None else axs, rmsds, pops)
+    ):
         rect = patches.Rectangle(
             (0, 0.3),  # Position of the block
-            pop, 0.4, # color='black'
+            pop,
+            0.4,  # color='black'
         )
         hist_ax.add_patch(rect)
         hist_ax.set_xlim(ylim_hist)
@@ -1092,18 +1229,19 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
 
         rect = patches.Rectangle(
             (0, 0.3),  # Position of the block
-            abs(rmsd).sum(), 0.4, # color='black'
+            abs(rmsd).sum(),
+            0.4,  # color='black'
         )
         rmsd_ax.add_patch(rect)
         rmsd_ax.set_xlim(ylim_rmsd)
         rmsd_ax.set_yticks([], [])
         rmsd_ax.grid(False)
 
-        ax.plot(np.arange(rmsd.shape[0])+1, rmsd)
+        ax.plot(np.arange(rmsd.shape[0]) + 1, rmsd)
         ax.fill_between(
-            np.arange(rmsd.shape[0])+1,
+            np.arange(rmsd.shape[0]) + 1,
             # [ylim[0]]*rmsd.shape[0],
-            [0]*rmsd.shape[0],
+            [0] * rmsd.shape[0],
             rmsd,
             alpha=0.5,
             # facecolor="none",
@@ -1111,7 +1249,7 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
         )
 
         # ax.set_yscale("log")
-        ax.set_ylabel(f"{i+1}")
+        ax.set_ylabel(f"{i + 1}")
         # ax.set_ylabel(f"{i+1}-{i}")
         # ax.set_ylabel(f"{i+1}-{i}", rotation=90, position=(-0.2, 0))
         ax.set_xlim((0.5, rmsd.shape[0] + 0.5))
@@ -1129,7 +1267,8 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
                 end += 0.3
                 rect = patches.Rectangle(
                     (start, 0.3),  # Position of the block
-                    end - start, 0.4, # color='black'
+                    end - start,
+                    0.4,  # color='black'
                     fc="#264653",
                     ec="#264653",
                     lw=2,
@@ -1141,16 +1280,29 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
                 end += 0.5
                 rect = patches.Rectangle(
                     (start, 0.3),  # Position of the block
-                    end - start, 0.4, # color='black'
+                    end - start,
+                    0.4,  # color='black'
                     fc="white",
                     ec="#264653",
                     lw=2,
                 )
-            helices_ax.plot([line_start, start], [0.5, 0.5], solid_capstyle="butt", c="#264653", lw=2)
+            helices_ax.plot(
+                [line_start, start],
+                [0.5, 0.5],
+                solid_capstyle="butt",
+                c="#264653",
+                lw=2,
+            )
             line_start = end
             helices_ax.add_patch(rect)
-        helices_ax.plot([line_start, rmsds.shape[1]], [0.5, 0.5], solid_capstyle="butt", c="#264653", lw=2)
-       
+        helices_ax.plot(
+            [line_start, rmsds.shape[1]],
+            [0.5, 0.5],
+            solid_capstyle="butt",
+            c="#264653",
+            lw=2,
+        )
+
         helices_ax.set_ylim((0, 1))
         helices_ax.set_ylabel("H")
         helices_ax.set_yticks([], [])
@@ -1161,7 +1313,6 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
         axs[-1, 2].grid(False)
         axs[-1, 2].set_yticks([], [])
 
-    
     axs[0, 0].set_ylim(0.5 * rmsds[0].min(), 2 * rmsds[0].max())
     axs[0, 0].set_yscale("log")
     # axs[0, 0].set_ylabel("1") #, rotation=90)
@@ -1186,13 +1337,14 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     # Save to file if filename is provided
     plt.tight_layout()
     if filename:
-        plt.savefig(filename, dpi=192) # , bbox_inches="tight"
+        plt.savefig(filename, dpi=192)  # , bbox_inches="tight"
     else:
         plt.show()
     plt.close()
 
 
 ### TRAJECTORY ###############################################################
+
 
 def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2):
     """
@@ -1217,23 +1369,25 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
     unique_states, lengths = utils.find_state_lengths(trajectory)
     lengths = lengths * frame_length
     n_rows = int(np.ceil(trajectory.shape[0] / x_max))
-    
+
     # Set up figure size proportional to data
     width = max(6, x_max * 0.0001)  # Minimum width of 6 inches
-    height = max(2, (unique_states.max() - unique_states.min() + 1) * 0.05 * n_rows + 0.6)  # Minimum height of 4 inches
+    height = max(
+        2, (unique_states.max() - unique_states.min() + 1) * 0.05 * n_rows + 0.6
+    )  # Minimum height of 4 inches
     x_max *= frame_length
-    
+
     # Use a logarithmic color scale for lengths
     norm_len = colors.LogNorm(vmin=lengths.min(), vmax=lengths.max())
     cmap_len = plt.cm.viridis
-   
+
     # plt.figure(figsize=(width, height))
     a4 = True
     # a4 = False
     if a4:
         figsize = (11.7, 8.3)
     else:
-        figsize = (width*1.5, height*1.5)
+        figsize = (width * 1.5, height * 1.5)
 
     u_states = np.unique(unique_states)
     # cmap = mpl.cm.viridis
@@ -1247,9 +1401,9 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
         1,
         sharex=True,
         figsize=figsize,
-        gridspec_kw={'wspace':0, 'hspace':0},
+        gridspec_kw={"wspace": 0, "hspace": 0},
         squeeze=False,
-        layout='compressed',
+        layout="compressed",
     )
     axs = axs[:, 0]
     axi = 0
@@ -1267,7 +1421,7 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
                 [state, state],
                 color=color[:3],
                 linewidth=3,
-                solid_capstyle='butt',
+                solid_capstyle="butt",
             )
             x_end -= x_max
             x_start = 0
@@ -1277,10 +1431,9 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
             [state, state],
             color=color,
             linewidth=3,
-            solid_capstyle='butt',
+            solid_capstyle="butt",
         )
 
-        
         # Move x_start to the end of the current segment for the next one
         x_start = x_end
 
@@ -1289,10 +1442,15 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
     # # sm.set_array(lengths)
     # sm.set_array([])
     # plt.colorbar(sm, label='Log of State Length')
-    
+
     # Label axes and set title
     # fig.supxlabel("Index in State Sequence")
-    cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=axs, orientation="vertical", label="Macrostate")
+    cbar = fig.colorbar(
+        ScalarMappable(norm=norm, cmap=cmap),
+        ax=axs,
+        orientation="vertical",
+        label="Macrostate",
+    )
     cbar.set_ticks(ticks=u_states, labels=u_states, minor=False)
     fig.axes[-1].tick_params(length=0)
 
@@ -1300,7 +1458,7 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
     # fig.supxlabel("Frames")
     axs[-1].set_xlabel(r"t / $\mu$s")
     # plt.title("Line Plot of State Trajectory with Length-Color Coding")
-  
+
     for ax in axs:
         # ax.grid(visible=False)
         ax.set_ylim(unique_states.min() - 1, unique_states.max() + 1)
@@ -1308,7 +1466,7 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
     # Set axis limits
     plt.xlim(0, x_max)
     # plt.ylim(np.min(unique_states) - 0.2, np.max(unique_states) + 0.2)
-  
+
     # plt.subplots_adjust(wspace=0, hspace=0)
     # plt.tight_layout()
     # Save the plot to the specified file
@@ -1318,15 +1476,16 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
 
 ### CORRELATION ##############################################################
 
+
 def plot_correlation_evolution(
-        feature1,
-        feature2,
-        out,
-        weights=None,
-        label1="feature 1",
-        label2="feature 2",
-        clip_to_greater_zero=None,
-    ):
+    feature1,
+    feature2,
+    out,
+    weights=None,
+    label1="feature 1",
+    label2="feature 2",
+    clip_to_greater_zero=None,
+):
     """
     Plot two features as a function of time.
 
@@ -1352,7 +1511,7 @@ def plot_correlation_evolution(
             weights.append(np.full(f1.shape, 1))
 
     for f1, f2, w in zip(feature1, feature2, weights):
-        container = ax.scatter(f1, f2, s=w/1000, c="k", alpha=0.4)
+        container = ax.scatter(f1, f2, s=w / 1000, c="k", alpha=0.4)
         # container = ax.scatter(f1, f2, s=1, c="k")
         artists.append([container])
 
@@ -1370,23 +1529,24 @@ def plot_correlation_evolution(
 
 
 def plot_pearson(
-        feature1,
-        feature2,
-        out,
-        title="Correlation of Two Features",
-        clip_to_greater_zero=None,
-    ):
+    feature1,
+    feature2,
+    out,
+    title="Correlation of Two Features",
+    clip_to_greater_zero=None,
+):
     if clip_to_greater_zero is not None:
         mask = [dq > 0 for dq in clip_to_greater_zero]
         feature1 = [f1[m] for m, f1 in zip(mask, feature1)]
         feature2 = [f2[m] for m, f2 in zip(mask, feature2)]
 
     pplt.use_style(
-        figsize=4.8, colors="pastel_autumn", true_black=True, latex=False,
+        figsize=4.8,
+        colors="pastel_autumn",
+        true_black=True,
+        latex=False,
     )
-    r = np.array([
-        pearsonr(f1, f2) for f1, f2 in zip(feature1[:-1], feature2[:-1])
-    ]).T
+    r = np.array([pearsonr(f1, f2) for f1, f2 in zip(feature1[:-1], feature2[:-1])]).T
     l = len(r[0])
 
     fig, ax = plt.subplots(1, 1, figsize=(4, 3))
@@ -1399,7 +1559,9 @@ def plot_pearson(
     max_transitions = max(num_transitions)
     num_transitions = num_transitions / max_transitions
     ax.plot(num_transitions, label="Transitions P > 0")
-    secax_y2 = ax.secondary_yaxis("right", (lambda x: x * max_transitions, lambda x: x * max_transitions))
+    secax_y2 = ax.secondary_yaxis(
+        "right", (lambda x: x * max_transitions, lambda x: x * max_transitions)
+    )
     ax.set_ylabel("p value")
     secax_y2.set_ylabel("Number of Transitions")
 
@@ -1413,7 +1575,7 @@ def plot_pearson(
         linestyle="dashed",
         # label="p-value = 0.05",
     )
-    
+
     ax.set_title(title)
     ax.set_xlabel("Lumping Step")
 
@@ -1426,19 +1588,19 @@ def plot_pearson(
 
 
 def plot_correlation_scatter(
-        feature1,
-        feature2,
-        out,
-        macro_feature1=None,
-        macro_feature2=None,
-        weights=None,
-        macro_weights=None,
-        label1="feature 1",
-        label2="feature 2",
-        title="Correlation Scatter Plot",
-        clip_to_greater_zero=None,
-        clip_to_greater_zero_macro=None,
-    ):
+    feature1,
+    feature2,
+    out,
+    macro_feature1=None,
+    macro_feature2=None,
+    weights=None,
+    macro_weights=None,
+    label1="feature 1",
+    label2="feature 2",
+    title="Correlation Scatter Plot",
+    clip_to_greater_zero=None,
+    clip_to_greater_zero_macro=None,
+):
     """
     Scatter plot two features of a model, optionally add macro feature
 
@@ -1469,7 +1631,10 @@ def plot_correlation_scatter(
         macro_weights += 1
 
     pplt.use_style(
-        figsize=4.8, colors="pastel_autumn", true_black=True, latex=False,
+        figsize=4.8,
+        colors="pastel_autumn",
+        true_black=True,
+        latex=False,
     )
 
     if weights is None:
@@ -1485,19 +1650,22 @@ def plot_correlation_scatter(
     if macro_feature1 is not None and macro_feature2 is not None:
         if macro_weights is None:
             macro_weights = np.full(macro_feature1.shape, 1)
-        ax.scatter(macro_feature1, macro_feature2, c="r", s=macro_weights, label="Macrostates")
+        ax.scatter(
+            macro_feature1, macro_feature2, c="r", s=macro_weights, label="Macrostates"
+        )
 
     ax.set_xlabel(label1)
     ax.set_ylabel(label2)
     ax.set_title(title)
-   
+
     ax.legend()
-    
+
     plt.savefig(out)
     plt.close()
 
 
 ### CHAPMAN-KOLMOGOROV TEST ##################################################
+
 
 def chapman_kolmogorov(mpt, out, frame_length=0.2):
     """Chapman-Kolmogorov Test. Frame length in ns"""
@@ -1508,15 +1676,20 @@ def chapman_kolmogorov(mpt, out, frame_length=0.2):
         # int(1550*frame_length),
     )
     pplt.use_style(
-        figsize=4.8, colors="pastel_autumn", true_black=True, latex=False,
+        figsize=4.8,
+        colors="pastel_autumn",
+        true_black=True,
+        latex=False,
     )
 
     nrows, ncols = utils.get_grid_format(mpt.n_macrostates[mpt.n_i])
-    for chunk in mh.plot._ck_test._split_array(np.arange(1, mpt.n_macrostates[mpt.n_i]+1), nrows * ncols):
+    for chunk in mh.plot._ck_test._split_array(
+        np.arange(1, mpt.n_macrostates[mpt.n_i] + 1), nrows * ncols
+    ):
         fig = mh.plot.plot_ck_test(
             ck=ck,
             states=chunk,
-            frames_per_unit=1/frame_length,
+            frames_per_unit=1 / frame_length,
             unit="ns",
             grid=(ncols, nrows),
         )
@@ -1529,6 +1702,7 @@ def chapman_kolmogorov(mpt, out, frame_length=0.2):
 
 
 ### REPORT ###################################################################
+
 
 def report_stochastic(cl, ref, multi_feature, cluster_file, out, frame_length=0.2):
     """
@@ -1544,7 +1718,7 @@ def report_stochastic(cl, ref, multi_feature, cluster_file, out, frame_length=0.
 
     dendrogram_min = os.path.join(out, "dendro_min.pdf")
     dendrogram_max = os.path.join(out, "dendro_max.pdf")
-    
+
     min_ts = np.where(cl.timescales[:, 0].min() == cl.timescales[:, 0])[0][0]
     max_ts = np.where(cl.timescales[:, 0].max() == cl.timescales[:, 0])[0][0]
 
@@ -1553,31 +1727,35 @@ def report_stochastic(cl, ref, multi_feature, cluster_file, out, frame_length=0.
 
     contact_rep_min = os.path.join(out, "contact_rep_min.pdf")
     contact_rep_max = os.path.join(out, "contact_rep_max.pdf")
-    contact_rep(multi_feature, cluster_file, cl.macrotraj[:, min_ts], contact_rep_min, (4, 3))
-    contact_rep(multi_feature, cluster_file, cl.macrotraj[:, max_ts], contact_rep_max, (4, 3))
+    contact_rep(
+        multi_feature, cluster_file, cl.macrotraj[:, min_ts], contact_rep_min, (4, 3)
+    )
+    contact_rep(
+        multi_feature, cluster_file, cl.macrotraj[:, max_ts], contact_rep_max, (4, 3)
+    )
 
     similarity_file = os.path.join(out, "similarity.pdf")
     evaluate_stochastic_clustering(ref, cl, similarity_file)
 
     # header
-    # - Title 
+    # - Title
     label = f"ana:{os.path.basename(out)}"
 
-    lagtime = f"Lagtime: \\SI{{{cl.tlag*frame_length}}}{{\\nano\\second}}"
-    traj_length = f"Traj length: \\SI{{{cl.traj.shape[0]*frame_length*1e-3:.0f}}}{{\\micro\\second}}"
+    lagtime = f"Lagtime: \\SI{{{cl.tlag * frame_length}}}{{\\nano\\second}}"
+    traj_length = f"Traj length: \\SI{{{cl.traj.shape[0] * frame_length * 1e-3:.0f}}}{{\\micro\\second}}"
 
     title = f"Stochastic Clustering"
     kernel = f"\\verb|{cl.kernel}|"
     kl = f"KL = {cl.kernel.kullback_leibler}"
     thr = f"$\\mathrm{{pop}}_\\mathrm{{min}}={cl.pop_thr}$, $q_\\mathrm{{min}}={cl.q_min}$"
     if cl.kernel.method == "n":
-        mode = f"n={cl.kernel.param}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
+        mode = f"n={cl.kernel.param}, c=\\SI{{{cl.kernel.c * 100:.0f}}}{{\\percent}}"
     elif cl.kernel.method == "p":
-        mode = f"p=\\SI{{{cl.kernel.param*100:.0f}}}{{\\percent}}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
+        mode = f"p=\\SI{{{cl.kernel.param * 100:.0f}}}{{\\percent}}, c=\\SI{{{cl.kernel.c * 100:.0f}}}{{\\percent}}"
     else:
         mode = ""
     runs = f"{cl.n_runs} clusterings"
-    thresholds = f"pop: \\SI{{{cl.pop_thr*100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
+    thresholds = f"pop: \\SI{{{cl.pop_thr * 100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
 
     if cl.feature_kernel:
         feature_kernel = f"\\verb|{cl.feature_kernel}|"
@@ -1641,18 +1819,19 @@ Similarity of macrostates. The numbers in brakets are the number of microstate i
     with open(tex, "w") as f:
         f.write(header)
 
+
 def report_1v1(cl, ref, multi_feature, cluster_file, out, frame_length=0.2):
     """
     frame_length in ns
     """
     if not os.path.isdir(out):
         os.makedirs(out)
-    
+
     if cl.timescales == None:
         cl.calc_timescales()
     if ref.timescales == None:
         ref.calc_timescales()
-    
+
     its = cl.timescales / ref.timescales
 
     tex = os.path.join(out, os.path.basename(out)) + ".tex"
@@ -1662,7 +1841,7 @@ def report_1v1(cl, ref, multi_feature, cluster_file, out, frame_length=0.2):
 
     dendrogram_cl = os.path.join(out, "dendro_cl.pdf")
     # dendrogram_ref = os.path.join(out, "dendro_ref.pdf")
-    
+
     cl.plot(dendrogram_cl, 0)
     # ref.plot(dendrogram_ref, 0)
 
@@ -1675,25 +1854,27 @@ def report_1v1(cl, ref, multi_feature, cluster_file, out, frame_length=0.2):
     evaluate_stochastic_clustering(ref, cl, similarity_file)
 
     # header
-    # - Title 
+    # - Title
     label = f"ana:{os.path.basename(out)}"
 
-    lagtime = f"Lagtime: \\SI{{{cl.tlag*frame_length}}}{{\\nano\\second}}"
-    traj_length = f"Traj length: \\SI{{{cl.traj.shape[0]*frame_length*1e-3:.0f}}}{{\\micro\\second}}"
+    lagtime = f"Lagtime: \\SI{{{cl.tlag * frame_length}}}{{\\nano\\second}}"
+    traj_length = f"Traj length: \\SI{{{cl.traj.shape[0] * frame_length * 1e-3:.0f}}}{{\\micro\\second}}"
 
     title = f"1v1 comparison"
     kernel = f"\\verb|{cl.kernel}|"
     thr = f"$\\mathrm{{pop}}_\\mathrm{{min}}={cl.pop_thr}$, $q_\\mathrm{{min}}={cl.q_min}$"
     try:
         if cl.kernel.method == "n":
-            mode = f"n={cl.kernel.param}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
+            mode = (
+                f"n={cl.kernel.param}, c=\\SI{{{cl.kernel.c * 100:.0f}}}{{\\percent}}"
+            )
         elif cl.kernel.method == "p":
-            mode = f"p=\\SI{{{cl.kernel.param*100:.0f}}}{{\\percent}}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
+            mode = f"p=\\SI{{{cl.kernel.param * 100:.0f}}}{{\\percent}}, c=\\SI{{{cl.kernel.c * 100:.0f}}}{{\\percent}}"
         else:
             mode = ""
     except AttributeError:
         mode = ""
-    thresholds = f"pop: \\SI{{{cl.pop_thr*100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
+    thresholds = f"pop: \\SI{{{cl.pop_thr * 100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
 
     if cl.feature_kernel:
         feature_kernel = f"\\verb|{cl.feature_kernel}|"
@@ -1762,7 +1943,9 @@ def report(cl, multi_feature, cluster_file, out, helices=None, n_i=0, frame_leng
     cl.plot(dendrogram, n_i)
 
     contact_rep_path = os.path.join(out, "contact_rep.pdf")
-    contact_rep(multi_feature, cluster_file, cl.macrotraj[:, n_i], contact_rep_path, (4, 3))
+    contact_rep(
+        multi_feature, cluster_file, cl.macrotraj[:, n_i], contact_rep_path, (4, 3)
+    )
 
     sankey_path = os.path.join(out, "sankey.pdf")
     cl.plot_sankey(sankey_path)
@@ -1771,7 +1954,7 @@ def report(cl, multi_feature, cluster_file, out, helices=None, n_i=0, frame_leng
     cl.plot_rmsd(rmsd_path, helices)
 
     # header
-    # - Title 
+    # - Title
     label = f"ana:{os.path.basename(out)}"
 
     formula = f"$T + b \\cdot T_\\mathrm{{{cl.kernel.similarity}}}"
@@ -1782,7 +1965,7 @@ def report(cl, multi_feature, cluster_file, out, helices=None, n_i=0, frame_leng
     formula += feature_term
 
     head_line = f"\\multicolumn{{6}}{{l}}{{{formula}}} && abs. & rel. &&& abs. & rel. \\\\\\toprule"
-    first_line =  f"$b$ & {cl.kernel.b:.2f} & \\quad & $q_\\mathrm{{min}}$ & {cl.q_min:.2f} & \\quad & "
+    first_line = f"$b$ & {cl.kernel.b:.2f} & \\quad & $q_\\mathrm{{min}}$ & {cl.q_min:.2f} & \\quad & "
     first_line += f"$\\tau_1$ & \\SI{{{cl.timescales[0, 0] * frame_length:.0f}}}{{\\nano\\second}} & "
     first_line += f"{cl.timescales[0, 0] / ref.timescales[0, 0]:.2f} & \\quad"
     first_line += f"& DBI & {cl.davies_bouldin_index(multi_feature)[0]:.2f} &"
@@ -1791,7 +1974,6 @@ def report(cl, multi_feature, cluster_file, out, helices=None, n_i=0, frame_leng
     second_line += f"{cl.pop_thr:.3f} && $H$ & {cl.shannon_entropy[0]:.2f} & "
     second_line += f"{cl.shannon_entropy[0] / ref.shannon_entropy[0]:.2f} && "
     second_line += f"GMRQ & {cl.gmrq[0]:.2f} & {cl.gmrq[0] / ref.gmrq[0]:.2f} \\\\"
-
 
     tex_file = f"""
 \\newpage
@@ -1819,14 +2001,15 @@ def report(cl, multi_feature, cluster_file, out, helices=None, n_i=0, frame_leng
     \\vspace{{-0.6cm}}
 \\end{{analysis}}
 """
-                # \\parbox{{\\textwidth}}{{
-                # \\begin{{align*}}
-                #     \\mathrm{{DBI}}&: {cl.davies_bouldin_index(multi_feature)[0]:.2f} | {cl.davies_bouldin_index(multi_feature)[0] / ref.davies_bouldin_index(multi_feature)[0]:.2f} \\\\
-                #     \\mathrm{{GMRQ}}&: {cl.gmrq[0]:.2f} | {cl.gmrq[0] / ref.gmrq[0]:.2f}
-                # \\end{{align*}}}}
+    # \\parbox{{\\textwidth}}{{
+    # \\begin{{align*}}
+    #     \\mathrm{{DBI}}&: {cl.davies_bouldin_index(multi_feature)[0]:.2f} | {cl.davies_bouldin_index(multi_feature)[0] / ref.davies_bouldin_index(multi_feature)[0]:.2f} \\\\
+    #     \\mathrm{{GMRQ}}&: {cl.gmrq[0]:.2f} | {cl.gmrq[0] / ref.gmrq[0]:.2f}
+    # \\end{{align*}}}}
 
     with open(tex, "w") as f:
         f.write(tex_file)
+
 
 def report_(cl, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
     """
@@ -1843,30 +2026,32 @@ def report_(cl, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
     cl.plot(dendrogram, n_i)
 
     contact_rep_path = os.path.join(out, "contact_rep.pdf")
-    contact_rep(multi_feature, cluster_file, cl.macrotraj[:, n_i], contact_rep_path, (4, 3))
+    contact_rep(
+        multi_feature, cluster_file, cl.macrotraj[:, n_i], contact_rep_path, (4, 3)
+    )
 
     sankey_path = os.path.join(out, "sankey.pdf")
 
     # header
-    # - Title 
+    # - Title
     label = f"ana:{os.path.basename(out)}"
 
-    lagtime = f"Lagtime: \\SI{{{cl.tlag*frame_length}}}{{\\nano\\second}}"
-    traj_length = f"Traj length: \\SI{{{cl.traj.shape[0]*frame_length*1e-3:.0f}}}{{\\micro\\second}}"
+    lagtime = f"Lagtime: \\SI{{{cl.tlag * frame_length}}}{{\\nano\\second}}"
+    traj_length = f"Traj length: \\SI{{{cl.traj.shape[0] * frame_length * 1e-3:.0f}}}{{\\micro\\second}}"
 
     title = f"Clustering"
     kernel = f"\\verb|{cl.kernel}|"
     kl = f"KL = {cl.kernel.kullback_leibler}"
     thr = f"$\\mathrm{{pop}}_\\mathrm{{min}}={cl.pop_thr}$, $q_\\mathrm{{min}}={cl.q_min}$"
     if cl.kernel.method == "n":
-        mode = f"n={cl.kernel.param}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
+        mode = f"n={cl.kernel.param}, c=\\SI{{{cl.kernel.c * 100:.0f}}}{{\\percent}}"
     elif cl.kernel.method == "p":
-        mode = f"p=\\SI{{{cl.kernel.param*100:.0f}}}{{\\percent}}, c=\\SI{{{cl.kernel.c*100:.0f}}}{{\\percent}}"
+        mode = f"p=\\SI{{{cl.kernel.param * 100:.0f}}}{{\\percent}}, c=\\SI{{{cl.kernel.c * 100:.0f}}}{{\\percent}}"
     else:
         mode = ""
     runs = f"Run {n_i}"
     its = f"rel its: ${cl.timescales[n_i, 0] / ref.timescales[0, 0]:.2f}\\cdot t_\\mathrm{{ref}}$"
-    thresholds = f"pop: \\SI{{{cl.pop_thr*100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
+    thresholds = f"pop: \\SI{{{cl.pop_thr * 100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
 
     if cl.feature_kernel:
         feature_kernel = f"\\verb|{cl.feature_kernel}|"
