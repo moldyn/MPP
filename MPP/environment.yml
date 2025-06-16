@@ -24,6 +24,12 @@ dependencies:
       - pipreqs
       - prettypyplot
       - pyyaml
+      - pygpcca
+      - mpi4py
+      - petsc 
+      - slepc
+      - petsc4py 
+      - slepc4py
       - scikit-learn
       - scipy
       - seaborn

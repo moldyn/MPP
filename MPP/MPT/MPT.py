@@ -12,6 +12,7 @@ from typing import Callable, List
 from numpy.typing import NDArray
 from collections.abc import Iterable
 from sklearn.metrics import davies_bouldin_score
+import pygpcca as gp
 
 from MPT import core
 
@@ -156,6 +157,12 @@ class MPT(object):
                 self.traj, self.macrostates_map[-1]
             )
             self.n_macrostates.append(self.macrostate_assignment[-1].shape[0])
+            self.macrostate_feature.append(
+                [
+                    self.feature_traj[np.where(self.macrotraj[:, n_i] == i)].mean()
+                    for i in np.arange(self.n_macrostates[-1]) + 1
+                ]
+            )
 
     def macro_to_micro_feature(self):
         """Assign macrostate feature values to corresponding microstates"""
@@ -167,6 +174,46 @@ class MPT(object):
         ):
             for j, mb in enumerate(ma.astype(bool)):
                 self.micro_feature[mb, i] = mf[j]
+
+    def gpcca(self, n_macrostates, macrotraj_type=np.uint8):
+        self.gpcca = gp.GPCCA(self.tmat, method="krylov")
+        self.gpcca.optimize(n_macrostates)
+
+        self.n_runs = 1
+        self.n_macrostates = [n_macrostates]
+
+        gma = self.gpcca.macrostate_assignment
+        gmt = np.empty(self.traj.shape, dtype=self.traj.dtype)
+        gmf = np.empty(self.n_macrostates[0])
+        for i in range(self.n_macrostates[0]):
+            gmt[np.where(np.isin(self.traj, np.where(gma == i)[0] + 1))[0]] = i + 1
+            gmf[i] = self.feature_traj[gmt == i + 1].mean()
+
+        order = np.argsort(gmf)[::-1]
+        new_states = np.empty(self.n_macrostates[0], dtype=macrotraj_type)
+        new_states[order] = np.arange(self.n_macrostates[0], dtype=macrotraj_type)
+        self.macrostates_map = [np.empty(gma.shape, dtype=macrotraj_type)]
+        for i in range(self.n_macrostates[0]):
+            self.macrostates_map[0][np.where(gma == i)] = new_states[i]
+
+        self.macrostate_assignment = [
+            np.full((self.n_macrostates[0], self.macrostates_map[0].shape[0]), False)
+        ]
+        self.macrostate_assignment[0][
+            self.macrostates_map[0],
+            np.arange(self.macrostates_map[0].shape[0], dtype=int),
+        ] = True
+        self.macrostate_feature = [gmf[order]]
+        self.macrotraj = np.empty(
+            (self.traj.shape[0], self.n_runs), dtype=macrotraj_type
+        )
+        self.macrotraj[:, 0] = utils.translate_traj(self.traj, self.macrostates_map[0])
+        self.macro_tmat = [
+            utils.macro_tmat(self.tmat, self.macrostate_assignment[0], self.pop)
+        ]
+
+        # Create mock Z and mock full_pop for Sankey plot
+        new_state = self.macrostates_map[0]
 
     def set_n_i(self):
         """Sets self.n_i to the lumping with longest first implied timescale."""
@@ -335,7 +382,7 @@ class MPT(object):
     @property
     def tree(self):
         """The tree property."""
-        if self._tree == None:
+        if self._tree is None:
             self._tree = []
             for z, pop in zip(self.Z, self.full_pop):
                 self._tree.append(self.build_tree(z, pop))

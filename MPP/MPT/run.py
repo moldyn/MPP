@@ -65,6 +65,57 @@ class Data:
         self.n_random_frames = 20
         self.use_ref = True
 
+    def prepare_mpp(self, dij, gij):
+        if "stochastic" in self.d:
+            kernel = MPT.kernel.MPTKernel(
+                method=self.d["stochastic"]["method"],
+                param=self.d["stochastic"]["param"],
+                similarity=dij,
+            )
+        else:
+            kernel = MPT.kernel.MPTKernel(
+                similarity=dij,
+            )
+
+        if gij == "none":
+            feature_kernel = None
+        elif gij == "q":
+            feature_kernel = MPT.kernel.FeatureKernel(
+                self.feature_traj,
+                self.microtraj,
+            )
+        elif gij == "JS":
+            feature_kernel = MPT.kernel.MultiFeatureKernel(
+                self.mfeature_traj,
+                self.microtraj,
+            )
+        else:
+            raise ValueError("feature kernel must be None, q or JS.")
+
+        if dij == "T" and gij == "none":
+            self.use_ref = False
+
+        self.kernel = kernel
+        self.feature_kernel = feature_kernel
+
+    def setup_mpp(self, dij, gij):
+        if dij != "gpcca":
+            self.prepare_mpp(dij, gij)
+        self.mpp = MPT.MPT(
+            self.microtraj,
+            self.tlag,
+            self.feature_traj,
+            macrostate_thresholds=(self.pop_min, self.q_min),
+            limits=self.limits,
+            quiet=True,
+        )
+        if os.path.exists(self.top):
+            self.mpp.topology_file = self.top
+        if os.path.exists(self.xtc):
+            self.mpp.xtc_trajectory_file = self.xtc
+        self.mpp.xtc_stride = self.d.get("xtc stride", None)
+        self.mpp.frame_length = self.frame_length
+
     def perform_mpp(self, out, overwrite=False):
         """out: Z.npy"""
         if os.path.exists(out) and not overwrite:
@@ -80,6 +131,15 @@ class Data:
         if "stochastic" in self.d:
             self.mpp.set_n_i()
 
+    def perform_gpcca(self, n_macrostates, out=None):
+        """n_macrostates: int or 'ref' for n_macrostates from reference (T)"""
+        if n_macrostates == "ref":
+            n_macrostates = self.mpp.reference.n_macrostates[0]
+        self.mpp.gpcca(n_macrostates)
+        if out is not None:
+            with open(out, "w") as f:
+                pass
+
     def get_rmsd(self, out, overwrite=False):
         """out: rmsd.npy"""
         if not out.endswith(".npy"):
@@ -93,54 +153,54 @@ class Data:
 ### RUN ######################################################################
 
 
-def setup_mpp(dij, gij, data):
-    if "stochastic" in data.d:
-        kernel = MPT.kernel.MPTKernel(
-            method=data.d["stochastic"]["method"],
-            param=data.d["stochastic"]["param"],
-            similarity=dij,
-        )
-    else:
-        kernel = MPT.kernel.MPTKernel(
-            similarity=dij,
-        )
-
-    if gij == "none":
-        feature_kernel = None
-    elif gij == "q":
-        feature_kernel = MPT.kernel.FeatureKernel(
-            data.feature_traj,
-            data.microtraj,
-        )
-    elif gij == "JS":
-        feature_kernel = MPT.kernel.MultiFeatureKernel(
-            data.mfeature_traj,
-            data.microtraj,
-        )
-    else:
-        raise ValueError("feature kernel must be None, q or JS.")
-
-    if dij == "T" and gij == "none":
-        data.use_ref = False
-
-    data.kernel = kernel
-    data.feature_kernel = feature_kernel
-
-    data.mpp = MPT.MPT(
-        data.microtraj,
-        data.tlag,
-        data.feature_traj,
-        macrostate_thresholds=(data.pop_min, data.q_min),
-        limits=data.limits,
-        quiet=True,
-    )
-    if os.path.exists(data.top):
-        data.mpp.topology_file = data.top
-    if os.path.exists(data.xtc):
-        data.mpp.xtc_trajectory_file = data.xtc
-    data.mpp.xtc_stride = data.d.get("xtc stride", None)
-    data.mpp.frame_length = data.frame_length
-    return data
+# def setup_mpp(dij, gij, data):
+#     if "stochastic" in data.d:
+#         kernel = MPT.kernel.MPTKernel(
+#             method=data.d["stochastic"]["method"],
+#             param=data.d["stochastic"]["param"],
+#             similarity=dij,
+#         )
+#     else:
+#         kernel = MPT.kernel.MPTKernel(
+#             similarity=dij,
+#         )
+#
+#     if gij == "none":
+#         feature_kernel = None
+#     elif gij == "q":
+#         feature_kernel = MPT.kernel.FeatureKernel(
+#             data.feature_traj,
+#             data.microtraj,
+#         )
+#     elif gij == "JS":
+#         feature_kernel = MPT.kernel.MultiFeatureKernel(
+#             data.mfeature_traj,
+#             data.microtraj,
+#         )
+#     else:
+#         raise ValueError("feature kernel must be None, q or JS.")
+#
+#     if dij == "T" and gij == "none":
+#         data.use_ref = False
+#
+#     data.kernel = kernel
+#     data.feature_kernel = feature_kernel
+#
+#     data.mpp = MPT.MPT(
+#         data.microtraj,
+#         data.tlag,
+#         data.feature_traj,
+#         macrostate_thresholds=(data.pop_min, data.q_min),
+#         limits=data.limits,
+#         quiet=True,
+#     )
+#     if os.path.exists(data.top):
+#         data.mpp.topology_file = data.top
+#     if os.path.exists(data.xtc):
+#         data.mpp.xtc_trajectory_file = data.xtc
+#     data.mpp.xtc_stride = data.d.get("xtc stride", None)
+#     data.mpp.frame_length = data.frame_length
+#     return data
 
 
 # def mpp(mpt, data):
@@ -168,8 +228,8 @@ def plot(data, out, kind="dendrogram", scale=1):
     elif kind == "contacts":
         data.mpp.plot_contact_rep(data.mtraj_raw, data.cluster, out, scale=scale)
     elif kind == "macrotraj":
-        traj_length = data.microtraj.shape[0]
-        n_macrostates = data.mpp.n_macrostates[0]
+        # traj_length = data.microtraj.shape[0]
+        # n_macrostates = data.mpp.n_macrostates[0]
         # row_length = 1 / int(np.round(np.sqrt(traj_length) / (np.sqrt(n_macrostates) * 30)))
         row_length = 1 / 6
         if data.limits is not None:
@@ -263,8 +323,11 @@ def main():
 
     # Parse input files
     data = Data(args.data_specification.name)
-    data = setup_mpp(args.d, args.g, data)
-    data.perform_mpp(args.Z)
+    data.setup_mpp(args.d, args.g)
+    if args.d == "gpcca":
+        data.perform_gpcca(args.g, args.Z)
+    else:
+        data.perform_mpp(args.Z)
 
     if args.rmsd:
         data.get_rmsd(args.rmsd, overwrite=True)
