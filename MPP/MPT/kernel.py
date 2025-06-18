@@ -65,7 +65,6 @@ class MPTKernel(object):
         # Apply cutoff as suggested by Lukas (report 8)
         # c=0: consider all transitions
         if self.cutoff > 0 and self.cutoff < 1:
-            p_max_i = np.where(trans_probs.max() == trans_probs)
             p_max = trans_probs.max()
             cutoff_mask = trans_probs > p_max * self.cutoff
             trans_probs = trans_probs[cutoff_mask]
@@ -209,10 +208,6 @@ class FeatureKernel(object):
         self.full_pop[self.n_states :] = 0
         self.full_feature[self.n_states :] = 0
 
-    # def weighting_function(self, dq):
-    #     a = 1 / (2 * self.sigma ** 2)
-    #     return np.exp(-a * np.abs(dq) ** self.b)
-
     def apply(self, trans_probs, state, mask):
         f = (
             trans_probs
@@ -317,12 +312,6 @@ class MultiFeatureKernel(object):
             + self.full_feature[target] * self.full_pop[target]
         ) / self.full_pop[new_state]
 
-    # def kl(self, state, mask):
-    #     return utils.kullback_leibler(
-    #         self.full_feature[state],
-    #         self.full_feature[mask]
-    #     )
-
     def kl(self, state, mask, epsilon=1e-6):
         dkl = scy.stats.entropy(
             self.full_feature[state] + epsilon,
@@ -330,12 +319,6 @@ class MultiFeatureKernel(object):
             axis=1,
         )
         return utils.weighting_function(dkl)
-
-    # def js(self, state, mask):
-    #     return utils.jensen_shannon(
-    #         self.full_feature[state],
-    #         self.full_feature[mask]
-    #     )
 
     def js(self, state, mask):
         p = self.full_feature[state]

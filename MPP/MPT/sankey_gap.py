@@ -32,7 +32,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class PySankeyException(Exception):
-    """ Generic PySankey Exception. """
+    """Generic PySankey Exception."""
 
 
 class NullsInFrame(PySankeyException):
@@ -75,7 +75,7 @@ def sankey(
     rightLabels=None,
     aspect=4,
     rightColor=False,
-    fontsize='medium',
+    fontsize="medium",
     figureName=None,
     closePlot=False,
     figSize=None,
@@ -144,8 +144,8 @@ def sankey(
     if len(rightWeight) == 0:
         rightWeight = leftWeight
 
-    #plt.rc("text", usetex=False)
-    #plt.rc("font", family="serif")
+    # plt.rc("text", usetex=False)
+    # plt.rc("font", family="serif")
 
     # Create Dataframe
     if isinstance(left, pd.Series):
@@ -231,20 +231,21 @@ def sankey(
     for vall, leftLabel in enumerate(leftLabels):
         if vall != 0:
             if _draw_label(leftWidths[leftLabel], leftWidths[previousleftlabel]):
-                #ax.fill_between(
+                # ax.fill_between(
                 #    [-0.025 * xMax, 0.01*xMax],
                 #    2 * [0.99*leftWidths[leftLabel]["bottom"]],
                 #    2 * [1.01*leftWidths[leftLabel]["bottom"] + leftWidths[leftLabel]["left"]],
                 #    facecolor='white',  # colorDict[leftLabel],
                 #    alpha=1.0, zorder=2,
-                #)
+                # )
                 continue
         ax.text(
             -0.05 * xMax,
             leftWidths[leftLabel]["bottom"] + 0.5 * leftWidths[leftLabel]["left"],
-            fr'\textbf{{{leftLabel}}}',
+            rf"\textbf{{{leftLabel}}}",
             {"ha": "right", "va": "center"},
-            fontsize=fontsize, zorder=2
+            fontsize=fontsize,
+            zorder=2,
         )
         previousleftlabel = leftLabel
     for valr, rightLabel in enumerate(rightLabels):
@@ -261,9 +262,10 @@ def sankey(
         ax.text(
             1.05 * xMax,
             rightWidths[rightLabel]["bottom"] + 0.5 * rightWidths[rightLabel]["right"],
-            fr'\textbf{{{rightLabel}}}',
+            rf"\textbf{{{rightLabel}}}",
             {"ha": "left", "va": "center"},
-            fontsize=fontsize, zorder=2
+            fontsize=fontsize,
+            zorder=2,
         )
         previousrightlabel = rightLabel
 
@@ -345,10 +347,10 @@ def sankey(
 
 
 def _get_positions_and_total_widths(df, labels, side):
-    """ Determine positions of label patches and total widths"""
+    """Determine positions of label patches and total widths"""
     # add gap
     gap = 50000
-    #print(f'gap : {gap}')
+    # print(f'gap : {gap}')
     widths = defaultdict()
     for i, label in enumerate(labels):
         labelWidths = {}
@@ -369,10 +371,10 @@ def _get_positions_and_total_widths(df, labels, side):
 
 
 def _draw_label(widths1, widths2, minDistanceOfLabels=150000):
-    return np.abs(
-        (
-            widths1['top'] - 0.5 * (widths1['top'] - widths1['bottom'])
-        ) - (
-            widths2['top'] - 0.5 * (widths2['top'] - widths2['bottom'])
+    return (
+        np.abs(
+            (widths1["top"] - 0.5 * (widths1["top"] - widths1["bottom"]))
+            - (widths2["top"] - 0.5 * (widths2["top"] - widths2["bottom"]))
         )
-    ) < minDistanceOfLabels
+        < minDistanceOfLabels
+    )

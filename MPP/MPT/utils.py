@@ -12,7 +12,6 @@ from itertools import combinations
 from typing import List
 from numpy.typing import NDArray
 import scipy as scy
-import msmhelper as mh
 import mdtraj as md
 from tqdm import tqdm
 
@@ -77,29 +76,6 @@ def translate_traj(traj: NDArray[np.int_], map: NDArray[np.int_]) -> NDArray[np.
     for macrostate in macrostates:
         macrotraj[np.isin(traj, np.where(map == macrostate)[0] + 1)] = macrostate
     return macrotraj + 1
-
-
-# def macro_traj(
-#         Z: NDArray[float],
-#         traj: NDArray[np.int_],
-#         n_macrostates: int
-#     ) -> NDArray[np.int_]:
-#     """
-#     Create macrostate trajectory from Z matrix, microstate trajectory and
-#     number of macrostates.
-#
-#     Z (NDArray[float]): Z matrix as of cluster
-#     traj (NDArray[np.int_v]): microstate trajectory
-#     n_macrostates (int): number of macrostates to create
-#
-#     returns: NDArray[np.int_] macrostate trajectory
-#     """
-#     macrostate_map = macrostates_from_Z(Z, n_macrostates)
-#     macro_traj = np.zeros(traj.shape[0], dtype=traj.dtype.type)
-#     for macrostate in np.unique(macrostate_map):
-#         microstates = np.where(macrostate_map==macrostate)[0]
-#         macro_traj[np.isin(traj, microstates)] = macrostate
-#     return macro_traj
 
 
 def macro_tmat(tmat, macrostate_assignment, pop):
@@ -211,8 +187,6 @@ def calc_full_tmat(tmat, pop, Z):
                 full_pop[run],
                 reset_states=False,
             )
-            # full_tmat[run, n_states+i] = fm[n_states+i]
-            # full_tmat[run, :, n_states+i] = fm[:, n_states+i]
     return full_tmat, full_pop
 
 
@@ -221,7 +195,6 @@ def Z_to_mask(Z):
     Calculate the mask for each lumping step.
     Z (Nx4): Z matric
     """
-    # n1 = n-1
     n1 = Z.shape[0]
     n = n1 + 1
     m = np.zeros((n1, 2 * n - 1), dtype=bool)
@@ -230,7 +203,6 @@ def Z_to_mask(Z):
         m[k + 1] = m[k]
         m[k + 1, [i, j]] = False
         m[k + 1, k + n] = True
-        # if k < n-2:
     return m
 
 
@@ -314,16 +286,6 @@ def kullback_leibler(transitions, tmat, epsilon=1e-6):
     return scy.special.softmax(-kl)
 
 
-# def kullback_leibler(transitions, tmat, epsilon=1e-6):
-#     """Return Kallback-Leibler probability"""
-#     tmat = tmat.copy()
-#     tmat += epsilon
-#     transitions = transitions.copy()
-#     smoothed_tmat = tmat / np.expand_dims(tmat.sum(axis=1), axis=1)
-#     kl = scy.stats.entropy(transitions, smoothed_tmat, axis=1)
-#     return scy.special.softmax(-kl)
-
-
 def dq_kl(ref, s, e=1e-6):
     k = scy.stats.entropy(ref + e, s + e, axis=1)
     e_kl = np.exp(-k)
@@ -393,10 +355,9 @@ def dq_kernel_KLP(full_tmat, mask=None):
         t[:, i] = trans_probs[i]
         kl = kullback_leibler(trans_probs, t[i + 1 :])
         # Renormalize
-        if True:
-            if kl.shape[0] > 1:
-                kl = kl - kl.min()
-                kl = kl / kl.sum()
+        if kl.shape[0] > 1:
+            kl = kl - kl.min()
+            kl = kl / kl.sum()
         klp[start[i] : end[i]] = kl
     return klp
 
@@ -413,10 +374,9 @@ def dq_kernel_JSC(full_feature, mask=None):
     for i, feature_state in enumerate(feature[:-1]):
         js = jensen_shannon(feature_state, feature[i + 1 :])
         # Renormalize
-        if True:
-            if js.shape[0] > 1:
-                js = js - js.min()
-                js = js / js.sum()
+        if js.shape[0] > 1:
+            js = js - js.min()
+            js = js / js.sum()
         jsc[start[i] : end[i]] = js
     return jsc
 
@@ -679,37 +639,6 @@ def get_multi_state_traj(trajs: np.ndarray, limits: np.ndarray):
         trajectories.append(trajs[current_position : int(current_position + l)])
         current_position += l
     return trajectories
-
-
-# def multi_state_traj_to_tmat(multi_state_traj, tlag):
-#     """Calculate combined transition matrix from multi state traj"""
-#     states = np.unique(multi_state_traj)
-#     tmat_tot = np.zeros((states.shape[0], states.shape[0]))
-#     for traj in multi_state_traj:
-#         tmat, s = mh.msm.estimate_markov_model(traj, tlag)
-#         tmat_tot[np.ix_(s-1, s-1)] += tmat * traj.shape[0]
-#     return (tmat_tot.T / tmat_tot.sum(axis=1)).T
-
-# def load_stata_traj(traj_file: str, limits_file: str=None) -> List:
-#     """Load trajectories from file and return list of np.ndarray"""
-#     traj = np.loadtxt(traj_file, dtype=np.uint32)
-#     if traj.max() < 2**8:
-#         traj = traj.astype(np.uint8)
-#     elif traj.max() < 2**16:
-#         traj = traj.astype(np.uint16)
-#
-#     if limits_file is None:
-#         return [traj]
-#     else:
-#         return get_multi_state_traj(traj, np.loadtxt(limits_file, dtype=np.int_))
-
-# def load_feature_traj(traj_file: str, limits_file: str=None) -> List:
-#     """Load trajectories from file and return list of np.ndarray"""
-#     traj = np.loadtxt(traj_file)
-#     if limits_file is None:
-#         return [traj]
-#     else:
-#         return get_multi_state_traj(traj, np.loadtxt(limits_file, dtype=np.int_))
 
 
 def fnc_from_multi_feature_traj(multi_feature_traj):

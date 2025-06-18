@@ -213,7 +213,49 @@ class MPT(object):
         ]
 
         # Create mock Z and mock full_pop for Sankey plot
-        new_state = self.macrostates_map[0]
+        # After implementation remove mock Z.npy file in run.py
+        self.Z = np.zeros((self.n_runs, self.n_states - 1, 4), dtype=np.float64)
+        self.full_pop = np.zeros((self.n_runs, 2 * self.n_states - 1), dtype=np.uint32)
+        self.full_pop[0, : self.n_states] = self.pop
+        self.pop_thr = 0
+        self.q_min = 0.5
+
+        last_merged = self.n_states
+        merge = 0
+        for macrostate in range(self.n_macrostates[0]):
+            microstates = np.where(self.macrostates_map[0] == macrostate)[0]
+            origin = microstates[0]
+            if microstates.shape[0] > 1:
+                for target in microstates[1:]:
+                    intermediate_state = self.n_states + merge
+                    self.full_pop[0, intermediate_state] = self.full_pop[
+                        0, [origin, target]
+                    ].sum()
+                    self.Z[0, merge] = (
+                        origin,
+                        target,
+                        0.2,
+                        self.full_pop[0, intermediate_state],
+                    )
+                    origin = intermediate_state
+                    merge += 1
+
+            if macrostate > 0:
+                intermediate_state = self.n_states + merge
+                target = last_merged
+                self.full_pop[0, intermediate_state] = self.full_pop[
+                    0, [origin, target]
+                ].sum()
+                self.Z[0, merge] = (
+                    origin,
+                    target,
+                    0.9,
+                    self.full_pop[0, intermediate_state],
+                )
+                last_merged = intermediate_state
+                merge += 1
+            else:
+                last_merged = origin
 
     def set_n_i(self):
         """Sets self.n_i to the lumping with longest first implied timescale."""

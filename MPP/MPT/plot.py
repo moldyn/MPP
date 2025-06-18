@@ -6,7 +6,6 @@ plot.py
 Various plot functions used in this package.
 """
 
-import os
 from os.path import splitext
 
 import numpy as np
@@ -15,7 +14,6 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import (
-    Normalize,
     LinearSegmentedColormap,
     LogNorm,
     ListedColormap,
@@ -30,7 +28,6 @@ from msmhelper._cli.contact_rep import load_clusters
 from scipy.stats import pearsonr
 import MPT.utils as utils
 from MPT.sankey_gap import sankey
-import MPT.kernel as krnl
 
 plt.rcParams["font.family"] = "sans-serif"
 
@@ -67,8 +64,6 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
 
     # plot legend
     cmap = plt.get_cmap("plasma_r", 10)
-    # label = r'$\langle Q \rangle_\text{state} $'
-    # label = r"Fraction of Native Contacts $q$"
     label = r"Fraction of Contacts $q$"
 
     cmappable = ScalarMappable(root.feature_norm, cmap)
@@ -123,12 +118,11 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
     ax_mat.set_xticks(np.arange(0.5, 0.5 + n_states))
 
     # Hide microstate labels
-    if True:
-        for axes in (ax, ax_mat):
-            axes.set_xticks([])
-            axes.set_xticks([], minor=True)
-            axes.set_xticklabels([])
-            axes.set_xticklabels([], minor=True)
+    for axes in (ax, ax_mat):
+        axes.set_xticks([])
+        axes.set_xticks([], minor=True)
+        axes.set_xticklabels([])
+        axes.set_xticklabels([], minor=True)
 
     pplt.savefig(output_file)
     plt.close()
@@ -189,8 +183,6 @@ def plot_implied_timescales(
     if first_ref:
         ref_traj = trajs.pop(0)
     x, y = utils.get_grid_format(len(trajs))
-    # pplt.use_style(figsize=(2*x, 2*y), latex=False, colors='pastel_autumn')
-    # pplt.use_style(figsize=(2.8*scale, 3.2*scale), latex=False, colors='pastel_autumn')
     pplt.use_style(
         figsize=(3.8 * scale, 3.2 * scale), latex=False, colors="pastel_autumn"
     )
@@ -217,9 +209,7 @@ def plot_implied_timescales(
     tlag = lagtimes[-1] / 4.5 * frame_length
     lagtimes_ns = lagtimes * frame_length
     for ax, traj, title in zip(axs.flatten(), trajs, titles):
-        # ax.axvline(10, color='pplt:grid')
         ax.axvline(tlag, color="pplt:grid")
-        # ax.yaxis.set_major_formatter(mtick.LogFormatterSciNotation)
         it = mh.msm.implied_timescales(traj, lagtimes, ntimescales=ntimescales)
         # change from frames to ns
         it *= frame_length
@@ -263,8 +253,6 @@ def plot_implied_timescales(
     handles, labels = plt.gca().get_legend_handles_labels()
 
     # Reorder the handles and labels manually to achieve column-major ordering
-    # desired_order = [0, 3, 1, 4, 2, 5]  # Indices in column-major order
-    # desired_order = [3, 0, 4, 1, 5, 2]  # Indices in column-major order
     desired_order = np.array(
         [(i + ntimescales, i) for i in range(ntimescales)]
     ).flatten()
@@ -298,7 +286,6 @@ def _plot_impl_times(impl_times, lagtimes, ax, ls="-"):
     # highlight diagonal
     x_i = np.arange(ref_low, xlim[1])
     ax.fill_between(x_i, x_i, color="pplt:grid")
-    # pplt.legend(outside='right', frameon=False)
 
 
 def plot_relative_implied_timescales_(cl, ref, out):
@@ -369,10 +356,6 @@ def plot_heatmap(a, out, title=""):
 
     ax.set_xticks(np.arange(a.shape[1]))
     ax.set_yticks(np.arange(a.shape[0]))
-    for i in range(a.shape[0]):
-        for j in range(a.shape[1]):
-            # text = ax.text(j, i, f"{a[i, j]*100:.1f}",
-            text = ax.text(j, i, f"{a[i, j]:.0f}", ha="center", va="center", color="w")
     if title:
         ax.set_title(title)
     ax.set_xlabel("Macrostate")
@@ -410,7 +393,6 @@ def plot_tmat(a, out, title="Transition Matrix", color_thr=0.01):
     off_diag_norm = LogNorm(
         vmin=threshold * (1 - color_thr), vmax=off_diag_values.max()
     )
-    off_diag_cmap = plt.cm.viridis
 
     # Create a custom colormap for off-diagonal values including light gray
     colors_list = plt.cm.viridis(np.linspace(0, 1, 256))
@@ -513,7 +495,6 @@ def plot_trans_time(
     # Define the colormap for the off-diagonal elements (logarithmic viridis)
     off_diag_mask = ~np.eye(a.shape[0], dtype=bool)
     off_diag_values = a[off_diag_mask]
-    off_diag_values_non_inf = off_diag_values[off_diag_values < np.inf]
 
     # Threshold for light gray
     threshold = off_diag_values.min() / color_thr
@@ -522,7 +503,6 @@ def plot_trans_time(
     off_diag_norm = LogNorm(
         vmin=off_diag_values.min(), vmax=threshold / (1 - color_thr)
     )
-    off_diag_cmap = plt.cm.viridis_r
 
     # Create a custom colormap for off-diagonal values including light gray
     colors_list = plt.cm.viridis_r(np.linspace(0, 1, 256))
@@ -629,7 +609,7 @@ def plot_macro_feature(micro_feature, out, ref=None, pop=None):
 
     fig, ax = plt.subplots()
     ax.hist(bins[:-1], bins=bins, weights=norm_counts, label="Stochastic Clustering")
-    if ref != None:
+    if ref is not None:
         for mas, mfs, c, l, w in ref:
             add_ref(mas, mfs, ax, color=c, label=l, weights=w)
     ax.set_xlabel("Fraction of native contacts")
@@ -888,11 +868,10 @@ def plot_rmsd_(vars, row_heights, helices=None, filename=None, num_x_labels=8):
     x_boundaries = np.arange(vars.shape[1] + 1)
 
     # Create the heatmap with a logarithmic color scale
-    # plt.figure(figsize=(4, 3))
     fig, ax = plt.subplots(figsize=(4, 3))
     plt.pcolormesh(
         x_boundaries, y_boundaries, vars, cmap="viridis", norm=LogNorm(), shading="flat"
-    )  # , edgecolors='black', linewidth=0.5
+    )
 
     # Draw horizontal lines at each y-boundary
     for y in y_boundaries:
@@ -1370,30 +1349,18 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
     lengths = lengths * frame_length
     n_rows = int(np.ceil(trajectory.shape[0] / x_max))
 
-    # Set up figure size proportional to data
-    width = max(6, x_max * 0.0001)  # Minimum width of 6 inches
-    height = max(
-        2, (unique_states.max() - unique_states.min() + 1) * 0.05 * n_rows + 0.6
-    )  # Minimum height of 4 inches
     x_max *= frame_length
 
-    # Use a logarithmic color scale for lengths
-    norm_len = colors.LogNorm(vmin=lengths.min(), vmax=lengths.max())
-    cmap_len = plt.cm.viridis
-
-    # plt.figure(figsize=(width, height))
-    a4 = True
-    # a4 = False
-    if a4:
-        figsize = (11.7, 8.3)
-    else:
-        figsize = (width * 1.5, height * 1.5)
+    figsize = (11.7, 8.3)
+    # # Set up figure size proportional to data
+    # width = max(6, x_max * 0.0001)  # Minimum width of 6 inches
+    # height = max(
+    #     2, (unique_states.max() - unique_states.min() + 1) * 0.05 * n_rows + 0.6
+    # )  # Minimum height of 4 inches
+    # figsize = (width * 1.5, height * 1.5)
 
     u_states = np.unique(unique_states)
-    # cmap = mpl.cm.viridis
-    # cmap = mpl.cm.nipy_spectral
     cmap = mpl.cm.turbo
-    # norm = mpl.colors.BoundaryNorm(np.concatenate([[0], u_states, [u_states.max() + 1]]) + 0.5, cmap.N)
     norm = mpl.colors.BoundaryNorm(np.concatenate([[0], u_states]) + 0.5, cmap.N)
 
     fig, axs = plt.subplots(
@@ -1412,7 +1379,6 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
     x_start = 0  # Initial x-coordinate for the first segment
     for state, length in zip(unique_states, lengths):
         x_end = x_start + length  # Calculate end position of this segment on the x-axis
-        # color = cmap(norm(length))  # Color based on the length, logarithmically scaled
         color = cmap(norm(state))
 
         while x_end > x_max:
@@ -1426,25 +1392,19 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
             x_end -= x_max
             x_start = 0
             axi += 1
-        axs[axi].plot(
-            [x_start, x_end],
-            [state, state],
-            color=color,
-            linewidth=3,
-            solid_capstyle="butt",
-        )
+        if not np.isclose(x_start, x_end):
+            axs[axi].plot(
+                [x_start, x_end],
+                [state, state],
+                color=color,
+                linewidth=3,
+                solid_capstyle="butt",
+            )
 
         # Move x_start to the end of the current segment for the next one
         x_start = x_end
 
-    # Add color bar to indicate the log-scale of state lengths
-    # sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    # # sm.set_array(lengths)
-    # sm.set_array([])
-    # plt.colorbar(sm, label='Log of State Length')
-
     # Label axes and set title
-    # fig.supxlabel("Index in State Sequence")
     cbar = fig.colorbar(
         ScalarMappable(norm=norm, cmap=cmap),
         ax=axs,
@@ -1455,20 +1415,14 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
     fig.axes[-1].tick_params(length=0)
 
     fig.supylabel("State Index")
-    # fig.supxlabel("Frames")
     axs[-1].set_xlabel(r"t / $\mu$s")
-    # plt.title("Line Plot of State Trajectory with Length-Color Coding")
 
     for ax in axs:
-        # ax.grid(visible=False)
         ax.set_ylim(unique_states.min() - 1, unique_states.max() + 1)
 
     # Set axis limits
     plt.xlim(0, x_max)
-    # plt.ylim(np.min(unique_states) - 0.2, np.max(unique_states) + 0.2)
 
-    # plt.subplots_adjust(wspace=0, hspace=0)
-    # plt.tight_layout()
     # Save the plot to the specified file
     plt.savefig(filename)
     plt.close()  # Close the plot to free memory
@@ -1502,7 +1456,6 @@ def plot_correlation_evolution(
             weights = [w[m] for m, w in zip(mask, weights)]
 
     fig, ax = plt.subplots(1, 1, figsize=(6, 6))
-    # fig, ax = plt.subplots()
     artists = []
 
     if weights is None:
@@ -1512,7 +1465,6 @@ def plot_correlation_evolution(
 
     for f1, f2, w in zip(feature1, feature2, weights):
         container = ax.scatter(f1, f2, s=w / 1000, c="k", alpha=0.4)
-        # container = ax.scatter(f1, f2, s=1, c="k")
         artists.append([container])
 
     ax.set_xlabel(label1)
@@ -1524,8 +1476,6 @@ def plot_correlation_evolution(
     ani = animation.ArtistAnimation(fig=fig, artists=artists, interval=500)
     ani.save(filename=out, writer="ffmpeg")
     plt.close()
-    # plt.show()
-    # ani.save(out, writer="pillow")
 
 
 def plot_pearson(
@@ -1552,8 +1502,6 @@ def plot_pearson(
     fig, ax = plt.subplots(1, 1, figsize=(4, 3))
 
     ax.plot(r[0], label="Pearson r")
-    # ax.invert_yaxis()
-    # ax.plot(r[1], label="p-value (exact distribution)")
 
     num_transitions = np.array([len(f) for f in feature1])
     max_transitions = max(num_transitions)
@@ -1573,7 +1521,6 @@ def plot_pearson(
         [lim[1]] * 2,
         colors="grey",
         linestyle="dashed",
-        # label="p-value = 0.05",
     )
 
     ax.set_title(title)
@@ -1699,429 +1646,3 @@ def chapman_kolmogorov(mpt, out, frame_length=0.2):
             text.set_position((0.15, 0.2))
     plt.savefig(out)
     plt.close()
-
-
-### REPORT ###################################################################
-
-
-def report_stochastic(cl, ref, multi_feature, cluster_file, out, frame_length=0.2):
-    """
-    frame_length in ns
-    """
-    if not os.path.isdir(out):
-        os.makedirs(out)
-
-    tex = os.path.join(out, os.path.basename(out)) + ".tex"
-    timescales_plot = os.path.join(out, "timescales.pdf")
-
-    plot_relative_implied_timescales(cl, ref, timescales_plot)
-
-    dendrogram_min = os.path.join(out, "dendro_min.pdf")
-    dendrogram_max = os.path.join(out, "dendro_max.pdf")
-
-    min_ts = np.where(cl.timescales[:, 0].min() == cl.timescales[:, 0])[0][0]
-    max_ts = np.where(cl.timescales[:, 0].max() == cl.timescales[:, 0])[0][0]
-
-    cl.plot(dendrogram_min, min_ts)
-    cl.plot(dendrogram_max, max_ts)
-
-    contact_rep_min = os.path.join(out, "contact_rep_min.pdf")
-    contact_rep_max = os.path.join(out, "contact_rep_max.pdf")
-    contact_rep(
-        multi_feature, cluster_file, cl.macrotraj[:, min_ts], contact_rep_min, (4, 3)
-    )
-    contact_rep(
-        multi_feature, cluster_file, cl.macrotraj[:, max_ts], contact_rep_max, (4, 3)
-    )
-
-    similarity_file = os.path.join(out, "similarity.pdf")
-    evaluate_stochastic_clustering(ref, cl, similarity_file)
-
-    # header
-    # - Title
-    label = f"ana:{os.path.basename(out)}"
-
-    lagtime = f"Lagtime: \\SI{{{cl.tlag * frame_length}}}{{\\nano\\second}}"
-    traj_length = f"Traj length: \\SI{{{cl.traj.shape[0] * frame_length * 1e-3:.0f}}}{{\\micro\\second}}"
-
-    title = f"Stochastic Clustering"
-    kernel = f"\\verb|{cl.kernel}|"
-    kl = f"KL = {cl.kernel.kullback_leibler}"
-    thr = f"$\\mathrm{{pop}}_\\mathrm{{min}}={cl.pop_thr}$, $q_\\mathrm{{min}}={cl.q_min}$"
-    if cl.kernel.method == "n":
-        mode = f"n={cl.kernel.param}, c=\\SI{{{cl.kernel.c * 100:.0f}}}{{\\percent}}"
-    elif cl.kernel.method == "p":
-        mode = f"p=\\SI{{{cl.kernel.param * 100:.0f}}}{{\\percent}}, c=\\SI{{{cl.kernel.c * 100:.0f}}}{{\\percent}}"
-    else:
-        mode = ""
-    runs = f"{cl.n_runs} clusterings"
-    thresholds = f"pop: \\SI{{{cl.pop_thr * 100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
-
-    if cl.feature_kernel:
-        feature_kernel = f"\\verb|{cl.feature_kernel}|"
-        feature_params = f"$\\sigma$={cl.feature_kernel.sigma}, b={cl.feature_kernel.b}"
-    else:
-        feature_kernel = "No feature"
-        feature_params = ""
-
-    header = f"""
-\\newpage
-\\begin{{analysis}}
-\\label{{{label}}}
-\\vspace{{-0.5cm}}
-\\begin{{table}}[H]
-\\centering
-\\begin{{tabular}}{{lll}}
-    General & Clustering & Feature \\\\\\midrule
-    {lagtime} & {runs} & {feature_kernel} \\\\
-    {traj_length} & {thr} & {feature_params} \\\\
-    & {mode} & \\\\
-    & {kl} &
-\\end{{tabular}}
-\\end{{table}}
-
-\\begin{{figure}}[H]
-\\centering
-\\includegraphics[width=1.0\\textwidth]{{{os.path.abspath(timescales_plot)}}}
-\\includegraphics[width=0.48\\textwidth]{{{os.path.abspath(dendrogram_min)}}}
-\\includegraphics[width=0.48\\textwidth]{{{os.path.abspath(dendrogram_max)}}}
-\\includegraphics[width=0.48\\textwidth]{{{os.path.abspath(contact_rep_min)}}}
-\\includegraphics[width=0.48\\textwidth]{{{os.path.abspath(contact_rep_max)}}}
-\\end{{figure}}
-
-\\begin{{figure}}[H]
-\\centering
-\\includegraphics[width=1.0\\textwidth]{{{os.path.abspath(similarity_file)}}}
-\\end{{figure}}
-
-\\subsubsection*{{Previous page}}
-
-Top: relative implied timescales. 
-Centre-left/bottom: dendrogram and contact representation of stochastic 
-clustering with lowest implied timescale 
-(${cl.timescales[min_ts, 0] / ref.timescales[0, 0]:.2f}\\cdot t_\\mathrm{{det}}$) 
-Centre-right/bottom: dendrogram and contact representation of stochastic 
-clustering with lowest implied timescale 
-(${cl.timescales[max_ts, 0] / ref.timescales[0, 0]:.2f}\\cdot t_\\mathrm{{det}}$)
-
-\\subsubsection*{{This page}}
-
-Similarity of macrostates. The numbers in brakets are the number of microstate in the reference macrostate. The similarities are defined as follows:
-
-\\begin{{align*}}
-	S_1\\left(s_i|s\\right) &= \\max_j\\left(\\frac{{s_i \\cap s_j}}{{s_i \\cup s_j}}\\right) \\quad \\mathrm{{union}} \\\\
-	S_2\\left(s_i|s\\right) &= \\max_j\\left(\\frac{{s_i \\cap s_j}}{{s_i}}\\right) \\quad \\mathrm{{reference}} \\\\
-	S_3\\left(s_i|s\\right) &= \\max_j\\left(\\frac{{s_i \\cap s_j}}{{s_j}}\\right) \\quad \\mathrm{{clustering}}
-\\end{{align*}}
-\\end{{analysis}}
-"""
-
-    with open(tex, "w") as f:
-        f.write(header)
-
-
-def report_1v1(cl, ref, multi_feature, cluster_file, out, frame_length=0.2):
-    """
-    frame_length in ns
-    """
-    if not os.path.isdir(out):
-        os.makedirs(out)
-
-    if cl.timescales == None:
-        cl.calc_timescales()
-    if ref.timescales == None:
-        ref.calc_timescales()
-
-    its = cl.timescales / ref.timescales
-
-    tex = os.path.join(out, os.path.basename(out)) + ".tex"
-    # timescales_plot = os.path.join(out, "timescales.pdf")
-    #
-    # plot_relative_implied_timescales(cl, ref, timescales_plot)
-
-    dendrogram_cl = os.path.join(out, "dendro_cl.pdf")
-    # dendrogram_ref = os.path.join(out, "dendro_ref.pdf")
-
-    cl.plot(dendrogram_cl, 0)
-    # ref.plot(dendrogram_ref, 0)
-
-    contact_rep_cl = os.path.join(out, "contact_rep_cl.pdf")
-    # contact_rep_max = os.path.join(out, "contact_rep_max.pdf")
-    contact_rep(multi_feature, cluster_file, cl.macrotraj[:, 0], contact_rep_cl, (4, 3))
-    # contact_rep(multi_feature, cluster_file, cl.macrotraj[:, max_ts], contact_rep_max, (4, 3))
-
-    similarity_file = os.path.join(out, "similarity.pdf")
-    evaluate_stochastic_clustering(ref, cl, similarity_file)
-
-    # header
-    # - Title
-    label = f"ana:{os.path.basename(out)}"
-
-    lagtime = f"Lagtime: \\SI{{{cl.tlag * frame_length}}}{{\\nano\\second}}"
-    traj_length = f"Traj length: \\SI{{{cl.traj.shape[0] * frame_length * 1e-3:.0f}}}{{\\micro\\second}}"
-
-    title = f"1v1 comparison"
-    kernel = f"\\verb|{cl.kernel}|"
-    thr = f"$\\mathrm{{pop}}_\\mathrm{{min}}={cl.pop_thr}$, $q_\\mathrm{{min}}={cl.q_min}$"
-    try:
-        if cl.kernel.method == "n":
-            mode = (
-                f"n={cl.kernel.param}, c=\\SI{{{cl.kernel.c * 100:.0f}}}{{\\percent}}"
-            )
-        elif cl.kernel.method == "p":
-            mode = f"p=\\SI{{{cl.kernel.param * 100:.0f}}}{{\\percent}}, c=\\SI{{{cl.kernel.c * 100:.0f}}}{{\\percent}}"
-        else:
-            mode = ""
-    except AttributeError:
-        mode = ""
-    thresholds = f"pop: \\SI{{{cl.pop_thr * 100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
-
-    if cl.feature_kernel:
-        feature_kernel = f"\\verb|{cl.feature_kernel}|"
-        feature_params = f"$\\sigma$={cl.feature_kernel.sigma}, b={cl.feature_kernel.b}"
-    else:
-        feature_kernel = "No feature"
-        feature_params = ""
-
-    header = f"""
-\\newpage
-\\begin{{analysis}}
-\\label{{{label}}}
-\\begin{{table}}[H]
-\\centering
-\\begin{{tabular}}{{lll}}
-    General & Clustering & Feature \\\\\\midrule
-    {lagtime} & {kernel} & {feature_kernel} \\\\
-    {traj_length} & {thr} & {feature_params} \\\\
-    & {mode} & \\\\
-\\end{{tabular}}
-\\end{{table}}
-
-\\begin{{figure}}[H]
-\\centering
-\\includegraphics[width=0.53\\textwidth]{{{os.path.abspath(dendrogram_cl)}}}
-\\includegraphics[width=0.46\\textwidth]{{{os.path.abspath(contact_rep_cl)}}}
-\\end{{figure}}
-
-\\begin{{figure}}[H]
-\\centering
-\\includegraphics[width=0.7\\textwidth]{{{os.path.abspath(similarity_file)}}}
-\\end{{figure}}
-
-\\textbf{{Left}} Dendrogram and macrostate assignment. \\textbf{{Right}}
-Contact representation. Implied timescales are 
-$t_1={its[0, 0]:.2f}\\cdot t_\\mathrm{{det}}$, 
-$t_2={its[0, 1]:.2f}\\cdot t_\\mathrm{{det}}$, 
-$t_3={its[0, 2]:.2f}\\cdot t_\\mathrm{{det}}$
-\\textbf{{Bottom}} Similarity of macrostates. The numbers in brakets are the number of microstate in the reference macrostate. The similarities are defined as follows:
-
-\\begin{{align*}}
-	S_1\\left(s_i|s\\right) &= \\max_j\\left(\\frac{{s_i \\cap s_j}}{{s_i \\cup s_j}}\\right) \\quad \\mathrm{{union}} \\\\
-	S_2\\left(s_i|s\\right) &= \\max_j\\left(\\frac{{s_i \\cap s_j}}{{s_i}}\\right) \\quad \\mathrm{{reference}} \\\\
-	S_3\\left(s_i|s\\right) &= \\max_j\\left(\\frac{{s_i \\cap s_j}}{{s_j}}\\right) \\quad \\mathrm{{clustering}}
-\\end{{align*}}
-\\end{{analysis}}
-"""
-
-    with open(tex, "w") as f:
-        f.write(header)
-
-
-def report(cl, multi_feature, cluster_file, out, helices=None, n_i=0, frame_length=0.2):
-    """
-    frame_length in ns / frame
-    """
-    ref = cl.reference
-    cl.n_i = n_i
-
-    if not os.path.isdir(out):
-        os.makedirs(out)
-
-    tex = os.path.join(out, os.path.basename(out)) + ".tex"
-
-    dendrogram = os.path.join(out, "dendrogram.pdf")
-    cl.plot(dendrogram, n_i)
-
-    contact_rep_path = os.path.join(out, "contact_rep.pdf")
-    contact_rep(
-        multi_feature, cluster_file, cl.macrotraj[:, n_i], contact_rep_path, (4, 3)
-    )
-
-    sankey_path = os.path.join(out, "sankey.pdf")
-    cl.plot_sankey(sankey_path)
-
-    rmsd_path = os.path.join(out, "rmsd.pdf")
-    cl.plot_rmsd(rmsd_path, helices)
-
-    # header
-    # - Title
-    label = f"ana:{os.path.basename(out)}"
-
-    formula = f"$T + b \\cdot T_\\mathrm{{{cl.kernel.similarity}}}"
-    if isinstance(cl.feature_kernel, krnl.MultiFeatureKernel):
-        feature_term = f" + c \\cdot F_\\mathrm{{{cl.feature_kernel.similarity}}}$"
-    else:
-        feature_term = "$"
-    formula += feature_term
-
-    head_line = f"\\multicolumn{{6}}{{l}}{{{formula}}} && abs. & rel. &&& abs. & rel. \\\\\\toprule"
-    first_line = f"$b$ & {cl.kernel.b:.2f} & \\quad & $q_\\mathrm{{min}}$ & {cl.q_min:.2f} & \\quad & "
-    first_line += f"$\\tau_1$ & \\SI{{{cl.timescales[0, 0] * frame_length:.0f}}}{{\\nano\\second}} & "
-    first_line += f"{cl.timescales[0, 0] / ref.timescales[0, 0]:.2f} & \\quad"
-    first_line += f"& DBI & {cl.davies_bouldin_index(multi_feature)[0]:.2f} &"
-    first_line += f"{cl.davies_bouldin_index(multi_feature)[0] / ref.davies_bouldin_index(multi_feature)[0]:.2f} \\\\"
-    second_line = f"$c$ & {cl.kernel.c:.2f} & \\quad & $p_\\mathrm{{min}}$ & "
-    second_line += f"{cl.pop_thr:.3f} && $H$ & {cl.shannon_entropy[0]:.2f} & "
-    second_line += f"{cl.shannon_entropy[0] / ref.shannon_entropy[0]:.2f} && "
-    second_line += f"GMRQ & {cl.gmrq[0]:.2f} & {cl.gmrq[0] / ref.gmrq[0]:.2f} \\\\"
-
-    tex_file = f"""
-\\newpage
-\\begin{{analysis}}
-\\label{{{label}}}
-
-\\begin{{table}}[H]
-	\\centering
-	\\begin{{tabular}}{{lllllllllllll}}
-        {head_line}
-        {first_line}
-        {second_line}
-	\\end{{tabular}}
-\\end{{table}}
-
-\\includegraphics[width=0.34\\textwidth]{{{os.path.abspath(sankey_path)}}}
-\\includegraphics[width=0.64\\textwidth]{{{os.path.abspath(rmsd_path)}}}
-
-\\vspace{{-0.5cm}}
-\\begin{{figure}}[H]
-    \\centering
-    \\includegraphics[width=0.48\\textwidth]{{{os.path.abspath(dendrogram)}}}
-    \\includegraphics[width=0.48\\textwidth]{{{os.path.abspath(contact_rep_path)}}}
-    \\end{{figure}}
-    \\vspace{{-0.6cm}}
-\\end{{analysis}}
-"""
-    # \\parbox{{\\textwidth}}{{
-    # \\begin{{align*}}
-    #     \\mathrm{{DBI}}&: {cl.davies_bouldin_index(multi_feature)[0]:.2f} | {cl.davies_bouldin_index(multi_feature)[0] / ref.davies_bouldin_index(multi_feature)[0]:.2f} \\\\
-    #     \\mathrm{{GMRQ}}&: {cl.gmrq[0]:.2f} | {cl.gmrq[0] / ref.gmrq[0]:.2f}
-    # \\end{{align*}}}}
-
-    with open(tex, "w") as f:
-        f.write(tex_file)
-
-
-def report_(cl, multi_feature, cluster_file, out, n_i=0, frame_length=0.2):
-    """
-    frame_length in ns
-    """
-    ref = cl.reference
-
-    if not os.path.isdir(out):
-        os.makedirs(out)
-
-    tex = os.path.join(out, os.path.basename(out)) + ".tex"
-
-    dendrogram = os.path.join(out, "dendrogram.pdf")
-    cl.plot(dendrogram, n_i)
-
-    contact_rep_path = os.path.join(out, "contact_rep.pdf")
-    contact_rep(
-        multi_feature, cluster_file, cl.macrotraj[:, n_i], contact_rep_path, (4, 3)
-    )
-
-    sankey_path = os.path.join(out, "sankey.pdf")
-
-    # header
-    # - Title
-    label = f"ana:{os.path.basename(out)}"
-
-    lagtime = f"Lagtime: \\SI{{{cl.tlag * frame_length}}}{{\\nano\\second}}"
-    traj_length = f"Traj length: \\SI{{{cl.traj.shape[0] * frame_length * 1e-3:.0f}}}{{\\micro\\second}}"
-
-    title = f"Clustering"
-    kernel = f"\\verb|{cl.kernel}|"
-    kl = f"KL = {cl.kernel.kullback_leibler}"
-    thr = f"$\\mathrm{{pop}}_\\mathrm{{min}}={cl.pop_thr}$, $q_\\mathrm{{min}}={cl.q_min}$"
-    if cl.kernel.method == "n":
-        mode = f"n={cl.kernel.param}, c=\\SI{{{cl.kernel.c * 100:.0f}}}{{\\percent}}"
-    elif cl.kernel.method == "p":
-        mode = f"p=\\SI{{{cl.kernel.param * 100:.0f}}}{{\\percent}}, c=\\SI{{{cl.kernel.c * 100:.0f}}}{{\\percent}}"
-    else:
-        mode = ""
-    runs = f"Run {n_i}"
-    its = f"rel its: ${cl.timescales[n_i, 0] / ref.timescales[0, 0]:.2f}\\cdot t_\\mathrm{{ref}}$"
-    thresholds = f"pop: \\SI{{{cl.pop_thr * 100:.2f}}}{{\\percent}} $q_\\mathrm{{min}}$={cl.q_min}"
-
-    if cl.feature_kernel:
-        feature_kernel = f"\\verb|{cl.feature_kernel}|"
-        feature_params = f"$\\sigma$={cl.feature_kernel.sigma}, b={cl.feature_kernel.b}"
-    else:
-        feature_kernel = "No feature\\hspace{2cm}"
-        feature_params = ""
-
-    header = f"""
-\\begin{{analysis}}
-\\label{{{label}}}
-\\vspace{{-0.6cm}}
-\\begin{{table}}[H]
-\\centering
-\\begin{{tabular}}{{lll}}
-    General & Clustering & Feature \\\\\\midrule
-    {lagtime} & {thr} & {feature_kernel} \\\\
-    {traj_length} & {mode} & {feature_params} \\\\
-    & {kl} & \\\\
-    & {its} & \\\\
-    & {runs} & \\\\
-\\end{{tabular}}
-\\end{{table}}
-\\vspace{{-2.0cm}}
-
-\\begin{{figure}}[H]
-\\centering
-\\includegraphics[width=0.48\\textwidth]{{{os.path.abspath(dendrogram)}}}
-\\includegraphics[width=0.48\\textwidth]{{{os.path.abspath(contact_rep_path)}}}
-\\end{{figure}}
-\\vspace{{-0.6cm}}
-\\end{{analysis}}
-"""
-
-    with open(tex, "w") as f:
-        f.write(header)
-
-
-# \\begin{{table}}[H]
-#     \\centering
-#     \\begin{{tabular}}{{ll}}
-#         \\includegraphics[width=0.4\\textwidth]{{{os.path.abspath(sankey_path)}}} &
-#         \\begin{{minipage}}{{0.58\\textwidth}}
-#             \\vspace{{-0.45\\textheight}}
-#             \\begin{{minipage}}{{0.38\\textwidth}}
-#                 \\vspace{{-1.95cm}}
-#                 \\begin{{itemize}}
-#                     \\setlength\\itemsep{{0.0cm}}
-#                     \\item[$t$:] ${cl.timescales[0, 0]:.0f} | {cl.timescales[0, 0] / ref.timescales[0, 0]:.2f}$
-#                     \\item[$H$:] ${cl.shannon_entropy[0]:.2f} | {cl.shannon_entropy[0] / ref.shannon_entropy[0]:.2f}$
-#                     \\item[$b$] = {cl.kernel.b:.3f}
-#                     \\item[$c$] = {cl.kernel.c:.3f}
-#                 \\end{{itemize}}
-#             \\end{{minipage}}
-#             \\begin{{minipage}}{{0.08\\textwidth}}
-#             \\end{{minipage}}
-#             \\begin{{minipage}}{{0.55\\textwidth}}
-#                 \\begin{{itemize}}
-#                     \\setlength\\itemsep{{0.0cm}}
-#                     \\item[DBI:] ${cl.davies_bouldin_index(multi_feature)[0]:.2f} | {cl.davies_bouldin_index(multi_feature)[0] / ref.davies_bouldin_index(multi_feature)[0]:.2f}$
-#                     \\item[GMRQ:] ${cl.gmrq[0]:.2f} | {cl.gmrq[0] / ref.gmrq[0]:.2f}$
-#                     \\item[T:] Transition probabilities
-#                     \\item[$T_\\mathrm{{{cl.kernel.similarity}}}$:] Transition probability similarity
-#                     \\item[$F_\\mathrm{{{cl.kernel.similarity}}}$:] Feature similarity
-#                 \\end{{itemize}}
-#             \\end{{minipage}}
-#             \\begin{{minipage}}{{\\textwidth}}
-#                 \\vspace{{0.5cm}}
-#                 $ P = T + b \\cdot T_\\mathrm{{{cl.kernel.similarity}}} + c \\cdot F_\\mathrm{{{cl.kernel.similarity}}} $
-#             \\end{{minipage}}
-#         \\end{{minipage}}
-#     \\end{{tabular}}
-# \\end{{table}}

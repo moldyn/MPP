@@ -92,7 +92,7 @@ class Data:
         else:
             raise ValueError("feature kernel must be None, q or JS.")
 
-        if dij == "T" and gij == "none":
+        if dij == "T" and gij == "none" and "stochastic" not in self.d:
             self.use_ref = False
 
         self.kernel = kernel
@@ -136,9 +136,10 @@ class Data:
         if n_macrostates == "ref":
             n_macrostates = self.mpp.reference.n_macrostates[0]
         self.mpp.gpcca(n_macrostates)
-        if out is not None:
-            with open(out, "w") as f:
-                pass
+        self.mpp.save_Z(out)
+        # if out is not None:
+        #     with open(out, "w") as f:
+        #         pass
 
     def get_rmsd(self, out, overwrite=False):
         """out: rmsd.npy"""
@@ -148,69 +149,6 @@ class Data:
             self.mpp.load_rmsd(out)
         else:
             self.mpp.save_rmsd(out)
-
-
-### RUN ######################################################################
-
-
-# def setup_mpp(dij, gij, data):
-#     if "stochastic" in data.d:
-#         kernel = MPT.kernel.MPTKernel(
-#             method=data.d["stochastic"]["method"],
-#             param=data.d["stochastic"]["param"],
-#             similarity=dij,
-#         )
-#     else:
-#         kernel = MPT.kernel.MPTKernel(
-#             similarity=dij,
-#         )
-#
-#     if gij == "none":
-#         feature_kernel = None
-#     elif gij == "q":
-#         feature_kernel = MPT.kernel.FeatureKernel(
-#             data.feature_traj,
-#             data.microtraj,
-#         )
-#     elif gij == "JS":
-#         feature_kernel = MPT.kernel.MultiFeatureKernel(
-#             data.mfeature_traj,
-#             data.microtraj,
-#         )
-#     else:
-#         raise ValueError("feature kernel must be None, q or JS.")
-#
-#     if dij == "T" and gij == "none":
-#         data.use_ref = False
-#
-#     data.kernel = kernel
-#     data.feature_kernel = feature_kernel
-#
-#     data.mpp = MPT.MPT(
-#         data.microtraj,
-#         data.tlag,
-#         data.feature_traj,
-#         macrostate_thresholds=(data.pop_min, data.q_min),
-#         limits=data.limits,
-#         quiet=True,
-#     )
-#     if os.path.exists(data.top):
-#         data.mpp.topology_file = data.top
-#     if os.path.exists(data.xtc):
-#         data.mpp.xtc_trajectory_file = data.xtc
-#     data.mpp.xtc_stride = data.d.get("xtc stride", None)
-#     data.mpp.frame_length = data.frame_length
-#     return data
-
-
-# def mpp(mpt, data):
-#     """Performs MPP and saves Z matrix"""
-#     mpt.mpt(
-#         data.kernel,
-#         feature_kernel=data.feature_kernel,
-#     )
-#     mpt.save_Z(os.path.join(data.lumping_dir, "Z.npy"))
-#     return mpt
 
 
 def plot(data, out, kind="dendrogram", scale=1):
