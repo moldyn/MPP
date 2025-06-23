@@ -1,3 +1,15 @@
+# Documentation of the MPT package
+## Features
+- Perform the most probable path (MPP) algorithm on a given microstate trajectory (several independent trajectories).
+- Store the Z matrix of the lumping, which determines the relation between the microstates. The macrostate assignment is done separately.
+- For the lumping, four different similarities are supported:
+  - T
+  - KL
+  - T/JS
+  - KL/JS
+
+
+# Old file descriptions
 ## core.py
 
 Contains fundamental functions and classes for the package:

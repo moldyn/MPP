@@ -104,7 +104,8 @@ class Data:
         self.mpp = MPT.MPT(
             self.microtraj,
             self.tlag,
-            self.feature_traj,
+            self.mtraj_raw,
+            contact_threshold=0.45,
             macrostate_thresholds=(self.pop_min, self.q_min),
             limits=self.limits,
             quiet=True,
@@ -119,6 +120,7 @@ class Data:
     def perform_mpp(self, out, overwrite=False):
         """out: Z.npy"""
         if os.path.exists(out) and not overwrite:
+            print("Loading existing Z")
             self.mpp.from_Z(out)
         else:
             Path(os.path.dirname(out)).mkdir(parents=True, exist_ok=True)
@@ -131,12 +133,16 @@ class Data:
         if "stochastic" in self.d:
             self.mpp.set_n_i()
 
-    def perform_gpcca(self, n_macrostates, out=None):
+    def perform_gpcca(self, n_macrostates, out=None, overwrite=False):
         """n_macrostates: int or 'ref' for n_macrostates from reference (T)"""
-        if n_macrostates == "ref":
-            n_macrostates = self.mpp.reference.n_macrostates[0]
-        self.mpp.gpcca(n_macrostates)
-        self.mpp.save_Z(out)
+        if os.path.exists(out) and not overwrite:
+            print("Loading existing Z")
+            self.mpp.from_Z(out)
+        else:
+            if n_macrostates == "ref":
+                n_macrostates = self.mpp.reference.n_macrostates[0]
+            self.mpp.gpcca(n_macrostates)
+            self.mpp.save_Z(out)
         # if out is not None:
         #     with open(out, "w") as f:
         #         pass
@@ -164,7 +170,7 @@ def plot(data, out, kind="dendrogram", scale=1):
     elif kind == "sankey":
         data.mpp.plot_sankey(out, scale=scale)
     elif kind == "contacts":
-        data.mpp.plot_contact_rep(data.mtraj_raw, data.cluster, out, scale=scale)
+        data.mpp.plot_contact_rep(data.cluster, out, scale=scale)
     elif kind == "macrotraj":
         # traj_length = data.microtraj.shape[0]
         # n_macrostates = data.mpp.n_macrostates[0]
@@ -253,6 +259,10 @@ def parse_args():
         "--plot",
         help="Generate listed plots. Possible arguments include dendrogram, contacts, sankey, rmsd, macrotraj, timescales and more. (not yet implemented)",
     )
+    parser.add_argument(
+        "--get-least-moving-residues",
+        help="Write least moving residues for each macrostate to a file.",
+    )
     return parser.parse_args()
 
 
@@ -276,6 +286,9 @@ def main():
 
     if args.draw_random:
         write_random_frames_indices(data.mpp, args.out, args.draw_random)
+
+    if args.get_least_moving_residues:
+        data.mpp.write_least_moving_residues(args.get_least_moving_residues, args.out)
 
 
 if __name__ == "__main__":

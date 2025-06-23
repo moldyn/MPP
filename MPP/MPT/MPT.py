@@ -46,6 +46,7 @@ class MPT(object):
         traj: NDArray[np.int_],
         tlag: int,
         feature_traj: NDArray[float] = None,
+        contact_threshold=0.45,
         feature_type=np.float64,
         macrostate_thresholds: tuple = (0.005, 0.5),
         limits=None,
@@ -65,9 +66,13 @@ class MPT(object):
         self.n_states = len(states)
         self.quiet = quiet
         if feature_traj is not None:
-            self.add_feature(feature_traj, feature_type)
+            self.add_feature(
+                feature_traj,
+                contact_threshold=contact_threshold,
+                feature_type=feature_type,
+            )
         else:
-            self.add_feature(np.ones(traj.shape), feature_type)
+            self.add_feature(np.ones((traj.shape, 1)))
 
         self.Z = None
         self._timescales = None
@@ -116,9 +121,20 @@ class MPT(object):
             )
         self.assign_macrostates()
 
-    def add_feature(self, feature_traj: NDArray[float], feature_type=np.float64):
-        """Add feature data to instance"""
-        self.feature_traj = feature_traj.astype(feature_type)
+    def add_feature(
+        self,
+        feature_traj: NDArray[float],
+        contact_threshold=0.45,
+        feature_type=np.float64,
+    ):
+        """
+        Add feature data to instance
+
+        feature_traj (NDArray(float)): frames x features
+        """
+        self.multi_feature_traj = feature_traj.astype(feature_type)
+        self.multi_feature_traj_bool = self.multi_feature_traj < contact_threshold
+        self.feature_traj = self.multi_feature_traj_bool.mean(axis=1)
         self.feature = np.zeros(self.n_states, dtype=feature_type)
         for i in range(self.n_states):
             self.feature[i] = self.feature_traj[self.traj == i + 1].mean()
@@ -126,6 +142,7 @@ class MPT(object):
     def assign_macrostates(self, macrotraj_type=np.uint8):
         """Assign microstates to macrostates and collect associate data"""
         self.macrostate_feature = []
+        self.macrostate_multi_feature = []
         self.macrostate_assignment = []
         self.macrostates_map = []
         self.macro_tmat = []
@@ -161,6 +178,14 @@ class MPT(object):
                 [
                     self.feature_traj[np.where(self.macrotraj[:, n_i] == i)].mean()
                     for i in np.arange(self.n_macrostates[-1]) + 1
+                ]
+            )
+            self.macrostate_multi_feature.append(
+                [
+                    self.multi_feature_traj_bool[
+                        np.where(self.macrotraj[:, n_i] == i)
+                    ].mean(axis=0)
+                    for i in np.arange(self.n_macrostates[-1], dtype=int) + 1
                 ]
             )
 
@@ -498,13 +523,13 @@ class MPT(object):
                 self._shannon_entropy[i] = utils.shannon_entropy(pop)
         return self._shannon_entropy
 
-    def davies_bouldin_index(self, multi_feature_traj):
+    def davies_bouldin_index(self):
         """The davies_bouldin_index property."""
         if self._davies_bouldin_index is None:
             self._davies_bouldin_index = np.zeros(self.n_runs)
             for i in range(self.n_runs):
                 self._davies_bouldin_index[i] = davies_bouldin_score(
-                    multi_feature_traj, self.macrotraj[:, i]
+                    self.multi_feature_traj, self.macrotraj[:, i]
                 )
         return self._davies_bouldin_index
 
@@ -558,7 +583,7 @@ class MPT(object):
         else:
             raise ValueError("trajectory must be 0 or 1 based")
 
-    def print_rel(self, multi_feature_traj):
+    def print_rel(self):
         for l, i in [
             (
                 "Implied Timescale: ",
@@ -567,8 +592,8 @@ class MPT(object):
             ("GMRQ: ", self.gmrq[0] / self.reference.gmrq[0]),
             (
                 "DBI: ",
-                self.davies_bouldin_index(multi_feature_traj)[0]
-                / self.reference.davies_bouldin_index(multi_feature_traj)[0],
+                self.davies_bouldin_index()[0]
+                / self.reference.davies_bouldin_index()[0],
             ),
             ("H: ", self.shannon_entropy[0] / self.reference.shannon_entropy[0]),
         ]:
@@ -633,15 +658,20 @@ class MPT(object):
             self.mean_frames,
         )
 
+    def rmsd_sharpness(self):
+        return (
+            self.rmsd.mean(axis=1) * self.macro_pop[self.n_i]
+        ).sum() / self.macro_pop[self.n_i].sum()
+
     def plot_rmsd(self, out, helices=None):
         plot.plot_rmsd(self.rmsd, self.macro_pop[self.n_i], helices, out)
 
     def plot_delta_rmsd(self, out, helices=None):
         plot.plot_delta_rmsd(self.rmsd, self.macro_pop[self.n_i], helices, out)
 
-    def plot_contact_rep(self, multi_feature_traj, cluster_file, out, scale=1):
+    def plot_contact_rep(self, cluster_file, out, scale=1):
         plot.contact_rep(
-            multi_feature_traj,
+            self.multi_feature_traj,
             cluster_file,
             self.macrotraj[:, self.n_i],
             out,
@@ -697,3 +727,35 @@ class MPT(object):
                     self.xtc_trajectory_file, top=self.topology_file, frame=frame
                 )
                 f.save_pdb(os.path.join(out, f"S{state}_{i:02d}.pdb"))
+
+    def get_best_defined_contacts(self, n=3):
+        """Calculate the variance for each contact in each macrostate."""
+        contacts = np.zeros((self.n_macrostates[self.n_i], n), dtype=int)
+        for i in range(self.n_macrostates[self.n_i]):
+            contacts[i] = np.argsort(
+                np.var(
+                    self.multi_feature_traj[self.macrotraj[:, self.n_i] == i + 1],
+                    axis=0,
+                )
+            )[:n]
+        return contacts
+
+    def get_least_moving_residues(self, contact_index_file, n=3):
+        contact_indices = np.loadtxt(contact_index_file, dtype=int)
+        contacts = self.get_best_defined_contacts(n)
+        least_moving_residues = []
+        for c in contacts:
+            least_moving_residues.append(np.unique(contact_indices[c].flatten()))
+        return least_moving_residues
+
+    def write_least_moving_residues(self, contact_index_file, out, n=3):
+        if contact_index_file != "none":
+            least_moving_residues = self.get_least_moving_residues(
+                contact_index_file, n=n
+            )
+            with open(out, "w") as f:
+                for residues in least_moving_residues:
+                    f.write(f"{' '.join(residues.astype(str))}\n")
+        else:
+            with open(out, "w") as f:
+                f.write("")
