@@ -28,6 +28,7 @@ from msmhelper._cli.contact_rep import load_clusters
 from scipy.stats import pearsonr
 import MPT.utils as utils
 from MPT.sankey_gap import sankey
+from MPT.graph import draw_knetwork
 
 plt.rcParams["font.family"] = "sans-serif"
 
@@ -1646,3 +1647,12 @@ def chapman_kolmogorov(mpt, out, frame_length=0.2):
             text.set_position((0.15, 0.2))
     plt.savefig(out)
     plt.close()
+
+
+### MACROSTATE GRAPH #########################################################
+
+
+def state_network(lumping, out):
+    draw_knetwork(
+        lumping.macrotraj[:, lumping.n_i], lumping.tlag, lumping.feature_traj, out
+    )

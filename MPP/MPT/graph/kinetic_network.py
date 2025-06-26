@@ -9,19 +9,23 @@ from scipy.spatial import distance_matrix
 from matplotlib import pyplot as plt
 from matplotlib.colors import to_hex
 from matplotlib.collections import LineCollection
+from matplotlib.colors import Normalize
 
 pplt.use_style(figsize=1.8, figratio=1)
 
 USE_FA2 = True
 DRAW_FLUX = True
 
+
 def calc_dist(coords2D):
     nodes_dists = distance_matrix(coords2D, coords2D)
-    return(nodes_dists)
+    return nodes_dists
+
 
 def check_superposition(node_i, node_j, nodes_dists, node_size):
-    if nodes_dists[node_i, node_j] <= node_size[node_i]+node_size[node_j]:
-        return(True)
+    if nodes_dists[node_i, node_j] <= node_size[node_i] + node_size[node_j]:
+        return True
+
 
 def check_and_shift(old_coords2D, node_i, node_j, nodes_dists, node_size):
     i = 0
@@ -29,8 +33,16 @@ def check_and_shift(old_coords2D, node_i, node_j, nodes_dists, node_size):
         break
         # old_coords2D[node_i, :] += np.sign(old_coords2D[node_i, :]-old_coords2D[node_j, :])*10e-03/nodes_dists[node_i, node_j]
         # old_coords2D[node_j, :] -= np.sign(old_coords2D[node_i, :]-old_coords2D[node_j, :])*10e-03/nodes_dists[node_i, node_j]
-        old_coords2D[node_i, :] += np.sign(old_coords2D[node_i, :]-old_coords2D[node_j, :])*1/nodes_dists[node_i, node_j]
-        old_coords2D[node_j, :] -= np.sign(old_coords2D[node_i, :]-old_coords2D[node_j, :])*1/nodes_dists[node_i, node_j]
+        old_coords2D[node_i, :] += (
+            np.sign(old_coords2D[node_i, :] - old_coords2D[node_j, :])
+            * 1
+            / nodes_dists[node_i, node_j]
+        )
+        old_coords2D[node_j, :] -= (
+            np.sign(old_coords2D[node_i, :] - old_coords2D[node_j, :])
+            * 1
+            / nodes_dists[node_i, node_j]
+        )
         nodes_dists = distance_matrix(old_coords2D, old_coords2D)
         if i % 500 == 0:
             print(f"{i}:")
@@ -39,24 +51,24 @@ def check_and_shift(old_coords2D, node_i, node_j, nodes_dists, node_size):
             break
         i += 1
     new_coords2D = old_coords2D
-    return(new_coords2D)
+    return new_coords2D
+
 
 def assign_color(qoft, states, traj, levels):
-    states_qoft = np.array([
-        1 - np.mean(qoft[traj == state])
-        for state in states
-    ])
-    states_bin = np.array([_bin(q, levels)
-        for q in states_qoft
-    ])
+    states_qoft = np.array([1 - np.mean(qoft[traj == state]) for state in states])
+    norm = Normalize(vmin=states_qoft.min(), vmax=states_qoft.max())
+    states_bin = np.array([_bin(q, levels) for q in states_qoft])
+    states_bin = np.array([_bin(norm(q), levels) for q in states_qoft])
     colors_list = [_color(q_bin, levels) for q_bin in states_bin]
-    return(colors_list)
+    return colors_list
+
 
 def _color(val, levels):
-    cmap = plt.get_cmap('plasma', levels)
+    cmap = plt.get_cmap("plasma", levels)
     return to_hex(
         cmap(val),
     )
+
 
 def _bin(val, levels):
     # get bin
@@ -68,12 +80,13 @@ def _bin(val, levels):
 
     return bins[-1]
 
+
 def get_luminance(hex_color):
     color = hex_color[1:]
     hex_red = int(color[0:2], base=16)
     hex_green = int(color[2:4], base=16)
     hex_blue = int(color[4:6], base=16)
-    return(hex_red*0.2126 + hex_green*0.7152 + hex_blue*0.0722)
+    return hex_red * 0.2126 + hex_green * 0.7152 + hex_blue * 0.0722
 
 
 def draw_knetwork(traj, tlag, qoft, out, u=0, f=0, set_min_node_size=True):
@@ -96,44 +109,62 @@ def draw_knetwork(traj, tlag, qoft, out, u=0, f=0, set_min_node_size=True):
 
     # set minimum node size
     if set_min_node_size:
-        node_size = np.where(node_size<(np.min(node_size)+np.max(node_size))/2,
-                            .7*(np.min(node_size)+np.max(node_size))/2, node_size)
+        node_size = np.where(
+            node_size < (np.min(node_size) + np.max(node_size)) / 2,
+            0.7 * (np.min(node_size) + np.max(node_size)) / 2,
+            node_size,
+        )
 
     graph = nx.from_numpy_array(mat, create_using=nx.Graph)
 
     # get position
     # initial guess of simple spring model
     pos = nx.spring_layout(
-        graph, fixed=None, iterations=1000, threshold=1e-4, scale=0.1, weight='weight',
+        graph,
+        fixed=None,
+        iterations=1000,
+        threshold=1e-4,
+        scale=0.1,
+        weight="weight",
     )
     if USE_FA2:
         # improve pos by forceatlas2
         forceatlas2 = ForceAtlas2(
-            adjustSizes=False, verbose=False, strongGravityMode=True, scalingRatio=1000, gravity=0.0,
+            adjustSizes=False,
+            verbose=False,
+            strongGravityMode=True,
+            scalingRatio=1000,
+            gravity=0.0,
         )
 
         pos = forceatlas2.forceatlas2_networkx_layout(
-            graph, pos=pos, iterations=1000,
+            graph,
+            pos=pos,
+            iterations=1000,
         )
         coords2D = np.asarray(list(pos.values()))
         nodes_dists = calc_dist(np.asarray(coords2D))
 
         for i in range(n_nodes):
-            for j in range(i+1, n_nodes):
+            for j in range(i + 1, n_nodes):
                 new_coords2D = check_and_shift(coords2D, i, j, nodes_dists, node_size)
         # rotate network so that the folded basin - native basin axis is parallel to the x axis
         if u != 0 and f != 0:
             coords_u = new_coords2D[u, :]
             coords_f = new_coords2D[f, :]
-            a = np.mean(coords_u[:, 0])-np.mean(coords_f[:, 0])
-            b = np.mean(coords_u[:, 1])-np.mean(coords_f[:, 1])
+            a = np.mean(coords_u[:, 0]) - np.mean(coords_f[:, 0])
+            b = np.mean(coords_u[:, 1]) - np.mean(coords_f[:, 1])
             theta = math.atan2(b, a)
         else:
             theta = 0
         rotated_coords = []
-        for i in range(n_nodes):     
-            x = new_coords2D[i, 0] * math.cos(-theta) - new_coords2D[i, 1] * math.sin(-theta)
-            y = new_coords2D[i, 0] * math.sin(-theta) + new_coords2D[i, 1] * math.cos(-theta)
+        for i in range(n_nodes):
+            x = new_coords2D[i, 0] * math.cos(-theta) - new_coords2D[i, 1] * math.sin(
+                -theta
+            )
+            y = new_coords2D[i, 0] * math.sin(-theta) + new_coords2D[i, 1] * math.cos(
+                -theta
+            )
             rotated_coords.append((x, y))
         new_coords2D = rotated_coords
         keys = list(pos.keys())
@@ -141,11 +172,14 @@ def draw_knetwork(traj, tlag, qoft, out, u=0, f=0, set_min_node_size=True):
 
     if DRAW_FLUX:
         edge_width = 0.1 + 300 * np.array(
-            [graph[i][j]['weight'] for i, j in graph.edges],
+            [graph[i][j]["weight"] for i, j in graph.edges],
         )
         curves = curved_edges(graph, pos)
         lc = LineCollection(
-            curves, color='black', linewidth=edge_width, alpha=1,
+            curves,
+            color="black",
+            linewidth=edge_width,
+            alpha=1,
         )
         ax.add_collection(lc)
 
@@ -153,15 +187,15 @@ def draw_knetwork(traj, tlag, qoft, out, u=0, f=0, set_min_node_size=True):
         # create directed graph to draw edges
         digraph = nx.from_numpy_array(tmat, create_using=nx.DiGraph)
         edge_width = 0.2 + 5 * np.array(
-            [digraph[i][j]['weight'] for i, j in digraph.edges],
+            [digraph[i][j]["weight"] for i, j in digraph.edges],
         )
         nx.draw_networkx_edges(
             digraph,
             arrowstyle="-",
             pos=pos,
-            connectionstyle='arc3,rad=0.4',
+            connectionstyle="arc3,rad=0.4",
             width=edge_width,
-            edge_color='black',
+            edge_color="black",
             node_size=node_size,
             arrowsize=3,
         )
@@ -172,29 +206,33 @@ def draw_knetwork(traj, tlag, qoft, out, u=0, f=0, set_min_node_size=True):
         node_color=color_list,
         node_size=node_size,
         linewidths=0.55,
-        edgecolors='black'
+        edgecolors="black",
     )
     # write node labels
     for node_idx, (x, y) in pos.items():
         luminance = get_luminance(color_list[node_idx])
         if luminance < 140 and set_min_node_size:
-            c_text = 'white'
+            c_text = "white"
         else:
-            c_text = 'black'
-        pplt.text(x, y, states[node_idx], contour=False, fontsize='medium', color=c_text)
-    # calc limits
-    lims = np.array([
-        (
-            x - max(node_size),
-            x + max(node_size),
-            y - max(node_size),
-            y + max(node_size),
+            c_text = "black"
+        pplt.text(
+            x, y, states[node_idx], contour=False, fontsize="medium", color=c_text
         )
-        for n, (x, y) in pos.items()
-    ])
+    # calc limits
+    lims = np.array(
+        [
+            (
+                x - max(node_size),
+                x + max(node_size),
+                y - max(node_size),
+                y + max(node_size),
+            )
+            for n, (x, y) in pos.items()
+        ]
+    )
     ax.set_xlim(lims[:, 0].min(), lims[:, 1].max())
     ax.set_ylim(lims[:, 2].min(), lims[:, 3].max())
 
     ax.set_axis_off()
+    plt.tight_layout()
     pplt.savefig(out)
-

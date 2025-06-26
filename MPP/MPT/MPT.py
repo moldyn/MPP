@@ -132,8 +132,19 @@ class MPT(object):
 
         feature_traj (NDArray(float)): frames x features
         """
-        self.multi_feature_traj = feature_traj.astype(feature_type)
-        self.multi_feature_traj_bool = self.multi_feature_traj < contact_threshold
+        if feature_traj.shape[0] != self.traj.shape[0]:
+            raise ValueError(
+                "feature_traj must have the same length as the microstate trajectory (mpp.traj)"
+            )
+        if feature_traj.ndim == 2:
+            self.multi_feature_traj = feature_traj.astype(feature_type)
+        elif feature_traj.ndim == 1:
+            self.multi_feature_traj = feature_traj.astype(feature_type).reshape(-1, 1)
+        else:
+            raise ValueError("feature_traj must be 1 D or 2 D")
+
+        self.contact_threshold = contact_threshold
+        self.multi_feature_traj_bool = self.multi_feature_traj < self.contact_threshold
         self.feature_traj = self.multi_feature_traj_bool.mean(axis=1)
         self.feature = np.zeros(self.n_states, dtype=feature_type)
         for i in range(self.n_states):
@@ -548,7 +559,8 @@ class MPT(object):
             self._reference = MPT(
                 self.traj,
                 self.tlag,
-                self.feature_traj,
+                self.multi_feature_traj,
+                contact_threshold=self.contact_threshold,
                 macrostate_thresholds=(self.pop_thr, self.q_min),
                 limits=self.limits,
                 quiet=True,
@@ -684,6 +696,9 @@ class MPT(object):
 
     def plot_ck_test(self, out):
         plot.chapman_kolmogorov(self, out, self.frame_length)
+
+    def plot_state_network(self, out):
+        plot.state_network(self, out)
 
     def draw_random_frames_indices(self, out=None, n=20):
         """

@@ -135,17 +135,17 @@ class Data:
 
     def perform_gpcca(self, n_macrostates, out=None, overwrite=False):
         """n_macrostates: int or 'ref' for n_macrostates from reference (T)"""
-        if os.path.exists(out) and not overwrite:
+        self.mpp.pop_thr = 0
+        self.mpp.q_min = 0.5
+        if out is not None and os.path.exists(out) and not overwrite:
             print("Loading existing Z")
             self.mpp.from_Z(out)
         else:
             if n_macrostates == "ref":
                 n_macrostates = self.mpp.reference.n_macrostates[0]
             self.mpp.gpcca(n_macrostates)
-            self.mpp.save_Z(out)
-        # if out is not None:
-        #     with open(out, "w") as f:
-        #         pass
+            if out is not None:
+                self.mpp.save_Z(out)
 
     def get_rmsd(self, out, overwrite=False):
         """out: rmsd.npy"""
@@ -162,6 +162,7 @@ def plot(data, out, kind="dendrogram", scale=1):
     kind: dendrogram, timescales, sankey, contacts, macrotraj, ck_test, rmsd
     """
     if kind == "dendrogram":
+        print("Plotting dendrogram")
         data.mpp.plot(out, scale=scale, offset=0.0)
     elif kind == "timescales":
         if "n timescales" in data.d:
@@ -188,8 +189,11 @@ def plot(data, out, kind="dendrogram", scale=1):
     elif kind == "delta_rmsd":
         data.get_rmsd(os.path.join(os.path.dirname(out), "rmsd.npy"))
         data.mpp.plot_delta_rmsd(out, helices=data.helices)
+    elif kind == "state_network":
+        print("Plotting state network")
+        data.mpp.plot_state_network(out)
     else:
-        raise ValueError(f"Unknown kind: {kind}")
+        raise ValueError(f"Unknown plot kind: {kind}")
 
 
 def draw_random_frames(mpt, data):
@@ -267,6 +271,7 @@ def parse_args():
 
 
 def main():
+    print("MPT.run running")
     args = parse_args()
 
     # Parse input files

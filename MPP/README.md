@@ -1,13 +1,15 @@
 # Documentation of the MPT package
-## Features
-- Perform the most probable path (MPP) algorithm on a given microstate trajectory (several independent trajectories).
-- Store the Z matrix of the lumping, which determines the relation between the microstates. The macrostate assignment is done separately.
-- For the lumping, four different similarities are supported:
-  - T
-  - KL
-  - T/JS
-  - KL/JS
+This package implements the most probable path (MPP) algorithm, which is used to reduce the number of discrete states of a Markov process. Based on a microstate trajectory, a Markov state model is estimated utilising [msmhelper](https://github.com/moldyn/msmhelper), and then, the number of states is reduced so that the new macrostates exhibit a given minimum population and metastability.
 
+## Features
+- Perform the most probable path (MPP) algorithm on a given microstate trajectory.
+- Multi trajectory support
+- High-level CLI
+- Extensions to the basic algorithm
+  - Similarity by Kullback-Leibler divergence of transition probabilities
+  - Incorporation Jenson-Shannon divergence of a feature (e.g. contact distances)
+  - Stochastic lumping
+- Variety of analysis plots
 
 # Old file descriptions
 ## core.py
