@@ -144,8 +144,7 @@ def evaluate_stochastic_clustering(mpt1, mpt2, out):
     for state, ax in enumerate(axs.flatten()[:n_states]):
         m = 0
         # Set left limit to minimum instead of 0
-        if True:
-            m = min([min(s1[state]), min(s2[state]), min(s3[state])]) - 0.02
+        m = min([min(s1[state]), min(s2[state]), min(s3[state])]) - 0.02
 
         ax.hist(s1[state], bins=np.linspace(m, 1, 21), color="g", alpha=0.7)
         ax.hist(s2[state], bins=np.linspace(m, 1, 21), color="b", alpha=0.7)
@@ -287,25 +286,6 @@ def _plot_impl_times(impl_times, lagtimes, ax, ls="-"):
     # highlight diagonal
     x_i = np.arange(ref_low, xlim[1])
     ax.fill_between(x_i, x_i, color="pplt:grid")
-
-
-def plot_relative_implied_timescales_(cl, ref, out):
-    its = cl.timescales / ref.timescales
-
-    fig, axs = plt.subplots(1, 4, figsize=(8, 2.5), sharey=True)
-    for i, ax in enumerate(axs[:-1]):
-        ax.hist(its[:, i], bins=20)
-        ax.set_title(f"its {i + 1}")
-    axs[-1].hist(its.mean(axis=1), bins=20)
-    axs[-1].set_title(f"Mean its {1}-{i + 1}")
-
-    fig.supxlabel(
-        r"Relative Implied Timescale $\left(\frac{t_\mathrm{stoch}}{t_\mathrm{det}}\right)$"
-    )
-    fig.supylabel("Count of Clusterings")
-    plt.tight_layout()
-    plt.savefig(out)
-    plt.close()
 
 
 def plot_relative_implied_timescales(cl, out):
@@ -608,12 +588,13 @@ def plot_macro_feature(micro_feature, out, ref=None, pop=None):
     norm_counts = counts / micro_feature.shape[1]
     y_min = norm_counts[norm_counts > 0].min() * 0.7
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8, 6))
     ax.hist(bins[:-1], bins=bins, weights=norm_counts, label="Stochastic Clustering")
     if ref is not None:
-        for mas, mfs, c, l, w in ref:
-            add_ref(mas, mfs, ax, color=c, label=l, weights=w)
-    ax.set_xlabel("Fraction of native contacts")
+        # for mas, mfs, c, l, w in ref:
+        # add_ref(mas, mfs, ax, color=c, label=l, weights=w)
+        add_ref(ref.macrostate_assignment[ref.n_i], ref.macrostate_feature[ref.n_i], ax)
+    ax.set_xlabel("Fraction of Contacts")
     ax.set_ylabel("Population")
     ax.set_title(f"Macrostate Features, {micro_feature.shape[1]} clusterings")
     ax.set_yscale("log")
@@ -644,7 +625,7 @@ def add_ref(
     for i, (ma, mf) in enumerate(zip(macrostate_assignment, macrostate_feature)):
         x = [mf, mf]
         if weights is None:
-            weights = 1
+            weights = np.array([1])
         else:
             weights = weights / weights.sum()
         y = [1e-9, (ma * weights).sum() / weights.sum() * 1e-3]
@@ -838,138 +819,10 @@ def plot_sankey(cl, ref, out, ax=None, scale=1):
         plt.close()
 
 
-### RMSD HEATMAP #############################################################
-
-
-def plot_rmsd_(vars, row_heights, helices=None, filename=None, num_x_labels=8):
-    """
-    Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
-
-    Parameters:
-    - vars (np.ndarray): The 2D NumPy array to plot. Values must be positive for logarithmic scaling.
-    - row_heights (np.ndarray): 1D array defining the height of each row.
-    - helices (np.ndarray): Array with start and end points for blocks to be indicated in the bottom row.
-    - filename (str, optional): If provided, saves the heatmap to this file.
-    """
-    # Ensure all values are positive for logarithmic scaling
-    if np.any(vars <= 0):
-        raise ValueError(
-            "All values in `vars` must be positive for logarithmic scaling."
-        )
-
-    if vars.shape[0] != len(row_heights):
-        raise ValueError(
-            "Length of `row_heights` must match the number of rows in `vars`."
-        )
-
-    # Calculate y-axis boundaries using cumulative sum of row heights
-    y_boundaries = np.insert(np.cumsum(row_heights), 0, 0)
-
-    # Generate x-axis boundaries (evenly spaced)
-    x_boundaries = np.arange(vars.shape[1] + 1)
-
-    # Create the heatmap with a logarithmic color scale
-    fig, ax = plt.subplots(figsize=(4, 3))
-    plt.pcolormesh(
-        x_boundaries, y_boundaries, vars, cmap="viridis", norm=LogNorm(), shading="flat"
-    )
-
-    # Draw horizontal lines at each y-boundary
-    for y in y_boundaries:
-        plt.axhline(y=y, color="black", linewidth=0.5)
-
-    if helices is not None:
-        # Add the additional row at the bottom for block indicators
-        plot_height = y_boundaries[-1]  # Total height of the heatmap
-        indicator_row_height = plot_height * 0.05  # 5% of plot height
-        indicator_y = -indicator_row_height * 1.2  # Position for the indicator row
-
-        # Draw the white background for the indicator row
-        plt.fill_between(x_boundaries, indicator_y, 0, color="white")
-
-        # Draw a horizontal line across the indicator row
-        indicator_line = indicator_y + 0.5 * indicator_row_height
-        plt.plot([0, vars.shape[1]], [indicator_line] * 2, color="black", linewidth=0.8)
-
-        # Add black boxes for each block in 'helices'
-        block_height = (
-            indicator_row_height * 0.9
-        )  # Block height as 90% of the row height
-        for start, end in helices:
-            start -= 1
-            rect = patches.Rectangle(
-                (
-                    start,
-                    indicator_y + 0.05 * indicator_row_height,
-                ),  # Position of the block
-                end - start,
-                block_height,
-                color="black",
-            )
-            ax.add_patch(rect)
-
-        displayed_y_ticks = [indicator_line]
-        displayed_y_labels = ["H"]
-
-    else:
-        displayed_y_ticks = []
-        displayed_y_labels = []
-
-    # Set x-axis labels with 10 evenly spaced labels along the x-axis, ensuring equal intervals
-    num_x_ticks = vars.shape[1]
-    interval = max(1, num_x_ticks // (num_x_labels - 1))
-    x_ticks = np.arange(0, num_x_ticks, interval)
-    if x_ticks[-1] != num_x_ticks - 1:
-        x_ticks = np.append(
-            x_ticks, num_x_ticks - 1
-        )  # Ensure the last label aligns with the array's end
-
-    # Set y-axis labels (start from 1)
-    y_ticks = y_boundaries[:-1] + np.diff(y_boundaries) / 2
-    y_labels = np.arange(1, len(y_ticks) + 1)
-
-    # Determine spacing threshold based on figure size and row height differences
-    min_spacing = (
-        (y_boundaries[-1] - y_boundaries[0]) / len(y_ticks) * 1.0
-    )  # Minimum spacing between labels
-
-    last_displayed_y = -np.inf
-    for y, label in zip(y_ticks, y_labels):
-        if (
-            y - last_displayed_y >= min_spacing
-        ):  # Only display label if it's far enough from the last one
-            displayed_y_ticks.append(y)
-            displayed_y_labels.append(label)
-            last_displayed_y = y
-
-    plt.xticks(ticks=x_ticks + 0.5, labels=x_ticks + 1)
-    plt.yticks(ticks=displayed_y_ticks, labels=displayed_y_labels)
-
-    if helices is not None:
-        plt.ylim(indicator_y - indicator_row_height * 0.22, y_boundaries[-1])
-
-    plt.ylabel("Macrostate")
-    plt.xlabel("Residue")
-
-    # Hide grid lines
-    # plt.grid(True, axis="y", mec="k")
-    plt.grid(False)
-
-    # Display the colorbar
-    plt.colorbar(label="RMSD Variance / nm")
-
-    # Save to file if filename is provided
-    if filename:
-        plt.savefig(filename, bbox_inches="tight", dpi=100)
-    else:
-        plt.show()
-    plt.close()
-
-
 ### RMSD LINES ###############################################################
 
 
-def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
+def plot_rmsd(rmsds, pops, helices=None, filename=None):
     """
     Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
 
@@ -1138,7 +991,7 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
     plt.close()
 
 
-def plot_delta_rmsd(rmsds, pops, helices=None, filename=None, num_x_labels=8):
+def plot_delta_rmsd(rmsds, pops, helices=None, filename=None):
     """
     Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
 

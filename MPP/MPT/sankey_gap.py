@@ -190,14 +190,6 @@ def sankey(
         colorPalette = sns.color_palette(palette, len(allLabels))
         for i, label in enumerate(allLabels):
             colorDict[label] = colorPalette[i]
-    # else:
-    #     missing = [label for label in allLabels if label not in colorDict.keys()]
-    #     if missing:
-    #         msg = (
-    #             "The colorDict parameter is missing values for the following labels : "
-    #         )
-    #         msg += "{}".format(", ".join(missing))
-    #         raise ValueError(msg)
     LOGGER.debug("The colordict value are : %s", colorDict)
 
     # Determine widths of individual strips
@@ -231,13 +223,6 @@ def sankey(
     for vall, leftLabel in enumerate(leftLabels):
         if vall != 0:
             if _draw_label(leftWidths[leftLabel], leftWidths[previousleftlabel]):
-                # ax.fill_between(
-                #    [-0.025 * xMax, 0.01*xMax],
-                #    2 * [0.99*leftWidths[leftLabel]["bottom"]],
-                #    2 * [1.01*leftWidths[leftLabel]["bottom"] + leftWidths[leftLabel]["left"]],
-                #    facecolor='white',  # colorDict[leftLabel],
-                #    alpha=1.0, zorder=2,
-                # )
                 continue
         ax.text(
             -0.05 * xMax,
@@ -251,13 +236,6 @@ def sankey(
     for valr, rightLabel in enumerate(rightLabels):
         if valr != 0:
             if _draw_label(rightWidths[rightLabel], rightWidths[previousrightlabel]):
-                # ax.fill_between(
-                #     [0.99*xMax, 1.025 * xMax], 2 * [0.99*rightWidths[rightLabel]["bottom"]],
-                #     2 * [1.01*rightWidths[rightLabel]["bottom"] + rightWidths[rightLabel]["right"]],
-                #     facecolor='white',  # colorDict[leftLabels[valr]],
-                #     # facecolor=colorDict[rightLabel],
-                #     alpha=1.0, zorder=2,
-                # )
                 continue
         ax.text(
             1.05 * xMax,
@@ -313,13 +291,6 @@ def sankey(
                     alpha=1.0,
                     zorder=1,
                     facecolor=colorDict[labelColor],
-                    # path_effects=[
-                    #     path_effects.withStroke(
-                    #         linewidth=0.5 if relative_width > 1e-3 else 0,
-                    #         foreground='k',
-                    #         alpha=1,
-                    #     ),
-                    # ],
                 )
 
                 if ymin is None:

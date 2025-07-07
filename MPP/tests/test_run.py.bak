@@ -1,0 +1,61 @@
+import unittest
+import subprocess
+import tempfile
+import os
+from pathlib import Path
+
+DATASETS = ["HP35", "PDZ3", "aSyn"]
+PARAM_COMBOS = [
+    ("T", "none"),
+    ("T", "JS"),
+    ("KL", "none"),
+    ("KL", "JS"),
+    ("gpcca", "ref"),
+]
+
+
+class TestRunScript(unittest.TestCase):
+    def setUp(self):
+        self.base_data_dir = Path(__file__).parent / "data"
+
+    def _run_command(self, config_path, d, g, output_file):
+        """Helper to invoke the run script."""
+        cmd = [
+            "python",
+            "-m",
+            "MPT.run",
+            str(config_path),
+            d,
+            g,
+            "-Z",
+            str(output_file),
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        return result
+
+    def test_run_script_all_combinations(self):
+        for dataset in DATASETS:
+            config_file = self.base_data_dir / dataset / "config.yaml"
+            for d, g in PARAM_COMBOS:
+                with self.subTest(dataset=dataset, d=d, g=g):
+                    with tempfile.TemporaryDirectory() as tmpdir:
+                        z_output = Path(tmpdir) / "Z.npy"
+                        result = self._run_command(config_file, d, g, z_output)
+
+                        # Log for debugging
+                        print(f"\n{dataset} -d {d} -g {g}")
+                        print("STDOUT:", result.stdout)
+                        print("STDERR:", result.stderr)
+
+                        # Basic assertions
+                        self.assertEqual(
+                            result.returncode, 0, f"Failed for {dataset} {d}-{g}"
+                        )
+                        self.assertTrue(
+                            z_output.exists(),
+                            f"Z.npy not created for {dataset} {d}-{g}",
+                        )
+
+
+if __name__ == "__main__":
+    unittest.main()

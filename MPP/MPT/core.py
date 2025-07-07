@@ -91,10 +91,10 @@ class BinaryTreeNode(NodeMixin):
 
     @population.setter
     def population(self, value):
-        if not self.is_leaf:
-            pass
-        else:
+        if self.is_leaf:
             self._population = value
+        else:
+            return ValueError("population can only be set for microstates (leaves)")
 
     @property
     def q(self):
@@ -150,29 +150,12 @@ class BinaryTreeNode(NodeMixin):
     @right.setter
     def right(self, node):
         if node is not None and node.parent is not None:
-            print(self.name)
-            print(node.name)
-            print(node.parent.name)
             raise ValueError("Node already has a parent")
         if self._right is not None:
             self._right.parent = None
         self._right = node
         if node is not None:
             node.parent = self
-
-    def add_left(self, node):
-        self.left = node
-
-    def add_right(self, node):
-        self.right = node
-
-    def add_node(self, node):
-        if not self.left:
-            self.left = node
-        elif not self.right:
-            self.right = node
-        else:
-            raise ValueError(f"{self.name} has already two nodes")
 
     @property
     def children(self):
@@ -365,10 +348,10 @@ class BinaryTreeNode(NodeMixin):
     def x_target(self):
         """The x_target property."""
         if not self._x_target:
-            if not self.is_root:
-                self.x_target = (self.x_origin + self.siblings[0].x_origin) / 2
-            else:
+            if self.is_root:
                 self.x_target = self.x_origin
+            else:
+                self.x_target = (self.x_origin + self.siblings[0].x_origin) / 2
         return self._x_target
 
     @x_target.setter

@@ -23,16 +23,6 @@ from MPT.graph import draw_knetwork
 
 import MPT.plot as plot
 
-# __all__ = [
-#     # "kernel.MPTKernel",
-#     # "kernel.feature_kernel",
-#     "MPT",
-#     "MPT.core",
-#     "MPT.utils",
-#     "MPT.graph",
-#     "MPT.plot",
-# ]
-
 # TODO:
 # - change traj and macrotraj to list - add one dimension. First, mark all places that need adaptation.
 # - Connect with contacts, check for implications. Float contacts file: /data/PDZ3_Ali/short_ligand/reduction/trans/contacts_analysis/cluster1-7/data/dist_all
@@ -89,6 +79,7 @@ class MPT(object):
         self.n_i = 0
         self.xtc_stride = None
         self.frame_length = frame_length
+        self.micro_feature = None
 
     def mpt(
         self,
@@ -107,11 +98,11 @@ class MPT(object):
 
         self.Z = np.zeros((self.n_runs, self.n_states - 1, 4), dtype=np.float64)
         self.full_pop = np.zeros((self.n_runs, 2 * self.n_states - 1), dtype=np.uint32)
-        if not self.quiet:
+        if self.quiet:
+            iter = range(self.n_runs)
+        else:
             print("Clustering ...")
             iter = tqdm(range(self.n_runs))
-        else:
-            iter = range(self.n_runs)
         for i in iter:
             self.Z[i], self.full_pop[i] = core.cluster(
                 self.tmat,
@@ -138,10 +129,8 @@ class MPT(object):
             )
         if feature_traj.ndim == 2:
             self.multi_feature_traj = feature_traj.astype(feature_type)
-        elif feature_traj.ndim == 1:
-            self.multi_feature_traj = feature_traj.astype(feature_type).reshape(-1, 1)
         else:
-            raise ValueError("feature_traj must be 1 D or 2 D")
+            raise ValueError("feature_traj must be 2 D")
 
         self.contact_threshold = contact_threshold
         self.multi_feature_traj_bool = self.multi_feature_traj < self.contact_threshold
@@ -162,11 +151,11 @@ class MPT(object):
         )
         self.n_macrostates = []
 
-        if not self.quiet:
+        if self.quiet:
+            iter = range(self.n_runs)
+        else:
             print("Assigning macrostates ...")
             iter = tqdm(range(self.n_runs))
-        else:
-            iter = range(self.n_runs)
         for n_i in iter:
             self.macrostate_assignment.append(
                 utils.get_macrostate_assignment_from_tree(self.tree[n_i])
@@ -253,8 +242,6 @@ class MPT(object):
         self.Z = np.zeros((self.n_runs, self.n_states - 1, 4), dtype=np.float64)
         self.full_pop = np.zeros((self.n_runs, 2 * self.n_states - 1), dtype=np.uint32)
         self.full_pop[0, : self.n_states] = self.pop
-        self.pop_thr = 0
-        self.q_min = 0.5
 
         last_merged = self.n_states
         merge = 0
@@ -292,6 +279,10 @@ class MPT(object):
                 merge += 1
             else:
                 last_merged = origin
+
+        self.tree
+        self.pop_thr = 0
+        self.q_min = 0.5
 
     def set_n_i(self):
         """Sets self.n_i to the lumping with longest first implied timescale."""
@@ -386,7 +377,11 @@ class MPT(object):
                 - label
                 of the clusterings that should be shown explicitly.
         """
-        plot.plot_macro_feature(self.micro_feature, out, ref)
+        if self.micro_feature is None:
+            self.macro_to_micro_feature()
+        plot.plot_macro_feature(
+            self.micro_feature, out, self.reference if ref is None else ref
+        )
 
     def save_macrotraj(self, out):
         header = (
@@ -438,14 +433,14 @@ class MPT(object):
     @property
     def linkage(self):
         """The linkage property."""
-        if self._linkage == None:
+        if self._linkage is None:
             self._linkage = utils.Z_to_linkage(self.Z[self.n_i])
         return self._linkage
 
     @property
     def macro_pop(self):
         """The macro_pop property."""
-        if self._macro_pop == None:
+        if self._macro_pop is None:
             self._macro_pop = []
             for j, ma in enumerate(self.macrostate_assignment):
                 self._macro_pop.append(
@@ -534,6 +529,7 @@ class MPT(object):
                 self._shannon_entropy[i] = utils.shannon_entropy(pop)
         return self._shannon_entropy
 
+    @property
     def davies_bouldin_index(self):
         """The davies_bouldin_index property."""
         if self._davies_bouldin_index is None:
@@ -584,11 +580,9 @@ class MPT(object):
 
         if value.min() == 1:
             self._traj = value.astype(traj_type)
-            self._traj_base = 1
             # warnings.warn("1-based trajectory was shifted to 0-based.")
         elif value.min() == 0:
             self._traj = value.astype(traj_type) + 1
-            self._traj_base = 0
             warnings.warn(
                 "Still 1-based trajectory used, thus, trajectory was shifted to 1-based."
             )
@@ -713,6 +707,8 @@ class MPT(object):
             drawn_frames[state] = np.random.choice(
                 frames_in_state, size=n, replace=False
             )
+        if self.xtc_stride is not None:
+            drawn_frames *= self.xtc_stride
         if out:
             Path(os.path.join(out)).mkdir(parents=True, exist_ok=True)
             for s, i in enumerate(drawn_frames):
@@ -739,7 +735,9 @@ class MPT(object):
             drawn_frames = np.random.choice(frames_in_state, size=n, replace=False)
             for i, frame in enumerate(drawn_frames):
                 f = md.load_xtc(
-                    self.xtc_trajectory_file, top=self.topology_file, frame=frame
+                    self.xtc_trajectory_file,
+                    top=self.topology_file,
+                    frame=frame,
                 )
                 f.save_pdb(os.path.join(out, f"S{state}_{i:02d}.pdb"))
 

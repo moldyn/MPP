@@ -27,33 +27,6 @@ def check_superposition(node_i, node_j, nodes_dists, node_size):
         return True
 
 
-def check_and_shift(old_coords2D, node_i, node_j, nodes_dists, node_size):
-    i = 0
-    while check_superposition(node_i, node_j, nodes_dists, node_size):
-        break
-        # old_coords2D[node_i, :] += np.sign(old_coords2D[node_i, :]-old_coords2D[node_j, :])*10e-03/nodes_dists[node_i, node_j]
-        # old_coords2D[node_j, :] -= np.sign(old_coords2D[node_i, :]-old_coords2D[node_j, :])*10e-03/nodes_dists[node_i, node_j]
-        old_coords2D[node_i, :] += (
-            np.sign(old_coords2D[node_i, :] - old_coords2D[node_j, :])
-            * 1
-            / nodes_dists[node_i, node_j]
-        )
-        old_coords2D[node_j, :] -= (
-            np.sign(old_coords2D[node_i, :] - old_coords2D[node_j, :])
-            * 1
-            / nodes_dists[node_i, node_j]
-        )
-        nodes_dists = distance_matrix(old_coords2D, old_coords2D)
-        if i % 500 == 0:
-            print(f"{i}:")
-            print(nodes_dists)
-        if i == 1e4:
-            break
-        i += 1
-    new_coords2D = old_coords2D
-    return new_coords2D
-
-
 def assign_color(qoft, states, traj, levels):
     states_qoft = np.array([1 - np.mean(qoft[traj == state]) for state in states])
     norm = Normalize(vmin=states_qoft.min(), vmax=states_qoft.max())
@@ -143,15 +116,11 @@ def draw_knetwork(traj, tlag, qoft, out, u=0, f=0, set_min_node_size=True):
             iterations=1000,
         )
         coords2D = np.asarray(list(pos.values()))
-        nodes_dists = calc_dist(np.asarray(coords2D))
 
-        for i in range(n_nodes):
-            for j in range(i + 1, n_nodes):
-                new_coords2D = check_and_shift(coords2D, i, j, nodes_dists, node_size)
         # rotate network so that the folded basin - native basin axis is parallel to the x axis
         if u != 0 and f != 0:
-            coords_u = new_coords2D[u, :]
-            coords_f = new_coords2D[f, :]
+            coords_u = coords2D[u, :]
+            coords_f = coords2D[f, :]
             a = np.mean(coords_u[:, 0]) - np.mean(coords_f[:, 0])
             b = np.mean(coords_u[:, 1]) - np.mean(coords_f[:, 1])
             theta = math.atan2(b, a)
@@ -159,16 +128,12 @@ def draw_knetwork(traj, tlag, qoft, out, u=0, f=0, set_min_node_size=True):
             theta = 0
         rotated_coords = []
         for i in range(n_nodes):
-            x = new_coords2D[i, 0] * math.cos(-theta) - new_coords2D[i, 1] * math.sin(
-                -theta
-            )
-            y = new_coords2D[i, 0] * math.sin(-theta) + new_coords2D[i, 1] * math.cos(
-                -theta
-            )
+            x = coords2D[i, 0] * math.cos(-theta) - coords2D[i, 1] * math.sin(-theta)
+            y = coords2D[i, 0] * math.sin(-theta) + coords2D[i, 1] * math.cos(-theta)
             rotated_coords.append((x, y))
-        new_coords2D = rotated_coords
+        coords2D = rotated_coords
         keys = list(pos.keys())
-        pos = dict(zip(keys, new_coords2D))
+        pos = dict(zip(keys, coords2D))
 
     if DRAW_FLUX:
         edge_width = 0.1 + 300 * np.array(

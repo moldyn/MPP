@@ -16,44 +16,6 @@ import mdtraj as md
 from tqdm import tqdm
 
 
-@njit
-def feature_mean(traj: np.ndarray, feature: np.ndarray):
-    """
-    traj (np.ndarray): state trajectory
-    feature (np.ndarray): feature trajectory
-    """
-    states = np.unique(traj)
-    feature_means = np.zeros(len(states))
-
-    for state in states:
-        feature_means[state - 1] = feature[traj == state].mean()
-
-    return feature_means
-
-
-def get_micro(Z: NDArray[float], i: int, microstates: List[int]) -> List[int]:
-    """
-    get_micro
-    ----------
-    Recursively find all microstates belonging to state i.
-
-    Z (np.ndarray): Z matrix as of cluster
-    i (int): state to find all microstates for
-    microstates (list):
-    """
-    i = int(i)
-    l, r = Z[i][:2].astype(int)
-    if l <= Z.shape[0]:
-        microstates.append(l)
-    else:
-        microstates = get_micro(Z, l - Z.shape[0] - 1, microstates)
-    if r <= Z.shape[0]:
-        microstates.append(r)
-    else:
-        microstates = get_micro(Z, r - Z.shape[0] - 1, microstates)
-    return microstates
-
-
 def translate_traj(traj: NDArray[np.int_], map: NDArray[np.int_]) -> NDArray[np.int_]:
     """
     Transform trajectory to other state names.
@@ -193,7 +155,7 @@ def calc_full_tmat(tmat, pop, Z):
 def Z_to_mask(Z):
     """
     Calculate the mask for each lumping step.
-    Z (Nx4): Z matric
+    Z (Nx4): Z matrix
     """
     n1 = Z.shape[0]
     n = n1 + 1
@@ -204,25 +166,6 @@ def Z_to_mask(Z):
         m[k + 1, [i, j]] = False
         m[k + 1, k + n] = True
     return m
-
-
-def get_macrostate_tmat_from_assignment(tmat, pop, macrostate_assignment):
-    """
-    tmat: initial transitition matrix (NxN)
-    pop: microstate population (N)
-    """
-    n_states = tmat.shape[0]
-    dim = sum(macrostate_assignment.shape)
-
-    full_macro_tmat = np.zeros((dim, dim), tmat.dtype.type)
-    full_macro_tmat[:n_states][:, :n_states] = tmat
-    full_pop = np.zeros(dim, pop.dtype.type)
-    full_pop[:n_states] = pop
-    for i, m in enumerate(macrostate_assignment):
-        full_macro_tmat, full_pop = merge_states(
-            full_macro_tmat, np.where(m)[0], i + n_states, full_pop
-        )
-    return full_macro_tmat[n_states:, n_states:], full_pop[n_states:]
 
 
 def dim(n):
@@ -314,8 +257,9 @@ def shannon_entropy(p):
 def weighting_function(dq):
     if dq.shape[0] == 1:
         return np.exp(-dq)
-    sigma = np.sqrt(np.var(dq))
-    return np.exp(-(dq**2) / (2 * sigma**2))
+    # sigma = np.sqrt(np.var(dq))
+    sigma2 = np.var(dq)
+    return np.exp(-(dq**2) / (2 * sigma2))
 
 
 ### Delta function for correlation plot ######################################

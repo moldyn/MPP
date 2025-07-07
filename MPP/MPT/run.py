@@ -135,8 +135,8 @@ class Data:
 
     def perform_gpcca(self, n_macrostates, out=None, overwrite=False):
         """n_macrostates: int or 'ref' for n_macrostates from reference (T)"""
-        self.mpp.pop_thr = 0
-        self.mpp.q_min = 0.5
+        # self.mpp.pop_thr = 0
+        # self.mpp.q_min = 0.5
         if out is not None and os.path.exists(out) and not overwrite:
             print("Loading existing Z")
             self.mpp.from_Z(out)
@@ -192,6 +192,8 @@ def plot(data, out, kind="dendrogram", scale=1):
     elif kind == "state_network":
         print("Plotting state network")
         data.mpp.plot_state_network(out)
+    elif kind == "macro_feature":
+        data.mpp.plot_macro_feature(out)
     else:
         raise ValueError(f"Unknown plot kind: {kind}")
 

@@ -1,16 +1,11 @@
 import numpy as np
 import scipy as scy
-from itertools import combinations
-from sklearn.decomposition import PCA
 
 import MPT.utils as utils
 
 __all__ = [
     "MPTKernel",
-    "SMPTKernel",
-    "KLKernel",
     "FeatureKernel",
-    "PCAFeatureKernel",
 ]
 
 
