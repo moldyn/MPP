@@ -219,6 +219,7 @@ def sankey(
     # Total vertical extent of diagram
     xMax = topEdge / aspect
 
+    previousleftlabel = ""
     # Draw vertical bars on left and right of each  label's section & print label
     for vall, leftLabel in enumerate(leftLabels):
         if vall != 0:
@@ -233,6 +234,7 @@ def sankey(
             zorder=2,
         )
         previousleftlabel = leftLabel
+    previousrightlabel = ""
     for valr, rightLabel in enumerate(rightLabels):
         if valr != 0:
             if _draw_label(rightWidths[rightLabel], rightWidths[previousrightlabel]):

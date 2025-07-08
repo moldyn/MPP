@@ -10,6 +10,12 @@ import numpy as np
 import yaml
 import MPT.run as run_module
 
+
+# TODO:
+# - MultiFeatureKernel.full_feature_from_Z
+# - MPTKernel stochastic method "p"
+
+
 # DATASETS = ["HP35", "PDZ3", "aSyn"]
 # DATASETS = ["HP35", "PDZ3"]
 DATASETS = ["HP35"]
@@ -83,7 +89,11 @@ class TestRunScript(unittest.TestCase):
 
                 # Compare with expected
                 expected_path = (
-                    self.base_data_dir / dataset / "expected_output" / key / "Z.npy"
+                    self.base_data_dir
+                    / dataset
+                    / "expected_output"
+                    / key
+                    / f"Z{'_stochastic' if stochastic else ''}.npy"
                 )
                 self.assertTrue(
                     expected_path.exists(),

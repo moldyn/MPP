@@ -11,6 +11,7 @@ import yaml
 import hashlib
 import MPT.run as run_module
 
+
 DATASETS = ["HP35", "PDZ3", "aSyn"]
 PLOT_KINDS = [
     "dendrogram",
@@ -22,10 +23,6 @@ PLOT_KINDS = [
     "state_network",
 ]
 MAPPING_FILE = Path(__file__).parent / "data" / "lumpings.yaml"
-
-
-# TODO:
-# Add correlation plots
 
 
 def _run_main_with_args(args_list):
@@ -54,7 +51,7 @@ class TestPlotting(unittest.TestCase):
         with open(MAPPING_FILE, "r") as f:
             self.param_map = yaml.safe_load(f)
 
-    def _run_plot(self, config, d, g, kind, output_file):
+    def _run_plot(self, config, d, g, kind, output_file, stochastic=False):
         key = self._get_key(d, g)
         args = [
             str(config),
@@ -71,7 +68,7 @@ class TestPlotting(unittest.TestCase):
                 / config.parent.name
                 / "expected_output"
                 / key
-                / "Z.npy"
+                / f"Z{'_stochastic' if stochastic else ''}.npy"
             ),
         ]
         return _run_main_with_args(args)
@@ -94,22 +91,24 @@ class TestPlotting(unittest.TestCase):
         expected_file = (
             self.data_root / dataset / "expected_output" / key / f"{kind}.pdf"
         )
-        # if not expected_file.exists():
-        #     expected_file = expected_file.with_suffix(".pdf")
-
-        # self.assertTrue(
-        #     expected_file.exists(), f"Expected plot not found: {expected_file}"
-        # )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir = Path(tmpdir)
             if manual_inspection:
-                plot_path = self.data_root / dataset / "output" / expected_file.name
+                plot_path = (
+                    self.data_root
+                    / dataset
+                    / f"output{'_stochastic' if stochastic else ''}"
+                    / key
+                    / expected_file.name
+                )
                 plot_path.unlink(missing_ok=True)
             else:
                 plot_path = tmpdir / expected_file.name
 
-            exit_code, stdout, stderr = self._run_plot(config, d, g, kind, plot_path)
+            exit_code, stdout, stderr = self._run_plot(
+                config, d, g, kind, plot_path, stochastic=stochastic
+            )
             self.assertEqual(exit_code, 0, f"Plot command failed: {stderr}")
             if manual_inspection:
                 self.assertTrue(
@@ -124,41 +123,6 @@ class TestPlotting(unittest.TestCase):
                     generated_hash,
                     f"Hash mismatch for {dataset} {d}-{g} {kind}",
                 )
-
-    def _test_partial_plotting(self):
-        # ⚙️ Define filters here — adjust for partial testing
-        # selected_datasets = ["HP35", "PDZ3", "aSyn"]  # change to [] for all
-        selected_datasets = ["HP35"]  # change to [] for all
-        # selected_kinds = ["sankey", "dendrogram", "ck_test"]  # change to [] for all
-        selected_kinds = [
-            "timescales",
-            # "contacts",
-            # "ck_test",
-            # "dendrogram",
-            # "sankey",
-            # "macrotraj",
-            # "state_network",
-        ]  # change to [] for all
-        selected_combos = [
-            ("T", "none"),
-            # ("KL", "none"),
-            # ("T", "JS"),
-            # ("KL", "JS"),
-            # ("gpcca", "ref"),
-        ]  # change to [] for all
-
-        datasets = selected_datasets or DATASETS
-        kinds = selected_kinds or PLOT_KINDS
-        combos = selected_combos or [
-            (v["kernel similarity"], v["feature kernel"])
-            for v in self.param_map.values()
-        ]
-
-        for dataset in datasets:
-            for kind in kinds:
-                for d, g in combos:
-                    with self.subTest(dataset=dataset, kind=kind, d=d, g=g):
-                        self.run_single_plot_test(dataset, kind, d, g)
 
     def test_manual_dendrogram(self):
         dataset = "HP35"
@@ -215,6 +179,46 @@ class TestPlotting(unittest.TestCase):
         self.run_single_plot_test(
             dataset, kind, d, g, manual_inspection=True, stochastic=True
         )
+
+    def test_manual_rmsd(self):
+        dataset = "PDZ3"
+        d, g = "KL", "none"
+        kind = "rmsd"
+        self.run_single_plot_test(dataset, kind, d, g, manual_inspection=True)
+
+    def test_manual_delta_rmsd(self):
+        dataset = "PDZ3"
+        d, g = "KL", "none"
+        kind = "delta_rmsd"
+        self.run_single_plot_test(dataset, kind, d, g, manual_inspection=True)
+
+    def test_manual_stochastic_state_similarity(self):
+        dataset = "HP35"
+        d, g = "T", "none"
+        kind = "stochastic_state_similarity"
+        self.run_single_plot_test(
+            dataset, kind, d, g, manual_inspection=True, stochastic=True
+        )
+
+    def test_manual_relative_implied_timescales(self):
+        dataset = "HP35"
+        d, g = "T", "none"
+        kind = "relative_implied_timescales"
+        self.run_single_plot_test(
+            dataset, kind, d, g, manual_inspection=True, stochastic=True
+        )
+
+    def test_manual_transition_matrix(self):
+        dataset = "HP35"
+        d, g = "T", "none"
+        kind = "transition_matrix"
+        self.run_single_plot_test(dataset, kind, d, g, manual_inspection=True)
+
+    def test_manual_transition_time(self):
+        dataset = "HP35"
+        d, g = "T", "none"
+        kind = "transition_time"
+        self.run_single_plot_test(dataset, kind, d, g, manual_inspection=True)
 
 
 def file_hash(path, algo="sha256"):

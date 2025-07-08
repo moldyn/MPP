@@ -194,6 +194,14 @@ def plot(data, out, kind="dendrogram", scale=1):
         data.mpp.plot_state_network(out)
     elif kind == "macro_feature":
         data.mpp.plot_macro_feature(out)
+    elif kind == "stochastic_state_similarity":
+        data.mpp.plot_stochastic_state_similarity(out)
+    elif kind == "relative_implied_timescales":
+        data.mpp.plot_relative_implied_timescales(out)
+    elif kind == "transition_matrix":
+        data.mpp.plot_transition_matrix(out)
+    elif kind == "transition_time":
+        data.mpp.plot_transition_time(out)
     else:
         raise ValueError(f"Unknown plot kind: {kind}")
 

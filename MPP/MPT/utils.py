@@ -168,10 +168,6 @@ def Z_to_mask(Z):
     return m
 
 
-def dim(n):
-    return int(n * (n + 3) / 2)
-
-
 def get_macrostate_assignment_from_tree(tree):
     macrostate_order = [l.assigned_macrostate.name for l in tree.leaves]
     macrostates = {l.assigned_macrostate for l in tree.leaves}
@@ -223,32 +219,6 @@ def similarity(ref, sto):
     return S
 
 
-def kullback_leibler(transitions, tmat, epsilon=1e-6):
-    """Return Kallback-Leibler probability"""
-    kl = scy.stats.entropy(transitions + epsilon, tmat + epsilon, axis=1)
-    return scy.special.softmax(-kl)
-
-
-def dq_kl(ref, s, e=1e-6):
-    k = scy.stats.entropy(ref + e, s + e, axis=1)
-    e_kl = np.exp(-k)
-    return 1 - e_kl
-
-
-def jensen_shannon_div(p, q):
-    m = (p + q) / 2
-    return (scy.stats.entropy(p, m, axis=1) + scy.stats.entropy(q, m, axis=1)) / 2
-
-
-def jensen_shannon(p, q):
-    if p.ndim == 1:
-        p = np.expand_dims(p, axis=0)
-    if q.ndim == 1:
-        q = np.expand_dims(q, axis=0)
-    js = scy.spatial.distance.jensenshannon(p, q, axis=1) ** 2
-    return scy.special.softmax(-js)
-
-
 def shannon_entropy(p):
     p = p / sum(p)
     return -(p * np.log(p)).sum() / np.log(p.shape[0])
@@ -260,131 +230,6 @@ def weighting_function(dq):
     # sigma = np.sqrt(np.var(dq))
     sigma2 = np.var(dq)
     return np.exp(-(dq**2) / (2 * sigma2))
-
-
-### Delta function for correlation plot ######################################
-
-
-def dq_kernel_P(full_tmat, mask=None):
-    """Kernel for transition probabilities. For reverse direction submit transposed tmat"""
-    if mask is None:
-        mask = np.full(full_tmat.shape[0], True)
-    n = mask.sum()
-    mask_id = np.where(mask)[0]
-    idx = np.where(np.tri(n, n, -1).T)
-    return full_tmat[mask_id[idx[0]], mask_id[idx[1]]]
-
-
-def dq_kernel_fnc(full_feature, mask=None):
-    """Kernel for difference in fraction of native contacts"""
-    if mask is None:
-        mask = np.full(full_feature.shape[0], True)
-    n = mask.sum()
-    c = list(combinations(range(n), 2))
-    return abs(np.diff(full_feature[mask][c]).flatten())
-
-
-def dq_kernel_KLP(full_tmat, mask=None):
-    """Kerenl for Kullback-Leibler probabilities"""
-    if mask is None:
-        mask = np.full(full_tmat.shape[0], True)
-    tmat = full_tmat[np.ix_(mask, mask)]
-    r = np.roll(np.arange(mask.sum() - 1, -1, -1), 1).cumsum()
-    start = r[:-1]
-    end = r[1:]
-    klp = np.empty(r[-1])
-    for i, trans_probs in enumerate(tmat[:-1]):
-        t = tmat.copy()
-        np.fill_diagonal(t, trans_probs)
-        t[:, i] = trans_probs[i]
-        kl = kullback_leibler(trans_probs, t[i + 1 :])
-        # Renormalize
-        if kl.shape[0] > 1:
-            kl = kl - kl.min()
-            kl = kl / kl.sum()
-        klp[start[i] : end[i]] = kl
-    return klp
-
-
-def dq_kernel_JSC(full_feature, mask=None):
-    """Kernel for Jensen-Shannon contacts"""
-    if mask is None:
-        mask = np.full(full_feature.shape[0], True)
-    feature = full_feature[np.ix_(mask)]
-    r = np.roll(np.arange(mask.sum() - 1, -1, -1), 1).cumsum()
-    start = r[:-1]
-    end = r[1:]
-    jsc = np.empty(r[-1])
-    for i, feature_state in enumerate(feature[:-1]):
-        js = jensen_shannon(feature_state, feature[i + 1 :])
-        # Renormalize
-        if js.shape[0] > 1:
-            js = js - js.min()
-            js = js / js.sum()
-        jsc[start[i] : end[i]] = js
-    return jsc
-
-
-def dq_kernel_pop(full_pop, mask=None):
-    """Kernel for sum of population of merged states"""
-    if mask is None:
-        mask = np.full(full_pop.shape[0], True)
-    n = mask.sum()
-    c = list(combinations(range(n), 2))
-    return full_pop[mask][c].sum(axis=1)
-
-
-def dq_kernel_origin_pop(full_pop, mask=None):
-    """Kernel for sum of population of merged states"""
-    if mask is None:
-        mask = np.full(full_pop.shape[0], True)
-    n = mask.sum()
-    c = np.array(list(combinations(range(n), 2))).T[0]
-    return full_pop[mask][c]
-
-
-def dq(full_feature, Z=None, similarity="P"):
-    """
-    Calculate dq for a given feature.
-
-    feature (np.ndarray): array containing the data
-    Z (np.ndarray): Z matrix (2D, only for one run); if None: calculate dq
-        once for entire full_feature
-    similarity (str):
-        P: transition probability (full_tmat)
-        fnc: difference in fnc (full_feature)
-        KLP: Kullback-Leibler probabilities (full_tmat)
-        JSC: Jensen-Shannon contacts (full_feature)
-        pop: population (full_pop)
-        origin pop: population of origin state (full_pop)
-
-    returns a list of arrays, one array for each stage of the lumping
-    """
-    if similarity == "P":
-        dq_kernel = dq_kernel_P
-    elif similarity == "fnc":
-        dq_kernel = dq_kernel_fnc
-    elif similarity == "KLP":
-        dq_kernel = dq_kernel_KLP
-    elif similarity == "JSC":
-        dq_kernel = dq_kernel_JSC
-    elif similarity == "pop":
-        dq_kernel = dq_kernel_pop
-    elif similarity == "origin pop":
-        dq_kernel = dq_kernel_origin_pop
-
-    if Z is None:
-        return dq_kernel(full_feature)
-    else:
-        n_states = Z.shape[0] + 1
-        mask = np.full(2 * n_states - 1, False)
-        mask[:n_states] = True
-        stages = []
-        for i, (origin, target) in enumerate(Z[:, :2].astype(int)):
-            stages.append(dq_kernel(full_feature, mask))
-            mask[n_states + i] = True
-            mask[[origin, target]] = False
-        return stages
 
 
 ### RMSD #####################################################################
@@ -523,25 +368,6 @@ def calc_rmsd(mpt, n_i=None):
         mean_frames.append(find_mean_frame(md.join(m_frames)))
         rmsd[j] = calc_var(mean_frames[j].xyz, tm.xyz)
     return rmsd, mean_frames
-
-
-def write_pdbs(out, vars, top, xtctraj, mean_frames):
-    mean_frames_traj = load_mean_frames(top, xtctraj, mean_frames, dt=0.1)
-    b_factors = np.zeros((mean_frames_traj.n_frames, mean_frames_traj.n_atoms))
-    for frame in range(mean_frames_traj.n_frames):
-        atms = 0
-        for res in mean_frames_traj.topology.residues:
-            new_atms = atms + res.n_atoms
-            b_factors[frame, atms:new_atms] = vars[frame, res.resSeq - 1]
-            atms = new_atms
-
-    for i, frame in enumerate(mean_frames_traj):
-        frame.save_pdb(
-            os.path.join(out, f"macrostate_{i + 1:02d}.pdb"), bfactors=b_factors[i]
-        )
-    print(
-        f"PyMol commnand: 'spectrum b, blue_white_red, minimum={vars.min():.3f}, maximum={vars.max():.3f}'"
-    )
 
 
 def find_state_lengths(arr):

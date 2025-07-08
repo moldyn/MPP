@@ -686,13 +686,27 @@ class MPT(object):
         )
 
     def plot_relative_implied_timescales(self, out):
-        plot.plot_relative_implied_timescales(self, out)
+        plot.relative_implied_timescales(self, out)
 
     def plot_ck_test(self, out):
         plot.chapman_kolmogorov(self, out, self.frame_length)
 
     def plot_state_network(self, out):
         plot.state_network(self, out)
+
+    def plot_stochastic_state_similarity(self, out):
+        plot.evaluate_stochastic_clustering(self, self.reference, out)
+
+    def plot_transition_matrix(self, out):
+        plot.transition_matrix(self.macro_tmat[self.n_i], out)
+
+    def plot_transition_time(self, out):
+        plot.transition_time(
+            self.macro_tmat[self.n_i],
+            out,
+            tlag=self.tlag,
+            frame_length=self.frame_length,
+        )
 
     def draw_random_frames_indices(self, out=None, n=20):
         """

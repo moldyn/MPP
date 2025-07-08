@@ -288,11 +288,13 @@ def _plot_impl_times(impl_times, lagtimes, ax, ls="-"):
     ax.fill_between(x_i, x_i, color="pplt:grid")
 
 
-def plot_relative_implied_timescales(cl, out):
+def relative_implied_timescales(cl, out):
+    pplt.use_style(figsize=(8, 2.5), latex=False, colors="pastel_autumn")
+
     ref = cl.reference
     its = cl.timescales / ref.timescales
 
-    fig = plt.figure(figsize=(8, 2.5))
+    fig = plt.figure()
     ax1 = fig.add_subplot(1, 3, 1)
     ax2 = fig.add_subplot(1, 3, 2, sharey=ax1)
     ax3 = fig.add_subplot(1, 3, 3)
@@ -346,7 +348,7 @@ def plot_heatmap(a, out, title=""):
     plt.close()
 
 
-def plot_tmat(a, out, title="Transition Matrix", color_thr=0.01):
+def transition_matrix(a, out, title="Transition Matrix", color_thr=0.01):
     """
     Plot heatmap from a matrix. This is supposed for a similarity matrix as
     returned from the multiplication of two MPT objects.
@@ -448,7 +450,7 @@ def plot_tmat(a, out, title="Transition Matrix", color_thr=0.01):
     plt.close()
 
 
-def plot_trans_time(
+def transition_time(
     a,
     out,
     tlag=50.0,
@@ -1280,189 +1282,6 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
     # Save the plot to the specified file
     plt.savefig(filename)
     plt.close()  # Close the plot to free memory
-
-
-### CORRELATION ##############################################################
-
-
-def plot_correlation_evolution(
-    feature1,
-    feature2,
-    out,
-    weights=None,
-    label1="feature 1",
-    label2="feature 2",
-    clip_to_greater_zero=None,
-):
-    """
-    Plot two features as a function of time.
-
-    feature1, feature2 (list[np.ndarray]): list containing coordinates of feature as numpy array
-    weights (list[np.ndarray]): list containing weights of the respective data points as numpy array
-    label1, label2 (str): Label for the features
-    clip_to_greater_zero (list[np.ndarray]): Consider only data points where np.ndarray > 0
-    """
-    if clip_to_greater_zero is not None:
-        mask = [dq > 0 for dq in clip_to_greater_zero]
-        feature1 = [f1[m] for m, f1 in zip(mask, feature1)]
-        feature2 = [f2[m] for m, f2 in zip(mask, feature2)]
-        if weights is not None:
-            weights = [w[m] for m, w in zip(mask, weights)]
-
-    fig, ax = plt.subplots(1, 1, figsize=(6, 6))
-    artists = []
-
-    if weights is None:
-        weights = []
-        for f1 in feature1:
-            weights.append(np.full(f1.shape, 1))
-
-    for f1, f2, w in zip(feature1, feature2, weights):
-        container = ax.scatter(f1, f2, s=w / 1000, c="k", alpha=0.4)
-        artists.append([container])
-
-    ax.set_xlabel(label1)
-    ax.set_ylabel(label2)
-
-    ax.set_xscale("log")
-    ax.set_yscale("log")
-
-    ani = animation.ArtistAnimation(fig=fig, artists=artists, interval=500)
-    ani.save(filename=out, writer="ffmpeg")
-    plt.close()
-
-
-def plot_pearson(
-    feature1,
-    feature2,
-    out,
-    title="Correlation of Two Features",
-    clip_to_greater_zero=None,
-):
-    if clip_to_greater_zero is not None:
-        mask = [dq > 0 for dq in clip_to_greater_zero]
-        feature1 = [f1[m] for m, f1 in zip(mask, feature1)]
-        feature2 = [f2[m] for m, f2 in zip(mask, feature2)]
-
-    pplt.use_style(
-        figsize=4.8,
-        colors="pastel_autumn",
-        true_black=True,
-        latex=False,
-    )
-    r = np.array([pearsonr(f1, f2) for f1, f2 in zip(feature1[:-1], feature2[:-1])]).T
-    l = len(r[0])
-
-    fig, ax = plt.subplots(1, 1, figsize=(4, 3))
-
-    ax.plot(r[0], label="Pearson r")
-
-    num_transitions = np.array([len(f) for f in feature1])
-    max_transitions = max(num_transitions)
-    num_transitions = num_transitions / max_transitions
-    ax.plot(num_transitions, label="Transitions P > 0")
-    secax_y2 = ax.secondary_yaxis(
-        "right", (lambda x: x * max_transitions, lambda x: x * max_transitions)
-    )
-    ax.set_ylabel("p value")
-    secax_y2.set_ylabel("Number of Transitions")
-
-    lim = (0, 261)
-    ax.hlines(0, lim[0], lim[1], colors="k", lw=1)
-    ax.hlines(
-        [-0.05, 0.05],
-        [lim[0]] * 2,
-        [lim[1]] * 2,
-        colors="grey",
-        linestyle="dashed",
-    )
-
-    ax.set_title(title)
-    ax.set_xlabel("Lumping Step")
-
-    ax.grid(False)
-
-    ax.legend()
-
-    plt.savefig(out)
-    plt.close()
-
-
-def plot_correlation_scatter(
-    feature1,
-    feature2,
-    out,
-    macro_feature1=None,
-    macro_feature2=None,
-    weights=None,
-    macro_weights=None,
-    label1="feature 1",
-    label2="feature 2",
-    title="Correlation Scatter Plot",
-    clip_to_greater_zero=None,
-    clip_to_greater_zero_macro=None,
-):
-    """
-    Scatter plot two features of a model, optionally add macro feature
-
-    feature1, feature2 (np.ndarray): numpy array containing coordinates of feature
-    out (str): file name to save plot to
-    macro_feature1, macrofeature2 (np.ndarray): see feature1; highlighted points
-    weights (np.ndarray): numpy array containing weights of the respective data points
-    label1, label2 (str): Label for the features
-    clip_to_greater_zero (np.ndarray): Consider only data points where array > 0
-    """
-    if clip_to_greater_zero is not None:
-        mask = clip_to_greater_zero > 0
-        feature1 = feature1[mask]
-        feature2 = feature2[mask]
-        if weights is not None:
-            weights = weights[mask]
-
-    if clip_to_greater_zero_macro is not None:
-        mask = clip_to_greater_zero_macro > 0
-        macro_feature1 = macro_feature1[mask]
-        macro_feature2 = macro_feature2[mask]
-        if macro_weights is not None:
-            macro_weights = macro_weights[mask]
-
-    if macro_weights is not None:
-        macro_weights = np.sqrt(macro_weights)
-        macro_weights = macro_weights / macro_weights.max() * 19
-        macro_weights += 1
-
-    pplt.use_style(
-        figsize=4.8,
-        colors="pastel_autumn",
-        true_black=True,
-        latex=False,
-    )
-
-    if weights is None:
-        weights = np.full(feature1.shape, 1)
-    else:
-        weights = np.sqrt(weights)
-        weights = weights / weights.max() * 39
-        weights += 1
-
-    fig, ax = plt.subplots(1, 1, figsize=(4, 3))
-
-    ax.scatter(feature1, feature2, c="k", s=weights, label="Microstates")
-    if macro_feature1 is not None and macro_feature2 is not None:
-        if macro_weights is None:
-            macro_weights = np.full(macro_feature1.shape, 1)
-        ax.scatter(
-            macro_feature1, macro_feature2, c="r", s=macro_weights, label="Macrostates"
-        )
-
-    ax.set_xlabel(label1)
-    ax.set_ylabel(label2)
-    ax.set_title(title)
-
-    ax.legend()
-
-    plt.savefig(out)
-    plt.close()
 
 
 ### CHAPMAN-KOLMOGOROV TEST ##################################################
