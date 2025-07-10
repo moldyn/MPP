@@ -36,8 +36,8 @@ def translate_traj(traj: NDArray[np.int_], map: NDArray[np.int_]) -> NDArray[np.
 
     macrotraj = np.zeros(traj.shape, dtype=macrotraj_type)
     for macrostate in macrostates:
-        macrotraj[np.isin(traj, np.where(map == macrostate)[0] + 1)] = macrostate
-    return macrotraj + 1
+        macrotraj[np.isin(traj, np.where(map == macrostate)[0])] = macrostate
+    return macrotraj
 
 
 def macro_tmat(tmat, macrostate_assignment, pop):
@@ -336,9 +336,7 @@ def opt_num_batches(n):
     return int(np.cbrt(n**2 / 2))
 
 
-def calc_rmsd(mpt, n_i=None):
-    if n_i is None:
-        n_i = mpt.n_i
+def calc_rmsd(mpt, quiet=False):
     t = load_traj(
         mpt.topology_file,
         mpt.xtc_trajectory_file,
@@ -346,14 +344,15 @@ def calc_rmsd(mpt, n_i=None):
         stride=mpt.xtc_stride,
     )
     mean_frames = []
-    rmsd = np.empty([mpt.n_macrostates[n_i], t.n_atoms])
-    for j in range(mpt.n_macrostates[n_i]):
-        print(f"Process macrostate {j + 1}")
-        m = mpt.macrotraj[:, n_i] == j + 1
+    rmsd = np.empty([mpt.n_macrostates[mpt.n_i], t.n_atoms])
+    for j in range(mpt.n_macrostates[mpt.n_i]):
+        if not quiet:
+            print(f"Process macrostate {j}")
+        m = mpt.macrotraj[:, mpt.n_i] == j
         tm = t[m]
         m_frames = []
-        n_batches = opt_num_batches(mpt.macro_pop[n_i][j])
-        for i in tqdm(range(n_batches)):
+        n_batches = opt_num_batches(mpt.macro_pop[mpt.n_i][j])
+        for i in tqdm(range(n_batches)) if not quiet else range(n_batches):
             m_frames.append(find_mean_frame(tm[i::n_batches]))
         mean_frames.append(find_mean_frame(md.join(m_frames)))
         rmsd[j] = calc_var(mean_frames[j].xyz, tm.xyz)
@@ -395,9 +394,9 @@ def get_multi_state_traj(trajs: np.ndarray, limits: np.ndarray):
         return trajs
     trajectories = []
     current_position = 0
-    for l in limits:
-        trajectories.append(trajs[current_position : int(current_position + l)])
-        current_position += l
+    for limit in limits:
+        trajectories.append(trajs[current_position : int(current_position + limit)])
+        current_position += limit
     return trajectories
 
 

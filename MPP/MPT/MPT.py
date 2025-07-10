@@ -137,7 +137,7 @@ class MPT(object):
         self.feature_traj = self.multi_feature_traj_bool.mean(axis=1)
         self.feature = np.zeros(self.n_states, dtype=feature_type)
         for i in range(self.n_states):
-            self.feature[i] = self.feature_traj[self.traj == i + 1].mean()
+            self.feature[i] = self.feature_traj[self.traj == i].mean()
 
     def assign_macrostates(self, macrotraj_type=np.uint8):
         """Assign microstates to macrostates and collect associate data"""
@@ -177,7 +177,7 @@ class MPT(object):
             self.macrostate_feature.append(
                 [
                     self.feature_traj[np.where(self.macrotraj[:, n_i] == i)].mean()
-                    for i in np.arange(self.n_macrostates[-1]) + 1
+                    for i in np.arange(self.n_macrostates[-1])
                 ]
             )
             self.macrostate_multi_feature.append(
@@ -185,7 +185,7 @@ class MPT(object):
                     self.multi_feature_traj_bool[
                         np.where(self.macrotraj[:, n_i] == i)
                     ].mean(axis=0)
-                    for i in np.arange(self.n_macrostates[-1], dtype=int) + 1
+                    for i in np.arange(self.n_macrostates[-1], dtype=int)
                 ]
             )
 
@@ -208,10 +208,10 @@ class MPT(object):
         self.n_macrostates = [n_macrostates]
 
         gma = self.gpcca.macrostate_assignment
-        gmt = np.empty(self.traj.shape, dtype=self.traj.dtype)
+        gmt = np.zeros(self.traj.shape, dtype=self.traj.dtype)
         gmf = np.empty(self.n_macrostates[0])
         for i in range(self.n_macrostates[0]):
-            gmt[np.where(np.isin(self.traj, np.where(gma == i)[0] + 1))[0]] = i + 1
+            gmt[np.where(np.isin(self.traj, np.where(gma == i)[0]))[0]] = i + 1
             gmf[i] = self.feature_traj[gmt == i + 1].mean()
 
         order = np.argsort(gmf)[::-1]
@@ -477,28 +477,34 @@ class MPT(object):
 
     @property
     def traj(self):
-        """The traj property."""
+        """The microstate trajectory - 0-based."""
         return self._traj
 
     @traj.setter
     def traj(self, value):
+        if value.min() == 1:
+            value -= 1
+            warnings.warn("1-based trajectory was shifted to 0-based.")
+        if np.unique(value).shape[0] > value.max() + 1:
+            raise ValueError("The state numbering in the trajectory is not continuous")
         if value.max() < 2**7:
             traj_type = np.uint8
         elif value.max() < 2**15:
             traj_type = np.uint16
         else:
             traj_type = np.uint32
+        self._traj = value.astype(traj_type)
 
-        if value.min() == 1:
-            self._traj = value.astype(traj_type)
-            # warnings.warn("1-based trajectory was shifted to 0-based.")
-        elif value.min() == 0:
-            self._traj = value.astype(traj_type) + 1
-            warnings.warn(
-                "Still 1-based trajectory used, thus, trajectory was shifted to 1-based."
-            )
-        else:
-            raise ValueError("trajectory must be 0 or 1 based")
+        # if value.min() == 1:
+        #     self._traj = value.astype(traj_type)
+        #     # warnings.warn("1-based trajectory was shifted to 0-based.")
+        # elif value.min() == 0:
+        #     self._traj = value.astype(traj_type) + 1
+        #     warnings.warn(
+        #         "Still 1-based trajectory used, thus, trajectory was shifted to 1-based."
+        #     )
+        # else:
+        #     raise ValueError("trajectory must be 0 or 1 based")
 
     def print_rel(self):
         for l, i in [
@@ -548,7 +554,7 @@ class MPT(object):
     def rmsd(self):
         """The rmsd property."""
         if self._rmsd is None:
-            self._rmsd, self.mean_frames = utils.calc_rmsd(self)
+            self._rmsd, self.mean_frames = utils.calc_rmsd(self, quiet=self.quiet)
         return self._rmsd
 
     @property
@@ -589,7 +595,7 @@ class MPT(object):
         """
         drawn_frames = np.empty((self.n_macrostates[self.n_i], n), dtype=int)
         for state in np.arange(self.n_macrostates[self.n_i]):
-            frames_in_state = np.where(self.macrotraj[:, self.n_i] == state + 1)[0]
+            frames_in_state = np.where(self.macrotraj[:, self.n_i] == state)[0]
             drawn_frames[state] = np.random.choice(
                 frames_in_state, size=n, replace=False
             )
@@ -616,7 +622,7 @@ class MPT(object):
         out (str): Path to directory where to save the pdb files
         n (int): number of frames to draw randomly
         """
-        for state in np.arange(self.n_macrostates[self.n_i]) + 1:
+        for state in np.arange(self.n_macrostates[self.n_i]):
             frames_in_state = np.where(self.macrotraj[:, self.n_i] == state)[0]
             drawn_frames = np.random.choice(frames_in_state, size=n, replace=False)
             for i, frame in enumerate(drawn_frames):
@@ -633,7 +639,7 @@ class MPT(object):
         for i in range(self.n_macrostates[self.n_i]):
             contacts[i] = np.argsort(
                 np.var(
-                    self.multi_feature_traj[self.macrotraj[:, self.n_i] == i + 1],
+                    self.multi_feature_traj[self.macrotraj[:, self.n_i] == i],
                     axis=0,
                 )
             )[:n]

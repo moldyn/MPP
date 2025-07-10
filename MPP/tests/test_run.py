@@ -127,7 +127,7 @@ class TestRunScript(unittest.TestCase):
                     f"Z not loaded from file for {stderr2} {d}-{g}",
                 )
 
-    def test_HP35_t(self):
+    def test_HP35_t_ref(self):
         self.run_and_validate_output("HP35", "T", "none")
 
     def test_HP35_t_stoch(self):
