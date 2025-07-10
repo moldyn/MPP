@@ -148,7 +148,7 @@ class TestPlotting(unittest.TestCase):
         kind = "contacts"
         self.run_single_plot_test(dataset, kind, d, g, manual_inspection=True)
 
-    def test_manual_macrotraj(self):
+    def test_manual_macrotraj_ref(self):
         dataset = "HP35"
         d, g = "T", "none"
         kind = "macrotraj"

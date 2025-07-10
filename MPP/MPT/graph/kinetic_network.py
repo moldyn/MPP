@@ -171,7 +171,7 @@ def draw_knetwork(traj, tlag, qoft, out, u=0, f=0, set_min_node_size=True):
         else:
             c_text = "black"
         pplt.text(
-            x, y, states[node_idx], contour=False, fontsize="medium", color=c_text
+            x, y, states[node_idx] + 1, contour=False, fontsize="medium", color=c_text
         )
     # calc limits
     lims = np.array(

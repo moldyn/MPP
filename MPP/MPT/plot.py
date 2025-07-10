@@ -743,7 +743,7 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid, scale=1):
             pplt.text(
                 0.5,
                 0.95,
-                rf"S{state} {pop_state:.1%}",
+                rf"S{state + 1} {pop_state:.1%}",
                 ha="center",
                 va="top",
                 ax=ax,
@@ -1202,6 +1202,7 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
     frame_length /= 1000.0
     # Calculate unique states and their lengths
     unique_states, lengths = utils.find_state_lengths(trajectory)
+    unique_states += 1
     lengths = lengths * frame_length
     n_rows = int(np.ceil(trajectory.shape[0] / x_max))
 
@@ -1274,7 +1275,7 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
     axs[-1].set_xlabel(r"t / $\mu$s")
 
     for ax in axs:
-        ax.set_ylim(unique_states.min() - 1, unique_states.max() + 1)
+        ax.set_ylim(unique_states.min() - 1, unique_states.max())
 
     # Set axis limits
     plt.xlim(0, x_max)
