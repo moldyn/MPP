@@ -15,32 +15,52 @@ __all__ = [
 class MPTKernel(object):
     def __init__(self, method="n", param=1, similarity="T"):
         """
+        Kernel for the most probable path (MPP) algorithm.
+
+        This object holds the parameters of the lumping and analyzes the
+        full transition matrix of the lumping based on a mask of not yet
+        merged states, upon calling.
+
+        Parameters
+        ----------
+        method : str
+            'n' : Consider <param> most similar options.
+            'p' : Consider as many most similar options as needed to
+                represent <param> similarity. For similarity 'T',
+                <param>=0.5 means that at least 50% of the transitions
+                to other states must be considered.
+        param : int|float
+            for 'n' : Number of most similar options to consider
+                (1 deterministic lumping).
+            for 'p' : Accumulated similarity threshold for most similar
+                states to consider.
         similarity:
-            - T: transition probability
-            - KL: Kullback-Leibler
-            - none: Use only feature kernel
+            - T: Utilize the transition probabilities as dynamic
+                metric.
+            - KL: Utilize the Kullback-Leibler divergence between the
+                transition probabilities of the options.
+            - none: Utilize only the feature as similarity measure.
+
+        Notes
+        -----
+        The similarity between two states may be composed of a dynamic
+        similarity (defined in this object, c.f. parameter
+        <similarity>) and / or a geometric similarity, which is
+        determined by the feature kernel (passed at call).
         """
-        # , a=1, b=0, c=0
         self.method = method
         self.param = param
         self.similarity = similarity
-        if self.similarity == "T":
-            self.a = 1
-            self.b = 0
-        elif self.similarity == "KL":
-            self.a = 0
-            self.b = 1
-        elif self.similarity is None or self.similarity == "none":
-            self.a = 0
-            self.b = 0
-        # self.a = a
-        # self.b = b
 
     def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=None):
-        if feature_kernel:
-            self.c = 1
-        else:
-            self.c = 0
+        """
+        Finds the states to be lumped together next.
+
+        The least metastable state is selected and the most similar
+        other state is determined. The similarity of two states is
+        determined by the parameters of the object and the feature
+        kernel.
+        """
         # Select state with least self transition probability
         mask_state = np.argmin(np.diag(full_tmat)[mask])
         # Get correct state index
@@ -52,62 +72,54 @@ class MPTKernel(object):
 
         # If Kullback-Leibler divergence is used
         if self.similarity == "KL":
+            # Mask self transition probabilities
             t = full_tmat[mask][:, mask].copy()
             np.fill_diagonal(t, trans_probs)
+
+            # Regularization parameter
             epsilon = 1e-6
-            dkl = scy.stats.entropy(
+            kl = scy.stats.entropy(
                 trans_probs + epsilon,
                 t + epsilon,
                 axis=1,
             )
-            f1 = utils.weighting_function(dkl)
-        else:
-            f1 = 0
+            dkl = utils.weighting_function(kl)
+            if dkl.shape[0] > 1:
+                dkl -= dkl.min()
+                dkl /= dkl.sum()
+            trans_probs = dkl
+        elif self.similarity == "none":
+            trans_probs = 1
 
-        if isinstance(f1, np.ndarray):
-            if f1.shape[0] > 1:
-                df1 = f1 - f1.min()
-                f1 = df1 / df1.sum()
-
-        tr_prob = trans_probs / trans_probs.sum()
-
+        # Apply feature kernel, if there is one
         if feature_kernel:
-            f2 = feature_kernel.apply(full_tmat[state], state, mask)
-        else:
-            f2 = 0
+            feature = feature_kernel.apply(full_tmat[state], state, mask)
+            if not isinstance(feature, np.ndarray):  # and feature == 0:
+                feature = np.array([1.0])
+            trans_probs *= feature
 
-        trans_probs = 1
-        if self.a != 0:
-            trans_probs *= tr_prob
-        if self.b != 0:
-            trans_probs *= f1
-        if self.c != 0:
-            if not isinstance(f2, np.ndarray) and f2 == 0:
-                f2 = np.array([1.0])
-            trans_probs *= f2
         trans_probs = np.nan_to_num(trans_probs, copy=False, nan=1e-6)
-        if trans_probs.sum() == 0:
-            trans_probs = f1
 
         # transitions contains indices for masked tmat
         transitions = np.argsort(trans_probs)[::-1]
-        # print(mask.sum())
-        if self.method == "p":
+        # consider n most similar options
+        if self.method == "n":
+            options = list(range(self.param))[: trans_probs.shape[0]]
+        # consider as many most probable options until they sum up to param
+        elif self.method == "p":
             t_prob_norm = trans_probs / trans_probs.sum()
             options = [0]
             while t_prob_norm[options].sum() <= self.param and len(
                 options
             ) < np.count_nonzero(trans_probs):
                 options.append(options[-1] + 1)
-            # p_options_norm = t_prob_norm[options]
-        elif self.method == "n":
-            # print(trans_probs)
-            options = list(range(self.param))[: trans_probs.shape[0]]
         else:
-            raise ValueError("Method must be either 'p' or 'n'.")
+            raise ValueError("Method must be either 'p' or 'n'")
 
+        # Get similarities of the options
         p_options = trans_probs[transitions[options]]
 
+        # Select the target state
         mask_target_state = np.random.choice(
             transitions[options], p=p_options / sum(p_options)
         )
@@ -181,14 +193,6 @@ class MultiFeatureKernel(object):
             self.full_feature[origin] * self.full_pop[origin]
             + self.full_feature[target] * self.full_pop[target]
         ) / self.full_pop[new_state]
-
-    def kl(self, state, mask, epsilon=1e-6):
-        dkl = scy.stats.entropy(
-            self.full_feature[state] + epsilon,
-            self.full_feature[mask] + epsilon,
-            axis=1,
-        )
-        return utils.weighting_function(dkl)
 
     def js(self, state, mask):
         p = self.full_feature[state]

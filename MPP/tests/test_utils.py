@@ -1,14 +1,5 @@
 import unittest
 
-# Definitely add:
-#
-# Verify that this functionality is not included elsewhere
-# - calc_full_tmat
-# - Z_to_mask
-#
-# Check if required at all
-# - sparse_to_matrix
-
 
 import yaml
 import numpy as np
@@ -86,3 +77,55 @@ class TestProperties(unittest.TestCase):
             Path(__file__).parent / "data" / "HP35" / "expected_output" / "t" / "Z.npy"
         )
         np.testing.assert_allclose(z_i, expected_z[0])
+
+    def test_calc_full_tmat(self):
+        expected_tmat = np.load(
+            Path(__file__).parent
+            / "data"
+            / "HP35"
+            / "expected_output"
+            / "t"
+            / "full_tmat.npy"
+        )
+        expected_pop = np.load(
+            Path(__file__).parent
+            / "data"
+            / "HP35"
+            / "expected_output"
+            / "t"
+            / "full_pop.npy"
+        )
+        full_tmat, full_pop = MPT.utils.calc_full_tmat(
+            self.mpp.tmat, self.mpp.pop, self.mpp.Z
+        )
+        np.testing.assert_allclose(full_tmat, expected_tmat)
+        np.testing.assert_allclose(full_pop, expected_pop)
+
+    def test_Z_to_mask(self):
+        expected_mask = np.load(
+            Path(__file__).parent
+            / "data"
+            / "HP35"
+            / "expected_output"
+            / "t"
+            / "full_mask.npy"
+        )
+        full_mask = MPT.utils.Z_to_mask(self.mpp.Z[0])
+        np.testing.assert_allclose(full_mask, expected_mask)
+
+
+class TestFullFeature(unittest.TestCase):
+    def setUp(self):
+        self.d = get_d("HP35", "t_js")
+
+    def test_full_feature_from_Z(self):
+        expected_full_feature = np.load(
+            Path(__file__).parent
+            / "data"
+            / "HP35"
+            / "expected_output"
+            / "t_js"
+            / "full_feature.npy"
+        )
+        full_feature = self.d.feature_kernel.full_feature_from_Z(self.d.mpp.Z)
+        np.testing.assert_allclose(full_feature, expected_full_feature)

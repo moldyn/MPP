@@ -72,16 +72,6 @@ def gmrq(tmat):
     return q
 
 
-def sparse_to_matrix(sparse):
-    if not isinstance(sparse, np.ndarray):
-        sparse = np.array(sparse)
-    size = int(0.5 * (1 + np.sqrt(8 * sparse.shape[0] + 1)))
-    o = np.array(list(combinations(range(size), 2))).T
-    a = np.ones((size, size))
-    a[o[0], o[1]] = a[o[1], o[0]] = sparse
-    return a
-
-
 def Z_to_linkage(Z):
     l = Z[:, :3].copy()
     for i, row in enumerate(l):

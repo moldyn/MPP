@@ -289,16 +289,6 @@ class MPT(object):
         if self.n_runs > 1:
             self.n_i = np.argmax(self.timescales[:, 0])
 
-    def plot(self, out: str, scale=1, offset=0):
-        """Plot dendrogram"""
-        plot.plot_tree(
-            self.tree[self.n_i],
-            self.macrostate_assignment[self.n_i],
-            out,
-            scale=scale,
-            offset=offset,
-        )
-
     def __add__(self, other):
         """'+' operator is used to calculate similarity"""
         if self.n_runs == 1 and other.n_runs >= 1:
@@ -329,59 +319,6 @@ class MPT(object):
                 [self.tlag],
                 ntimescales=ntimescales,
             )[0]
-
-    def plot_implied_timescales(self, out, use_ref=True, scale=1):
-        """
-        out: File to write plot
-        use_ref: If it for reference trajectory should be plotted
-        scale: scaling factor for plot
-        """
-        if use_ref:
-            ref_traj = self.reference.macrotraj[:, 0]
-        else:
-            ref_traj = self.traj
-
-        macrotraj = utils.get_multi_state_traj(self.macrotraj[:, self.n_i], self.limits)
-
-        dtlag = max(1, int(1 / self.frame_length))
-        plot.plot_implied_timescales(
-            [ref_traj, macrotraj],
-            # [self.traj, self.macrotraj[:, self.n_i]],
-            # np.arange(1, 227, 5),
-            np.arange(1, 4.5 * self.tlag + dtlag, dtlag, dtype=int),
-            out,
-            frame_length=self.frame_length,
-            first_ref=True,
-            scale=scale,
-            use_ref=use_ref,
-            ntimescales=self.timescales.shape[1],
-        )
-
-    def plot_histogram_timescales(self, out):
-        """Plot implied timescales as histogram and save to out"""
-        plt.hist(self.timescales[self.n_i][:, 0])
-        plt.tight_layout()
-        plt.savefig(out)
-
-    def plot_macro_feature(self, out, ref=None):
-        """
-        Plot histogram of feature distribution.
-
-        micro_feature (np.ndarray, NxR): N microstates, R runs, holds feature
-                values of respective macrostate
-        out (str): file to save the plot
-        ref (list[tuple]): list of
-                - macrostate_assignment
-                - macrostate_feature
-                - color
-                - label
-                of the clusterings that should be shown explicitly.
-        """
-        if self.micro_feature is None:
-            self.macro_to_micro_feature()
-        plot.plot_macro_feature(
-            self.micro_feature, out, self.reference if ref is None else ref
-        )
 
     def save_macrotraj(self, out):
         header = (
@@ -493,32 +430,6 @@ class MPT(object):
         for node in nodes[n + i].leaves:
             node.feature = self.feature[node.name]
         return nodes[n + i]
-
-    def plot_graph(self, out, u=0, f=0):
-        draw_knetwork(
-            self.macrotraj[:, self.n_i], self.tlag, self.feature_traj, out, u=u, f=f
-        )
-
-    def plot_tmat(self, out):
-        plot.plot_tmat(
-            self.macro_tmat[self.n_i].copy(), out, title="Macrostate Transitiom Matrix"
-        )
-
-    def plot_tmat_times(self, out):
-        plot.plot_trans_time(
-            self.macro_tmat[self.n_i].copy(), out, title="Macrostate Transitiom Times"
-        )
-
-    def plot_sankey(self, out, ax=None, scale=1):
-        plot.plot_sankey(self, self.reference, out, ax=ax, scale=scale)
-
-    def plot_macrotraj(self, out, row_length=0.2):
-        plot.plot_state_trajectory(
-            self.macrotraj[:, self.n_i],
-            out,
-            row_length=row_length,
-            frame_length=self.frame_length,
-        )
 
     @property
     def shannon_entropy(self):
@@ -669,45 +580,6 @@ class MPT(object):
             self.rmsd.mean(axis=1) * self.macro_pop[self.n_i]
         ).sum() / self.macro_pop[self.n_i].sum()
 
-    def plot_rmsd(self, out, helices=None):
-        plot.plot_rmsd(self.rmsd, self.macro_pop[self.n_i], helices, out)
-
-    def plot_delta_rmsd(self, out, helices=None):
-        plot.plot_delta_rmsd(self.rmsd, self.macro_pop[self.n_i], helices, out)
-
-    def plot_contact_rep(self, cluster_file, out, scale=1):
-        plot.contact_rep(
-            self.multi_feature_traj,
-            cluster_file,
-            self.macrotraj[:, self.n_i],
-            out,
-            utils.get_grid_format(self.n_macrostates[self.n_i]),
-            scale=scale,
-        )
-
-    def plot_relative_implied_timescales(self, out):
-        plot.relative_implied_timescales(self, out)
-
-    def plot_ck_test(self, out):
-        plot.chapman_kolmogorov(self, out, self.frame_length)
-
-    def plot_state_network(self, out):
-        plot.state_network(self, out)
-
-    def plot_stochastic_state_similarity(self, out):
-        plot.evaluate_stochastic_clustering(self, self.reference, out)
-
-    def plot_transition_matrix(self, out):
-        plot.transition_matrix(self.macro_tmat[self.n_i], out)
-
-    def plot_transition_time(self, out):
-        plot.transition_time(
-            self.macro_tmat[self.n_i],
-            out,
-            tlag=self.tlag,
-            frame_length=self.frame_length,
-        )
-
     def draw_random_frames_indices(self, out=None, n=20):
         """
         Draw n random frames for each macrostate
@@ -786,3 +658,117 @@ class MPT(object):
         else:
             with open(out, "w") as f:
                 f.write("")
+
+    ### PLOT METHODS #########################################################
+
+    def plot(self, out: str, scale=1, offset=0):
+        """Plot dendrogram"""
+        plot.plot_tree(
+            self.tree[self.n_i],
+            self.macrostate_assignment[self.n_i],
+            out,
+            scale=scale,
+            offset=offset,
+        )
+
+    def plot_implied_timescales(self, out, use_ref=True, scale=1):
+        """
+        out: File to write plot
+        use_ref: If it for reference trajectory should be plotted
+        scale: scaling factor for plot
+        """
+        if use_ref:
+            ref_traj = self.reference.macrotraj[:, 0]
+        else:
+            ref_traj = self.traj
+
+        macrotraj = utils.get_multi_state_traj(self.macrotraj[:, self.n_i], self.limits)
+
+        dtlag = max(1, int(1 / self.frame_length))
+        plot.plot_implied_timescales(
+            [ref_traj, macrotraj],
+            # [self.traj, self.macrotraj[:, self.n_i]],
+            # np.arange(1, 227, 5),
+            np.arange(1, 4.5 * self.tlag + dtlag, dtlag, dtype=int),
+            out,
+            frame_length=self.frame_length,
+            first_ref=True,
+            scale=scale,
+            use_ref=use_ref,
+            ntimescales=self.timescales.shape[1],
+        )
+
+    def plot_macro_feature(self, out, ref=None):
+        """
+        Plot histogram of feature distribution.
+
+        micro_feature (np.ndarray, NxR): N microstates, R runs, holds feature
+                values of respective macrostate
+        out (str): file to save the plot
+        ref (list[tuple]): list of
+                - macrostate_assignment
+                - macrostate_feature
+                - color
+                - label
+                of the clusterings that should be shown explicitly.
+        """
+        if self.micro_feature is None:
+            self.macro_to_micro_feature()
+        plot.plot_macro_feature(
+            self.micro_feature, out, self.reference if ref is None else ref
+        )
+
+    def plot_rmsd(self, out, helices=None):
+        plot.plot_rmsd(self.rmsd, self.macro_pop[self.n_i], helices, out)
+
+    def plot_delta_rmsd(self, out, helices=None):
+        plot.plot_delta_rmsd(self.rmsd, self.macro_pop[self.n_i], helices, out)
+
+    def plot_contact_rep(self, cluster_file, out, scale=1):
+        plot.contact_rep(
+            self.multi_feature_traj,
+            cluster_file,
+            self.macrotraj[:, self.n_i],
+            out,
+            utils.get_grid_format(self.n_macrostates[self.n_i]),
+            scale=scale,
+        )
+
+    def plot_relative_implied_timescales(self, out):
+        plot.relative_implied_timescales(self, out)
+
+    def plot_ck_test(self, out):
+        plot.chapman_kolmogorov(self, out, self.frame_length)
+
+    def plot_state_network(self, out):
+        plot.state_network(self, out)
+
+    def plot_stochastic_state_similarity(self, out):
+        plot.evaluate_stochastic_clustering(self, self.reference, out)
+
+    def plot_transition_matrix(self, out):
+        plot.transition_matrix(self.macro_tmat[self.n_i], out)
+
+    def plot_transition_time(self, out):
+        plot.transition_time(
+            self.macro_tmat[self.n_i],
+            out,
+            tlag=self.tlag,
+            frame_length=self.frame_length,
+        )
+
+    def plot_graph(self, out, u=0, f=0):
+        draw_knetwork(
+            self.macrotraj[:, self.n_i], self.tlag, self.feature_traj, out, u=u, f=f
+        )
+
+    def plot_sankey(self, out, ax=None, scale=1):
+        plot.plot_sankey(self, self.reference, out, ax=ax, scale=scale)
+
+    def plot_macrotraj(self, out, row_length=0.2):
+        plot.plot_state_trajectory(
+            self.macrotraj[:, self.n_i],
+            out,
+            row_length=row_length,
+            frame_length=self.frame_length,
+        )

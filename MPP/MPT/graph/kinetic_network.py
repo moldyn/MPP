@@ -17,16 +17,6 @@ USE_FA2 = True
 DRAW_FLUX = True
 
 
-def calc_dist(coords2D):
-    nodes_dists = distance_matrix(coords2D, coords2D)
-    return nodes_dists
-
-
-def check_superposition(node_i, node_j, nodes_dists, node_size):
-    if nodes_dists[node_i, node_j] <= node_size[node_i] + node_size[node_j]:
-        return True
-
-
 def assign_color(qoft, states, traj, levels):
     states_qoft = np.array([1 - np.mean(qoft[traj == state]) for state in states])
     norm = Normalize(vmin=states_qoft.min(), vmax=states_qoft.max())

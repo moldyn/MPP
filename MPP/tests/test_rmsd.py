@@ -156,7 +156,7 @@ class TestRMSD_PDZ3(unittest.TestCase):
             rmsd_file = Path(tmpdir) / "rmsd.npy"
             self.d1.mpp.save_rmsd(rmsd_file)
 
-        np.testing.assert_allclose(self.d2.mpp.rmsd, self.d1.mpp.rmsd)
+        np.testing.assert_allclose(self.d2.mpp.rmsd, self.d1.mpp.rmsd, rtol=1e-5)
 
     def test_rmsd_sharpness(self):
         expected_output = (

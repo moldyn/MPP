@@ -13,7 +13,6 @@ import MPT.run as run_module
 
 # TODO:
 # - MultiFeatureKernel.full_feature_from_Z
-# - MPTKernel stochastic method "p"
 
 
 # DATASETS = ["HP35", "PDZ3", "aSyn"]
@@ -140,6 +139,9 @@ class TestRunScript(unittest.TestCase):
     def test_HP35_t_js(self):
         self.run_and_validate_output("HP35", "T", "JS")
 
+    def test_HP35_js(self):
+        self.run_and_validate_output("HP35", "none", "JS")
+
     def test_HP35_gpcca(self):
         self.run_and_validate_output("HP35", "gpcca", "ref")
 
@@ -148,3 +150,6 @@ class TestRunScript(unittest.TestCase):
 
     def test_aSyn_t(self):
         self.run_and_validate_output("aSyn", "T", "none")
+
+    def test_aSyn_t_stoch(self):
+        self.run_and_validate_output("aSyn", "T", "none", stochastic=True)
