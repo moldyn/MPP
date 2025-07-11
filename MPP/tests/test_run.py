@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 import numpy as np
 import yaml
-import MPT.run as run_module
+import MPP.run as run_module
 
 
 # TODO:

@@ -2,16 +2,11 @@
 utils.py
 ========
 
-Utilities for MPT.
+Utilities for MPP.
 """
 
-import os
 import numpy as np
-from numba import njit
-from itertools import combinations
-from typing import List
 from numpy.typing import NDArray
-import scipy as scy
 import mdtraj as md
 from tqdm import tqdm
 
@@ -348,7 +343,7 @@ def calc_rmsd(mpt, quiet=False):
     for j in range(mpt.n_macrostates[mpt.n_i]):
         if not quiet:
             print(f"Process macrostate {j}")
-        m = mpt.macrotraj[:, mpt.n_i] == j
+        m = mpt.macrotraj[mpt.n_i] == j
         tm = t[m]
         m_frames = []
         n_batches = opt_num_batches(mpt.macro_pop[mpt.n_i][j])

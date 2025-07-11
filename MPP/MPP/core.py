@@ -19,8 +19,8 @@ from matplotlib.colors import Normalize
 from anytree import NodeMixin
 from anytree.iterators import PreOrderIter
 
-import MPT.utils as utils
-import MPT.kernel as kern
+from . import utils
+from . import kernel as kernel_module
 
 sys.setrecursionlimit(2020)
 
@@ -33,7 +33,8 @@ class BinaryTreeNode(NodeMixin):
         population=0,
         q=0,
         feature=0,
-        macrostate_thresholds=(0.005, 0.5),
+        pop_thr=0.005,
+        q_min=0.5,
         parent=None,
         left=None,
         right=None,
@@ -66,7 +67,8 @@ class BinaryTreeNode(NodeMixin):
         self.population = population  # Base population, used if the node is a leaf
         self.q = q
         self.feature = feature
-        self.pop_thr, self.q_min = macrostate_thresholds
+        self.pop_thr = pop_thr
+        self.q_min = q_min
         self.parent = parent
         self.left = left
         self.right = right
@@ -410,7 +412,7 @@ def cluster(
     kernel: Callable[
         [NDArray[float], NDArray[np.int_], NDArray[np.bool_]],
         [np.int_, np.int_, NDArray[np.bool_]],
-    ] = kern.MPTKernel(),
+    ] = kernel_module.LumpingKernel(),
     feature_kernel=None,
 ) -> (NDArray[float], NDArray[np.int_]):
     """

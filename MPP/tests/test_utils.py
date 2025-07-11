@@ -4,8 +4,8 @@ import unittest
 import yaml
 import numpy as np
 from pathlib import Path
-import MPT
-import MPT.run as run_module
+import MPP
+import MPP.run as run_module
 
 
 config_dir = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/sm/config/"
@@ -52,7 +52,7 @@ class TestProperties(unittest.TestCase):
         self.mpp = self.d.mpp
 
     def test_Z_to_linkage(self):
-        linkage = MPT.utils.Z_to_linkage(self.mpp.Z[self.mpp.n_i])
+        linkage = MPP.utils.Z_to_linkage(self.mpp.Z[self.mpp.n_i])
         expected_linkage = np.load(
             Path(__file__).parent
             / "data"
@@ -72,7 +72,7 @@ class TestProperties(unittest.TestCase):
             / "t"
             / "linkage.npy"
         )
-        z_i, full_pop = MPT.utils.linkage_to_Z(expected_linkage, self.mpp.pop)
+        z_i, full_pop = MPP.utils.linkage_to_Z(expected_linkage, self.mpp.pop)
         expected_z = np.load(
             Path(__file__).parent / "data" / "HP35" / "expected_output" / "t" / "Z.npy"
         )
@@ -95,7 +95,7 @@ class TestProperties(unittest.TestCase):
             / "t"
             / "full_pop.npy"
         )
-        full_tmat, full_pop = MPT.utils.calc_full_tmat(
+        full_tmat, full_pop = MPP.utils.calc_full_tmat(
             self.mpp.tmat, self.mpp.pop, self.mpp.Z
         )
         np.testing.assert_allclose(full_tmat, expected_tmat)
@@ -110,7 +110,7 @@ class TestProperties(unittest.TestCase):
             / "t"
             / "full_mask.npy"
         )
-        full_mask = MPT.utils.Z_to_mask(self.mpp.Z[0])
+        full_mask = MPP.utils.Z_to_mask(self.mpp.Z[0])
         np.testing.assert_allclose(full_mask, expected_mask)
 
 

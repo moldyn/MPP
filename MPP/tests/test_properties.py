@@ -2,7 +2,7 @@ import unittest
 
 import yaml
 import numpy as np
-import MPT.run as run_module
+import MPP.run as run_module
 
 
 config_dir = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/sm/config/"

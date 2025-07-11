@@ -2,50 +2,68 @@ import os
 import datetime
 import warnings
 import numpy as np
+import numpy.typing as npt
 import msmhelper as mh
-import matplotlib.pyplot as plt
 import mdtraj as md
 
 from pathlib import Path
 from tqdm import tqdm
-from typing import Callable, List
-from numpy.typing import NDArray
+from typing import Callable
 from collections.abc import Iterable
 from sklearn.metrics import davies_bouldin_score
 import pygpcca as gp
 
-from MPT import core
-
-# import MPT.core as core
-import MPT.utils as utils
-import MPT.kernel as kernel_module
-from MPT.graph import draw_knetwork
-
-import MPT.plot as plot
-
-# TODO:
-# - change traj and macrotraj to list - add one dimension. First, mark all places that need adaptation.
-# - Connect with contacts, check for implications. Float contacts file: /data/PDZ3_Ali/short_ligand/reduction/trans/contacts_analysis/cluster1-7/data/dist_all
-# - internally change trajectory to 0-based, still support 1-based, ussue warning; Marcotraj as well
+from . import core
+from . import utils
+from . import kernel as kernel_module
+from . import plot
+from .graph import draw_knetwork
 
 
-class MPT(object):
+class Lumping(object):
+    """A class to hold all the information and methods for MPP.
+
+    The most probable path (MPP) algorithm reduces the number of states
+    in a microstate trajectory of a Markovian process in order to
+    simplify its analysis. This two-step algorithm first builds a
+    lumping tree by successively merging the least metastable state
+    together with its most similar other state. In a second step, the
+    lumping tree is parsed in reverse order (from the root) in order to
+    partition the microstates into macrostates, which satisfy a minimum
+    metastability and a minimum population criterion. For details, see
+    the reference publication (see below).
+
+    Citation
+    --------
+    tbd
+    """
+
     def __init__(
         self,
-        # traj: List[NDArray[np.int_]],
-        traj: NDArray[np.int_],
+        traj: npt.NDArray[np.int_],
         tlag: int,
-        feature_traj: NDArray[float] = None,
-        contact_threshold=0.45,
-        feature_type=np.float64,
-        macrostate_thresholds: tuple = (0.005, 0.5),
-        limits=None,
-        quiet=False,
-        frame_length=0.2,
-    ):
+        feature_traj: npt.NDArray[np.floating] = None,
+        contact_threshold: float = 0.45,
+        feature_type: npt.DTypeLike = np.float64,
+        pop_thr: float = 0.005,
+        q_min: float = 0.5,
+        limits: list[int] = None,
+        quiet: bool = False,
+        frame_length: float = 0.2,
+    ) -> None:
+        """Initialize a Lumping object
+
+        Parameters
+        ----------
+            traj : ndarray of int, shape (N,)
+                The microstate trajectory. N is the number of frames.
+            tlag : int
+                Lag time used.
+        """
         self.traj = traj
         self.tlag = tlag
-        self.pop_thr, self.q_min = macrostate_thresholds
+        self.pop_thr = pop_thr
+        self.q_min = q_min
         self.limits = limits
         tmat, states = mh.msm.estimate_markov_model(
             utils.get_multi_state_traj(self.traj, self.limits),
@@ -56,13 +74,13 @@ class MPT(object):
         self.n_states = len(states)
         self.quiet = quiet
         if feature_traj is not None:
-            self.add_feature(
+            self._add_feature(
                 feature_traj,
                 contact_threshold=contact_threshold,
                 feature_type=feature_type,
             )
         else:
-            self.add_feature(np.ones((traj.shape, 1)))
+            self._add_feature(np.ones((traj.shape, 1)))
 
         self.Z = None
         self._timescales = None
@@ -76,25 +94,25 @@ class MPT(object):
         self._topology_file = None
         self._xtc_trajectory_file = None
         self._rmsd = None
-        self.n_i = 0
+        self._n_i = None
+        self._macro_micro_feature = None
         self.xtc_stride = None
         self.frame_length = frame_length
-        self.micro_feature = None
+        self.plot = Plotter(self)
 
     def mpt(
         self,
         kernel: Callable[
-            [NDArray[float], NDArray[np.int_], NDArray[np.bool_]],
-            [np.int_, np.int_, NDArray[np.bool_]],
-        ] = kernel_module.MPTKernel(),
+            [npt.NDArray[float], npt.NDArray[np.int_], npt.NDArray[np.bool_]],
+            [np.int_, np.int_, npt.NDArray[np.bool_]],
+        ] = kernel_module.LumpingKernel(),
         feature_kernel=None,
         n: int = 1,
-    ) -> (NDArray[float], NDArray[np.int_]):
-        """Perform MPT"""
+    ) -> (npt.NDArray[float], npt.NDArray[np.int_]):
+        """Perform MPP"""
         self.n_runs = n
         self.kernel = kernel
         self.feature_kernel = feature_kernel
-        # n: number of macrostates
 
         self.Z = np.zeros((self.n_runs, self.n_states - 1, 4), dtype=np.float64)
         self.full_pop = np.zeros((self.n_runs, 2 * self.n_states - 1), dtype=np.uint32)
@@ -112,9 +130,9 @@ class MPT(object):
             )
         self.assign_macrostates()
 
-    def add_feature(
+    def _add_feature(
         self,
-        feature_traj: NDArray[float],
+        feature_traj: npt.NDArray[float],
         contact_threshold=0.45,
         feature_type=np.float64,
     ):
@@ -147,7 +165,7 @@ class MPT(object):
         self.macrostates_map = []
         self.macro_tmat = []
         self.macrotraj = np.zeros(
-            (self.traj.shape[0], self.n_runs), dtype=macrotraj_type
+            (self.n_runs, self.traj.shape[0]), dtype=macrotraj_type
         )
         self.n_macrostates = []
 
@@ -170,37 +188,39 @@ class MPT(object):
             self.macro_tmat.append(
                 utils.macro_tmat(self.tmat, self.macrostate_assignment[-1], self.pop)
             )
-            self.macrotraj[:, n_i] = utils.translate_traj(
+            self.macrotraj[n_i] = utils.translate_traj(
                 self.traj, self.macrostates_map[-1]
             )
             self.n_macrostates.append(self.macrostate_assignment[-1].shape[0])
             self.macrostate_feature.append(
                 [
-                    self.feature_traj[np.where(self.macrotraj[:, n_i] == i)].mean()
+                    self.feature_traj[np.where(self.macrotraj[n_i] == i)].mean()
                     for i in np.arange(self.n_macrostates[-1])
                 ]
             )
             self.macrostate_multi_feature.append(
                 [
                     self.multi_feature_traj_bool[
-                        np.where(self.macrotraj[:, n_i] == i)
+                        np.where(self.macrotraj[n_i] == i)
                     ].mean(axis=0)
                     for i in np.arange(self.n_macrostates[-1], dtype=int)
                 ]
             )
 
-    def macro_to_micro_feature(self):
-        """Assign macrostate feature values to corresponding microstates"""
-        self.micro_feature = np.zeros(
-            (self.n_states, self.n_runs), dtype=self.feature_traj.dtype.type
-        )
-        for i, (ma, mf) in enumerate(
-            zip(self.macrostate_assignment, self.macrostate_feature)
-        ):
-            for j, mb in enumerate(ma.astype(bool)):
-                self.micro_feature[mb, i] = mf[j]
-
     def gpcca(self, n_macrostates, macrotraj_type=np.uint8):
+        """Instead of MPP algorithm use GPCCA algorithm for lumping.
+
+        Generalized Perron Cluster Cluster Analysis (GPCCA) is used
+        instead of the MPP algorithm. GPCCA requires the definition of
+        a number of macrostates to cluster the microstates into. For
+        comparison, the number of macrostates in the reference lumping
+        may be a good choice. This method is implemented for reference.
+
+        Parameters
+        ----------
+        n_macrostates : int
+            Number of macrostates
+        """
         self.gpcca = gp.GPCCA(self.tmat, method="krylov")
         self.gpcca.optimize(n_macrostates)
 
@@ -230,9 +250,9 @@ class MPT(object):
         ] = True
         self.macrostate_feature = [gmf[order]]
         self.macrotraj = np.empty(
-            (self.traj.shape[0], self.n_runs), dtype=macrotraj_type
+            (self.n_runs, self.traj.shape[0]), dtype=macrotraj_type
         )
-        self.macrotraj[:, 0] = utils.translate_traj(self.traj, self.macrostates_map[0])
+        self.macrotraj[0] = utils.translate_traj(self.traj, self.macrostates_map[0])
         self.macro_tmat = [
             utils.macro_tmat(self.tmat, self.macrostate_assignment[0], self.pop)
         ]
@@ -284,50 +304,18 @@ class MPT(object):
         self.pop_thr = 0
         self.q_min = 0.5
 
-    def set_n_i(self):
-        """Sets self.n_i to the lumping with longest first implied timescale."""
-        if self.n_runs > 1:
-            self.n_i = np.argmax(self.timescales[:, 0])
-
-    def __add__(self, other):
-        """'+' operator is used to calculate similarity"""
-        if self.n_runs == 1 and other.n_runs >= 1:
-            # reference
-            ref = self
-            # stochastic clustering
-            sto = other
-        elif other.n_runs == 1 and self.n_runs >= 1:
-            ref = other
-            sto = self
-        else:
-            raise ValueError("The reference clustering must have exactly one run.")
-        return ref, sto, utils.similarity(ref, sto)
-
-    @property
-    def timescales(self):
-        """The timescales property."""
-        if self._timescales is None:
-            self.calc_timescales()
-        return self._timescales
-
-    def calc_timescales(self, ntimescales=3, dtype=np.float32):
-        """Calculate implied timescales"""
-        self._timescales = np.zeros((self.n_runs, ntimescales), dtype=dtype)
-        for i, traj in enumerate(self.macrotraj.T):
-            self._timescales[i, :] = mh.msm.implied_timescales(
-                utils.get_multi_state_traj(traj, self.limits),
-                [self.tlag],
-                ntimescales=ntimescales,
-            )[0]
-
-    def save_macrotraj(self, out):
+    def save_macrotraj(self, out, one_based=False):
+        """Write macrostate trajectory to a text file"""
         header = (
-            f"# Created by MPT class\n"
+            f"# Created by Lumping class\n"
             f"# Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
-            f"# Trajectory contains {self.n_macrostates[self.n_i]} states and {self.macrotraj.shape[0]} frames.\n"
+            f"# Trajectory contains {self.n_macrostates[self.n_i]} states and {self.macrotraj.shape[1]} frames.\n"
             f"# Trajectory index: {self.n_i}\n"
         )
-        np.savetxt(out, self.macrotraj[:, self.n_i], fmt="%.0f", header=header)
+        macrotraj = self.macrotraj[self.n_i]
+        if one_based:
+            macrotraj += 1
+        np.savetxt(out, macrotraj, fmt="%.0f", header=header)
 
     def save_Z(self, out, n_i="all"):
         """Save Z matrix"""
@@ -343,7 +331,7 @@ class MPT(object):
         else:
             raise ValueError("n_i must be 'all', Iterable or int.")
 
-    def from_Z(self, Z):
+    def load_Z(self, Z):
         """Load Z matrix"""
         if isinstance(Z, np.ndarray):
             self.Z = Z
@@ -366,6 +354,167 @@ class MPT(object):
         self.full_pop[:, self.n_states :] = self.Z[:, :, 3]
 
         self.assign_macrostates()
+
+    def save_rmsd(self, out):
+        np.save(out, self.rmsd)
+
+    def load_rmsd(self, f_name):
+        self._rmsd = np.load(f_name)
+
+    def draw_random_frames_indices(self, out=None, n=20):
+        """
+        Draw n random frames for each macrostate
+
+        out (str): Path to directory where to save the .random[n] files
+        n (int): number of frames to draw randomly
+        """
+        drawn_frames = np.empty((self.n_macrostates[self.n_i], n), dtype=int)
+        for state in np.arange(self.n_macrostates[self.n_i]):
+            frames_in_state = np.where(self.macrotraj[self.n_i] == state)[0]
+            drawn_frames[state] = np.random.choice(
+                frames_in_state, size=n, replace=False
+            )
+        if self.xtc_stride is not None:
+            drawn_frames *= self.xtc_stride
+        if out:
+            Path(os.path.join(out)).mkdir(parents=True, exist_ok=True)
+            for s, i in enumerate(drawn_frames):
+                np.savetxt(
+                    os.path.join(out, f"{s + 1:02d}.ndx"),
+                    i,
+                    fmt="%.0f",
+                    header="[frames]",
+                )
+        else:
+            return drawn_frames
+
+    def draw_random_frames(self, out, n=20):
+        """
+        Draw n random frames for each macrostate
+
+        out (str): Path to directory where to save the pdb files
+        n (int): number of frames to draw randomly
+        """
+        for state in np.arange(self.n_macrostates[self.n_i]):
+            frames_in_state = np.where(self.macrotraj[self.n_i] == state)[0]
+            drawn_frames = np.random.choice(frames_in_state, size=n, replace=False)
+            for i, frame in enumerate(drawn_frames):
+                f = md.load_xtc(
+                    self.xtc_trajectory_file,
+                    top=self.topology_file,
+                    frame=frame,
+                )
+                f.save_pdb(os.path.join(out, f"S{state}_{i:02d}.pdb"))
+
+    def get_best_defined_contacts(self, n=3):
+        """Calculate the variance for each contact in each macrostate."""
+        contacts = np.zeros((self.n_macrostates[self.n_i], n), dtype=int)
+        for i in range(self.n_macrostates[self.n_i]):
+            contacts[i] = np.argsort(
+                np.var(
+                    self.multi_feature_traj[self.macrotraj[self.n_i] == i],
+                    axis=0,
+                )
+            )[:n]
+        return contacts
+
+    def get_least_moving_residues(self, contact_index_file, n=3):
+        contact_indices = np.loadtxt(contact_index_file, dtype=int)
+        contacts = self.get_best_defined_contacts(n)
+        least_moving_residues = []
+        for c in contacts:
+            least_moving_residues.append(np.unique(contact_indices[c].flatten()))
+        return least_moving_residues
+
+    def write_least_moving_residues(self, contact_index_file, out, n=3):
+        if contact_index_file != "none":
+            least_moving_residues = self.get_least_moving_residues(
+                contact_index_file, n=n
+            )
+            with open(out, "w") as f:
+                for residues in least_moving_residues:
+                    f.write(f"{' '.join(residues.astype(str))}\n")
+        else:
+            with open(out, "w") as f:
+                f.write("")
+
+    def write_pdbs(self, out):
+        utils.write_pdbs(
+            out,
+            np.log(self.rmsd),
+            self.topology_file,
+            self.xtc_trajectory_file,
+            self.mean_frames,
+        )
+
+    def __add__(self, other):
+        """'+' operator is used to calculate similarity of macrostates."""
+        if self.n_runs == 1 and other.n_runs >= 1:
+            # reference
+            ref = self
+            # stochastic lumping
+            sto = other
+        elif other.n_runs == 1 and self.n_runs >= 1:
+            ref = other
+            sto = self
+        else:
+            raise ValueError("The reference lumping must have exactly one run.")
+        return ref, sto, utils.similarity(ref, sto)
+
+    @property
+    def reference(self):
+        """The reference property."""
+        if self._reference is None:
+            k = kernel_module.LumpingKernel()
+            self._reference = Lumping(
+                self.traj,
+                self.tlag,
+                self.multi_feature_traj,
+                contact_threshold=self.contact_threshold,
+                pop_thr=self.pop_thr,
+                q_min=self.q_min,
+                limits=self.limits,
+                quiet=True,
+            )
+            self._reference.mpt(k)
+        return self._reference
+
+    @property
+    def n_i(self):
+        """Index of the lumping under consideration.
+
+        0 for deterministic lumpings. Is set to the lumping with the
+        longest first implied timescale, if not set manually.
+        """
+        if self._n_i is None:
+            if self.n_runs > 1:
+                self._n_i = np.argmax(self.timescales[:, 0])
+            else:
+                self._n_i = 0
+        return self._n_i
+
+    @n_i.setter
+    def n_i(self, value):
+        if not isinstance(value, int):
+            raise ValueError("n_i must be an integer")
+        self._n_i = value
+
+    @property
+    def timescales(self):
+        """The timescales property."""
+        if self._timescales is None:
+            self.calc_timescales()
+        return self._timescales
+
+    def calc_timescales(self, ntimescales=3, dtype=np.float32):
+        """Calculate implied timescales"""
+        self._timescales = np.zeros((self.n_runs, ntimescales), dtype=dtype)
+        for i, traj in enumerate(self.macrotraj):
+            self._timescales[i, :] = mh.msm.implied_timescales(
+                utils.get_multi_state_traj(traj, self.limits),
+                [self.tlag],
+                ntimescales=ntimescales,
+            )[0]
 
     @property
     def linkage(self):
@@ -390,46 +539,16 @@ class MPT(object):
         return self._macro_pop
 
     @property
-    def tree(self):
-        """The tree property."""
-        if self._tree is None:
-            self._tree = []
-            for z, pop in zip(self.Z, self.full_pop):
-                self._tree.append(self.build_tree(z, pop))
-        return self._tree
+    def rmsd(self):
+        """The rmsd property."""
+        if self._rmsd is None:
+            self._rmsd, self.mean_frames = utils.calc_rmsd(self, quiet=self.quiet)
+        return self._rmsd
 
-    def build_tree(self, Z, full_pop):
-        """Build tree using BinaryTreeNode and return root"""
-        macrostate_thresholds = (self.pop_thr, self.q_min)
-        n = Z.shape[0] + 1
-        nodes = {}
-        for i, (state, target_state, q, pop) in enumerate(Z):
-            state = int(state)
-            target_state = int(target_state)
-            if state not in nodes:
-                nodes[state] = core.BinaryTreeNode(
-                    state,
-                    self.tmat,
-                    population=full_pop[state],
-                    q=q,
-                    macrostate_thresholds=macrostate_thresholds,
-                )
-            if target_state not in nodes:
-                nodes[target_state] = core.BinaryTreeNode(
-                    target_state,
-                    self.tmat,
-                    population=full_pop[target_state],
-                    q=q,
-                    macrostate_thresholds=macrostate_thresholds,
-                )
-            nodes[n + i] = core.BinaryTreeNode(
-                n + i, self.tmat, q=q, macrostate_thresholds=macrostate_thresholds
-            )
-            nodes[n + i].left = nodes[state]
-            nodes[n + i].right = nodes[target_state]
-        for node in nodes[n + i].leaves:
-            node.feature = self.feature[node.name]
-        return nodes[n + i]
+    def rmsd_sharpness(self):
+        return (
+            self.rmsd.mean(axis=1) * self.macro_pop[self.n_i]
+        ).sum() / self.macro_pop[self.n_i].sum()
 
     @property
     def shannon_entropy(self):
@@ -447,7 +566,7 @@ class MPT(object):
             self._davies_bouldin_index = np.zeros(self.n_runs)
             for i in range(self.n_runs):
                 self._davies_bouldin_index[i] = davies_bouldin_score(
-                    self.multi_feature_traj, self.macrotraj[:, i]
+                    self.multi_feature_traj, self.macrotraj[i]
                 )
         return self._davies_bouldin_index
 
@@ -459,21 +578,65 @@ class MPT(object):
         return self._gmrq
 
     @property
-    def reference(self):
-        """The reference property."""
-        if self._reference is None:
-            k = kernel_module.MPTKernel()
-            self._reference = MPT(
-                self.traj,
-                self.tlag,
-                self.multi_feature_traj,
-                contact_threshold=self.contact_threshold,
-                macrostate_thresholds=(self.pop_thr, self.q_min),
-                limits=self.limits,
-                quiet=True,
+    def macro_micro_feature(self):
+        """Assign macrostate feature values to corresponding microstates"""
+        if self._macro_micro_feature is None:
+            self._macro_micro_feature = np.zeros(
+                (self.n_states, self.n_runs), dtype=self.feature_traj.dtype.type
             )
-            self._reference.mpt(k)
-        return self._reference
+            for i, (ma, mf) in enumerate(
+                zip(self.macrostate_assignment, self.macrostate_feature)
+            ):
+                for j, mb in enumerate(ma.astype(bool)):
+                    self._macro_micro_feature[mb, i] = mf[j]
+        return self._macro_micro_feature
+
+    @property
+    def tree(self):
+        """The tree property."""
+        if self._tree is None:
+            self._tree = []
+            for z, pop in zip(self.Z, self.full_pop):
+                self._tree.append(self.build_tree(z, pop))
+        return self._tree
+
+    def build_tree(self, Z, full_pop):
+        """Build tree using BinaryTreeNode and return root"""
+        n = Z.shape[0] + 1
+        nodes = {}
+        for i, (state, target_state, q, pop) in enumerate(Z):
+            state = int(state)
+            target_state = int(target_state)
+            if state not in nodes:
+                nodes[state] = core.BinaryTreeNode(
+                    state,
+                    self.tmat,
+                    population=full_pop[state],
+                    q=q,
+                    pop_thr=self.pop_thr,
+                    q_min=self.q_min,
+                )
+            if target_state not in nodes:
+                nodes[target_state] = core.BinaryTreeNode(
+                    target_state,
+                    self.tmat,
+                    population=full_pop[target_state],
+                    q=q,
+                    pop_thr=self.pop_thr,
+                    q_min=self.q_min,
+                )
+            nodes[n + i] = core.BinaryTreeNode(
+                n + i,
+                self.tmat,
+                q=q,
+                pop_thr=self.pop_thr,
+                q_min=self.q_min,
+            )
+            nodes[n + i].left = nodes[state]
+            nodes[n + i].right = nodes[target_state]
+        for node in nodes[n + i].leaves:
+            node.feature = self.feature[node.name]
+        return nodes[n + i]
 
     @property
     def traj(self):
@@ -494,33 +657,6 @@ class MPT(object):
         else:
             traj_type = np.uint32
         self._traj = value.astype(traj_type)
-
-        # if value.min() == 1:
-        #     self._traj = value.astype(traj_type)
-        #     # warnings.warn("1-based trajectory was shifted to 0-based.")
-        # elif value.min() == 0:
-        #     self._traj = value.astype(traj_type) + 1
-        #     warnings.warn(
-        #         "Still 1-based trajectory used, thus, trajectory was shifted to 1-based."
-        #     )
-        # else:
-        #     raise ValueError("trajectory must be 0 or 1 based")
-
-    def print_rel(self):
-        for l, i in [
-            (
-                "Implied Timescale: ",
-                self.timescales[0, 0] / self.reference.timescales[0, 0],
-            ),
-            ("GMRQ: ", self.gmrq[0] / self.reference.gmrq[0]),
-            (
-                "DBI: ",
-                self.davies_bouldin_index()[0]
-                / self.reference.davies_bouldin_index()[0],
-            ),
-            ("H: ", self.shannon_entropy[0] / self.reference.shannon_entropy[0]),
-        ]:
-            print(l + f"{i:.2f}")
 
     @property
     def topology_file(self):
@@ -551,13 +687,6 @@ class MPT(object):
             raise FileNotFoundError(f"No such file: {value}")
 
     @property
-    def rmsd(self):
-        """The rmsd property."""
-        if self._rmsd is None:
-            self._rmsd, self.mean_frames = utils.calc_rmsd(self, quiet=self.quiet)
-        return self._rmsd
-
-    @property
     def frame_length(self):
         """The frame_length property. Frame length in ns."""
         return self._frame_length
@@ -566,145 +695,49 @@ class MPT(object):
     def frame_length(self, value):
         self._frame_length = value
 
-    def save_rmsd(self, out):
-        np.save(out, self.rmsd)
 
-    def load_rmsd(self, f_name):
-        self._rmsd = np.load(f_name)
+class Plotter:
+    def __init__(self, obj):
+        self._obj = obj
 
-    def write_pdbs(self, out):
-        utils.write_pdbs(
-            out,
-            np.log(self.rmsd),
-            self.topology_file,
-            self.xtc_trajectory_file,
-            self.mean_frames,
-        )
-
-    def rmsd_sharpness(self):
-        return (
-            self.rmsd.mean(axis=1) * self.macro_pop[self.n_i]
-        ).sum() / self.macro_pop[self.n_i].sum()
-
-    def draw_random_frames_indices(self, out=None, n=20):
-        """
-        Draw n random frames for each macrostate
-
-        out (str): Path to directory where to save the .random[n] files
-        n (int): number of frames to draw randomly
-        """
-        drawn_frames = np.empty((self.n_macrostates[self.n_i], n), dtype=int)
-        for state in np.arange(self.n_macrostates[self.n_i]):
-            frames_in_state = np.where(self.macrotraj[:, self.n_i] == state)[0]
-            drawn_frames[state] = np.random.choice(
-                frames_in_state, size=n, replace=False
-            )
-        if self.xtc_stride is not None:
-            drawn_frames *= self.xtc_stride
-        if out:
-            Path(os.path.join(out)).mkdir(parents=True, exist_ok=True)
-            for s, i in enumerate(drawn_frames):
-                # Path(os.path.join(out, f"{s+1:02d}")).mkdir(parents=True, exist_ok=True)
-                # np.savetxt(os.path.join(out, f"{s+1:02d}", f".frames.ndx"), i, fmt="%.0f", header="[frames]")
-                np.savetxt(
-                    os.path.join(out, f"{s + 1:02d}.ndx"),
-                    i,
-                    fmt="%.0f",
-                    header="[frames]",
-                )
-        else:
-            return drawn_frames
-
-    def draw_random_frames(self, out, n=20):
-        """
-        Draw n random frames for each macrostate
-
-        out (str): Path to directory where to save the pdb files
-        n (int): number of frames to draw randomly
-        """
-        for state in np.arange(self.n_macrostates[self.n_i]):
-            frames_in_state = np.where(self.macrotraj[:, self.n_i] == state)[0]
-            drawn_frames = np.random.choice(frames_in_state, size=n, replace=False)
-            for i, frame in enumerate(drawn_frames):
-                f = md.load_xtc(
-                    self.xtc_trajectory_file,
-                    top=self.topology_file,
-                    frame=frame,
-                )
-                f.save_pdb(os.path.join(out, f"S{state}_{i:02d}.pdb"))
-
-    def get_best_defined_contacts(self, n=3):
-        """Calculate the variance for each contact in each macrostate."""
-        contacts = np.zeros((self.n_macrostates[self.n_i], n), dtype=int)
-        for i in range(self.n_macrostates[self.n_i]):
-            contacts[i] = np.argsort(
-                np.var(
-                    self.multi_feature_traj[self.macrotraj[:, self.n_i] == i],
-                    axis=0,
-                )
-            )[:n]
-        return contacts
-
-    def get_least_moving_residues(self, contact_index_file, n=3):
-        contact_indices = np.loadtxt(contact_index_file, dtype=int)
-        contacts = self.get_best_defined_contacts(n)
-        least_moving_residues = []
-        for c in contacts:
-            least_moving_residues.append(np.unique(contact_indices[c].flatten()))
-        return least_moving_residues
-
-    def write_least_moving_residues(self, contact_index_file, out, n=3):
-        if contact_index_file != "none":
-            least_moving_residues = self.get_least_moving_residues(
-                contact_index_file, n=n
-            )
-            with open(out, "w") as f:
-                for residues in least_moving_residues:
-                    f.write(f"{' '.join(residues.astype(str))}\n")
-        else:
-            with open(out, "w") as f:
-                f.write("")
-
-    ### PLOT METHODS #########################################################
-
-    def plot(self, out: str, scale=1, offset=0):
+    def dendrogram(self, out: str, scale=1, offset=0):
         """Plot dendrogram"""
         plot.plot_tree(
-            self.tree[self.n_i],
-            self.macrostate_assignment[self.n_i],
+            self._obj.tree[self._obj.n_i],
+            self._obj.macrostate_assignment[self._obj.n_i],
             out,
             scale=scale,
             offset=offset,
         )
 
-    def plot_implied_timescales(self, out, use_ref=True, scale=1):
+    def implied_timescales(self, out, use_ref=True, scale=1):
         """
         out: File to write plot
         use_ref: If it for reference trajectory should be plotted
         scale: scaling factor for plot
         """
         if use_ref:
-            ref_traj = self.reference.macrotraj[:, 0]
+            ref_traj = self._obj.reference.macrotraj[0]
         else:
-            ref_traj = self.traj
+            ref_traj = self._obj.traj
 
-        macrotraj = utils.get_multi_state_traj(self.macrotraj[:, self.n_i], self.limits)
+        macrotraj = utils.get_multi_state_traj(
+            self._obj.macrotraj[self._obj.n_i], self._obj.limits
+        )
 
-        dtlag = max(1, int(1 / self.frame_length))
-        plot.plot_implied_timescales(
+        dtlag = max(1, int(1 / self._obj.frame_length))
+        plot.implied_timescales(
             [ref_traj, macrotraj],
-            # [self.traj, self.macrotraj[:, self.n_i]],
-            # np.arange(1, 227, 5),
-            np.arange(1, 4.5 * self.tlag + dtlag, dtlag, dtype=int),
+            np.arange(1, 4.5 * self._obj.tlag + dtlag, dtlag, dtype=int),
             out,
-            frame_length=self.frame_length,
+            frame_length=self._obj.frame_length,
             first_ref=True,
             scale=scale,
             use_ref=use_ref,
-            ntimescales=self.timescales.shape[1],
+            ntimescales=self._obj.timescales.shape[1],
         )
 
-    def plot_macro_feature(self, out, ref=None):
+    def macro_feature(self, out, ref=None):
         """
         Plot histogram of feature distribution.
 
@@ -718,63 +751,70 @@ class MPT(object):
                 - label
                 of the clusterings that should be shown explicitly.
         """
-        if self.micro_feature is None:
-            self.macro_to_micro_feature()
-        plot.plot_macro_feature(
-            self.micro_feature, out, self.reference if ref is None else ref
+        plot.macro_feature(
+            self._obj.macro_micro_feature,
+            out,
+            self._obj.reference if ref is None else ref,
         )
 
-    def plot_rmsd(self, out, helices=None):
-        plot.plot_rmsd(self.rmsd, self.macro_pop[self.n_i], helices, out)
+    def rmsd(self, out, helices=None):
+        plot.rmsd(self._obj.rmsd, self._obj.macro_pop[self._obj.n_i], helices, out)
 
-    def plot_delta_rmsd(self, out, helices=None):
-        plot.plot_delta_rmsd(self.rmsd, self.macro_pop[self.n_i], helices, out)
+    def delta_rmsd(self, out, helices=None):
+        plot.delta_rmsd(
+            self._obj.rmsd, self._obj.macro_pop[self._obj.n_i], helices, out
+        )
 
-    def plot_contact_rep(self, cluster_file, out, scale=1):
+    def contact_rep(self, cluster_file, out, scale=1):
         plot.contact_rep(
-            self.multi_feature_traj,
+            self._obj.multi_feature_traj,
             cluster_file,
-            self.macrotraj[:, self.n_i],
+            self._obj.macrotraj[self._obj.n_i],
             out,
-            utils.get_grid_format(self.n_macrostates[self.n_i]),
+            utils.get_grid_format(self._obj.n_macrostates[self._obj.n_i]),
             scale=scale,
         )
 
-    def plot_relative_implied_timescales(self, out):
-        plot.relative_implied_timescales(self, out)
+    def relative_implied_timescales(self, out):
+        plot.relative_implied_timescales(self._obj, out)
 
-    def plot_ck_test(self, out):
-        plot.chapman_kolmogorov(self, out, self.frame_length)
+    def ck_test(self, out):
+        plot.chapman_kolmogorov(self._obj, out, self._obj.frame_length)
 
-    def plot_state_network(self, out):
-        plot.state_network(self, out)
+    def state_network(self, out):
+        plot.state_network(self._obj, out)
 
-    def plot_stochastic_state_similarity(self, out):
-        plot.evaluate_stochastic_clustering(self, self.reference, out)
+    def stochastic_state_similarity(self, out):
+        plot.stochastic_state_similarity(self._obj, self._obj.reference, out)
 
-    def plot_transition_matrix(self, out):
-        plot.transition_matrix(self.macro_tmat[self.n_i], out)
+    def transition_matrix(self, out):
+        plot.transition_matrix(self._obj.macro_tmat[self._obj.n_i], out)
 
-    def plot_transition_time(self, out):
+    def transition_time(self, out):
         plot.transition_time(
-            self.macro_tmat[self.n_i],
+            self._obj.macro_tmat[self._obj.n_i],
             out,
-            tlag=self.tlag,
-            frame_length=self.frame_length,
+            tlag=self._obj.tlag,
+            frame_length=self._obj.frame_length,
         )
 
-    def plot_graph(self, out, u=0, f=0):
+    def graph(self, out, u=0, f=0):
         draw_knetwork(
-            self.macrotraj[:, self.n_i], self.tlag, self.feature_traj, out, u=u, f=f
+            self._obj.macrotraj[self._obj.n_i],
+            self._obj.tlag,
+            self._obj.feature_traj,
+            out,
+            u=u,
+            f=f,
         )
 
-    def plot_sankey(self, out, ax=None, scale=1):
-        plot.plot_sankey(self, self.reference, out, ax=ax, scale=scale)
+    def sankey(self, out, ax=None, scale=1):
+        plot.sankey_diagram(self._obj, self._obj.reference, out, ax=ax, scale=scale)
 
-    def plot_macrotraj(self, out, row_length=0.2):
-        plot.plot_state_trajectory(
-            self.macrotraj[:, self.n_i],
+    def macrotraj(self, out, row_length=0.2):
+        plot.state_trajectory(
+            self._obj.macrotraj[self._obj.n_i],
             out,
             row_length=row_length,
-            frame_length=self.frame_length,
+            frame_length=self._obj.frame_length,
         )

@@ -5,18 +5,7 @@ import yaml
 import numpy as np
 import tempfile
 from pathlib import Path
-import MPT.run as run_module
-
-# RMSD Tests
-# - MPT.draw_random_frames_indices
-# - MPT.draw_random_frames
-# - MPT.get_best_defined_contacts
-# - MPT.get_least_moving_residues
-# - write_least_moving_residues
-# - MPT.rmsd
-# - MPT.rmsd_sharpness
-# MPT.plot_rmsd
-# MPT.plot_delta_rmsd
+import MPP.run as run_module
 
 
 config_dir = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/sm/config/"

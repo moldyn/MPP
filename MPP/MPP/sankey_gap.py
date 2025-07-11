@@ -22,7 +22,6 @@ import logging
 from collections import defaultdict
 
 import matplotlib.pyplot as plt
-import matplotlib.patheffects as path_effects
 import numpy as np
 import pandas as pd
 import seaborn as sns

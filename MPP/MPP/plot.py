@@ -20,15 +20,14 @@ from matplotlib.colors import (
 )
 from matplotlib import colors
 from matplotlib.cbook import boxplot_stats
-import matplotlib.animation as animation
 import matplotlib.patches as patches
 from matplotlib.ticker import MultipleLocator
 import msmhelper as mh
 from msmhelper._cli.contact_rep import load_clusters
-from scipy.stats import pearsonr
-import MPT.utils as utils
-from MPT.sankey_gap import sankey
-from MPT.graph import draw_knetwork
+
+from . import utils
+from .sankey_gap import sankey
+from .graph import draw_knetwork
 
 plt.rcParams["font.family"] = "sans-serif"
 
@@ -132,7 +131,7 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
 ### SIMILARITY ###############################################################
 
 
-def evaluate_stochastic_clustering(mpt1, mpt2, out):
+def stochastic_state_similarity(mpt1, mpt2, out):
     """
     Plot similarity values for a reference and a stochastic clustering.
     """
@@ -166,7 +165,7 @@ def evaluate_stochastic_clustering(mpt1, mpt2, out):
 ### IMPLIED TIMESCALES #######################################################
 
 
-def plot_implied_timescales(
+def implied_timescales(
     trajs,
     lagtimes,
     out,
@@ -565,7 +564,7 @@ def transition_time(
 ### MACROSTATE FEATURES ######################################################
 
 
-def plot_macro_feature(micro_feature, out, ref=None, pop=None):
+def macro_feature(micro_feature, out, ref=None, pop=None):
     """
     Plot histogram of feature distribution.
 
@@ -796,7 +795,7 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid, scale=1):
 ### SANKEY ###################################################################
 
 
-def plot_sankey(cl, ref, out, ax=None, scale=1):
+def sankey_diagram(cl, ref, out, ax=None, scale=1):
     features = []
     for macrostate in cl.tree[cl.n_i].macrostates:
         features.append(macrostate.feature)
@@ -824,7 +823,7 @@ def plot_sankey(cl, ref, out, ax=None, scale=1):
 ### RMSD LINES ###############################################################
 
 
-def plot_rmsd(rmsds, pops, helices=None, filename=None):
+def rmsd(rmsds, pops, helices=None, filename=None):
     """
     Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
 
@@ -993,7 +992,7 @@ def plot_rmsd(rmsds, pops, helices=None, filename=None):
     plt.close()
 
 
-def plot_delta_rmsd(rmsds, pops, helices=None, filename=None):
+def delta_rmsd(rmsds, pops, helices=None, filename=None):
     """
     Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
 
@@ -1181,7 +1180,7 @@ def plot_delta_rmsd(rmsds, pops, helices=None, filename=None):
 ### TRAJECTORY ###############################################################
 
 
-def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2):
+def state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2):
     """
     Plot state trajectory
 
@@ -1291,7 +1290,7 @@ def plot_state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2
 def chapman_kolmogorov(mpt, out, frame_length=0.2):
     """Chapman-Kolmogorov Test. Frame length in ns"""
     ck = mh.msm.tests.chapman_kolmogorov_test(
-        utils.get_multi_state_traj(mpt.macrotraj[:, mpt.n_i], mpt.limits),
+        utils.get_multi_state_traj(mpt.macrotraj[mpt.n_i], mpt.limits),
         [50, 50, 50, 50, 50],
         4000,
         # int(1550*frame_length),
@@ -1468,5 +1467,5 @@ def plot_ck_test(
 
 def state_network(lumping, out):
     draw_knetwork(
-        lumping.macrotraj[:, lumping.n_i], lumping.tlag, lumping.feature_traj, out
+        lumping.macrotraj[lumping.n_i], lumping.tlag, lumping.feature_traj, out
     )

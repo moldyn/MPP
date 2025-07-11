@@ -1,10 +1,10 @@
 import numpy as np
 import scipy as scy
 
-import MPT.utils as utils
+from . import utils
 
 __all__ = [
-    "MPTKernel",
+    "LumpingKernel",
     "FeatureKernel",
 ]
 
@@ -12,41 +12,43 @@ __all__ = [
 ### MERGING KERNEL ###########################################################
 
 
-class MPTKernel(object):
-    def __init__(self, method="n", param=1, similarity="T"):
-        """
-        Kernel for the most probable path (MPP) algorithm.
+class LumpingKernel(object):
+    """Kernel for the most probable path (MPP) algorithm.
 
-        This object holds the parameters of the lumping and analyzes the
-        full transition matrix of the lumping based on a mask of not yet
-        merged states, upon calling.
+    This object holds the parameters of the lumping and analyzes the
+    full transition matrix of the lumping based on a mask of not yet
+    merged states, upon calling.
+
+    Notes
+    -----
+    The similarity between two states may be composed of a dynamic
+    similarity (defined in this object, c.f. parameter
+    <similarity>) and / or a geometric similarity, which is
+    determined by the feature kernel (passed at call).
+    """
+
+    def __init__(self, method="n", param=1, similarity="T"):
+        """Initialize LumpingKernel
 
         Parameters
         ----------
         method : str
-            'n' : Consider <param> most similar options.
+            'n' : Consider <param> most similar options. (default)
             'p' : Consider as many most similar options as needed to
                 represent <param> similarity. For similarity 'T',
                 <param>=0.5 means that at least 50% of the transitions
                 to other states must be considered.
         param : int|float
             for 'n' : Number of most similar options to consider
-                (1 deterministic lumping).
+                (1 deterministic lumping). (default 1)
             for 'p' : Accumulated similarity threshold for most similar
                 states to consider.
         similarity:
             - T: Utilize the transition probabilities as dynamic
-                metric.
+                metric. (default)
             - KL: Utilize the Kullback-Leibler divergence between the
                 transition probabilities of the options.
             - none: Utilize only the feature as similarity measure.
-
-        Notes
-        -----
-        The similarity between two states may be composed of a dynamic
-        similarity (defined in this object, c.f. parameter
-        <similarity>) and / or a geometric similarity, which is
-        determined by the feature kernel (passed at call).
         """
         self.method = method
         self.param = param
@@ -128,7 +130,7 @@ class MPTKernel(object):
         return state, target_state, mask
 
     def __repr__(self):
-        return "<class MPTKernel>"
+        return "<class LumpingKernel>"
 
 
 ### FEATURE KERNEL ###########################################################
@@ -136,7 +138,7 @@ class MPTKernel(object):
 
 # TODO:
 # Remove similarity entirely from feature kernel
-class MultiFeatureKernel(object):
+class FeatureKernel(object):
     def __init__(
         self,
         feature_traj,
@@ -157,7 +159,7 @@ class MultiFeatureKernel(object):
         self._init_feature(microstate_traj.astype(traj_type))
 
     def __repr__(self):
-        return "<class MultiFeatureKernel>"
+        return "<class FeatureKernel>"
 
     def _init_feature(self, microstate_traj):
         states, pop = np.unique(microstate_traj, return_counts=True)

@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 import yaml
 import hashlib
-import MPT.run as run_module
+import MPP.run as run_module
 
 
 DATASETS = ["HP35", "PDZ3", "aSyn"]

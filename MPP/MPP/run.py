@@ -6,7 +6,7 @@ from pathlib import Path
 import argparse
 
 import numpy as np
-import MPT
+import MPP
 
 
 class Data:
@@ -54,7 +54,7 @@ class Data:
 
         self.frame_length = self.d["frame length"]
         self.tlag = self.d["tlag"]
-        self.pop_min = self.d["pop_min"]
+        self.pop_thr = self.d["pop_thr"]
         self.q_min = self.d["q_min"]
 
         self.lumping_dir = None
@@ -67,25 +67,20 @@ class Data:
 
     def prepare_mpp(self, dij, gij):
         if "stochastic" in self.d:
-            kernel = MPT.kernel.MPTKernel(
+            kernel = MPP.kernel.LumpingKernel(
                 method=self.d["stochastic"]["method"],
                 param=self.d["stochastic"]["param"],
                 similarity=dij,
             )
         else:
-            kernel = MPT.kernel.MPTKernel(
+            kernel = MPP.kernel.LumpingKernel(
                 similarity=dij,
             )
 
         if gij == "none":
             feature_kernel = None
-        elif gij == "q":
-            feature_kernel = MPT.kernel.FeatureKernel(
-                self.feature_traj,
-                self.microtraj,
-            )
         elif gij == "JS":
-            feature_kernel = MPT.kernel.MultiFeatureKernel(
+            feature_kernel = MPP.kernel.FeatureKernel(
                 self.mfeature_traj,
                 self.microtraj,
             )
@@ -101,12 +96,13 @@ class Data:
     def setup_mpp(self, dij, gij):
         if dij != "gpcca":
             self.prepare_mpp(dij, gij)
-        self.mpp = MPT.MPT(
+        self.mpp = MPP.Lumping(
             self.microtraj,
             self.tlag,
             self.mtraj_raw,
             contact_threshold=0.45,
-            macrostate_thresholds=(self.pop_min, self.q_min),
+            pop_thr=self.pop_thr,
+            q_min=self.q_min,
             limits=self.limits,
             quiet=True,
         )
@@ -121,7 +117,7 @@ class Data:
         """out: Z.npy"""
         if os.path.exists(out) and not overwrite:
             print("Loading existing Z")
-            self.mpp.from_Z(out)
+            self.mpp.load_Z(out)
         else:
             Path(os.path.dirname(out)).mkdir(parents=True, exist_ok=True)
             self.mpp.mpt(
@@ -130,16 +126,12 @@ class Data:
                 n=self.d["stochastic"]["n"] if "stochastic" in self.d else 1,
             )
             self.mpp.save_Z(out)
-        if "stochastic" in self.d:
-            self.mpp.set_n_i()
 
     def perform_gpcca(self, n_macrostates, out=None, overwrite=False):
         """n_macrostates: int or 'ref' for n_macrostates from reference (T)"""
-        # self.mpp.pop_thr = 0
-        # self.mpp.q_min = 0.5
         if out is not None and os.path.exists(out) and not overwrite:
             print("Loading existing Z")
-            self.mpp.from_Z(out)
+            self.mpp.load_Z(out)
         else:
             if n_macrostates == "ref":
                 n_macrostates = self.mpp.reference.n_macrostates[0]
@@ -163,15 +155,15 @@ def plot(data, out, kind="dendrogram", scale=1):
     """
     if kind == "dendrogram":
         print("Plotting dendrogram")
-        data.mpp.plot(out, scale=scale, offset=0.0)
+        data.mpp.plot.dendrogram(out, scale=scale, offset=0.0)
     elif kind == "timescales":
         if "n timescales" in data.d:
             data.mpp.calc_timescales(data.d["n timescales"])
-        data.mpp.plot_implied_timescales(out, scale=scale, use_ref=data.use_ref)
+        data.mpp.plot.implied_timescales(out, scale=scale, use_ref=data.use_ref)
     elif kind == "sankey":
-        data.mpp.plot_sankey(out, scale=scale)
+        data.mpp.plot.sankey(out, scale=scale)
     elif kind == "contacts":
-        data.mpp.plot_contact_rep(data.cluster, out, scale=scale)
+        data.mpp.plot.contact_rep(data.cluster, out, scale=scale)
     elif kind == "macrotraj":
         # traj_length = data.microtraj.shape[0]
         # n_macrostates = data.mpp.n_macrostates[0]
@@ -179,36 +171,36 @@ def plot(data, out, kind="dendrogram", scale=1):
         row_length = 1 / 6
         if data.limits is not None:
             row_length = 1 / len(data.limits)
-        data.mpp.plot_macrotraj(out, row_length=row_length)
+        data.mpp.plot.macrotraj(out, row_length=row_length)
     elif kind == "ck_test":
-        data.mpp.plot_ck_test(out)
+        data.mpp.plot.ck_test(out)
     elif kind == "rmsd":
         # data.get_rmsd(os.path.splitext(out)[0] + ".npy")
         data.get_rmsd(os.path.join(os.path.dirname(out), "rmsd.npy"))
-        data.mpp.plot_rmsd(out, helices=data.helices)
+        data.mpp.plot.rmsd(out, helices=data.helices)
     elif kind == "delta_rmsd":
         data.get_rmsd(os.path.join(os.path.dirname(out), "rmsd.npy"))
-        data.mpp.plot_delta_rmsd(out, helices=data.helices)
+        data.mpp.plot.delta_rmsd(out, helices=data.helices)
     elif kind == "state_network":
         print("Plotting state network")
-        data.mpp.plot_state_network(out)
+        data.mpp.plot.state_network(out)
     elif kind == "macro_feature":
-        data.mpp.plot_macro_feature(out)
+        data.mpp.plot.macro_feature(out)
     elif kind == "stochastic_state_similarity":
-        data.mpp.plot_stochastic_state_similarity(out)
+        data.mpp.plot.stochastic_state_similarity(out)
     elif kind == "relative_implied_timescales":
-        data.mpp.plot_relative_implied_timescales(out)
+        data.mpp.plot.relative_implied_timescales(out)
     elif kind == "transition_matrix":
-        data.mpp.plot_transition_matrix(out)
+        data.mpp.plot.transition_matrix(out)
     elif kind == "transition_time":
-        data.mpp.plot_transition_time(out)
+        data.mpp.plot.transition_time(out)
     else:
         raise ValueError(f"Unknown plot kind: {kind}")
 
 
 def draw_random_frames(mpt, data):
     if mpt.Z is None:
-        mpt.from_Z(os.path.join(data.lumping_dir, "Z.npy"))
+        mpt.load_Z(os.path.join(data.lumping_dir, "Z.npy"))
     Path(os.path.join(data.lumping_dir + "random_frames/")).mkdir(
         parents=True, exist_ok=True
     )
@@ -281,7 +273,7 @@ def parse_args():
 
 
 def main():
-    print("MPT.run running")
+    print("MPP.run running")
     args = parse_args()
 
     # Parse input files
