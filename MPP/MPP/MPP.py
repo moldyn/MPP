@@ -33,6 +33,69 @@ class Lumping(object):
     metastability and a minimum population criterion. For details, see
     the reference publication (see below).
 
+    Attributes
+    ----------
+    trajectory : ndarray of int, shape (N,)
+        The microstate trajectory. N is the number of frames.
+    lagtime : int
+        Lagtime used.
+    frame_length : float
+        Length of a frame in ns. (default 0.2)
+    pop_thr : float
+        Population threshold for macrostates. (default 0.005)
+    q_min : float
+        Minimum metastability of macrostates. (default 0.5)
+    limits : list of int
+        If the trajectory is composed of several independent
+        simulations, this list contains the lengths of the individual
+        trajectories. (default None)
+    tmat : ndarray of float, shape (N, N)
+        Transition matrix of the microstate Markov state model. N is
+        the number of microstates.
+    pop : ndarray of float, shape (N,)
+        Population of the microstates in the trajectory. N is the
+        number of microstates.
+    n_states : int
+        Number of microstates.
+    multi_feature_trajectory : ndarray of float, shape (N, M)
+        A feature trajectory of M features and N frames. For example
+        selected contact distances are passed here. Must be the same as
+        for trajectory.
+    mean_feature_trajectory : ndarray of float, shape (N,)
+        The mean feature trajectory of N frames.
+    mean_feature : ndarray of float, shape (N,)
+        The mean feature for each of N microstates.
+    Z : ndarray of float, shape (N-1, 4)
+        The Z matrix defines a lumping and is organized like the
+        Z matrix returned from scipy.cluster.hierarchy.linkage. N is
+        the number of microstates and each row describes a merging of
+        two states in the first step of the MPP algorithm. The first
+        two columns contain the state indices, which are merged. The
+        third column holds the metastability of the less stable state
+        (the state in the first column) and the last column provides
+        the population of the new state, which has index N + i, where i
+        is the row index.
+    reference : Lumping
+        Instance of the Lumping object with reference parameters, that
+        are, the only the transition probability is utilized as
+        similarity metric.
+    macrostate_assignment : list of (ndarray of bool, shape (N, M))
+        Macrostate assignment of the lumpings. N is the number of
+        macrostates and M the number of microstates. Elements, whose
+        indices correspond to an assignment are True, all other
+        elements are False.
+    macrostate_map : list of (ndarray of int, shape (N,))
+        Map arrays of the assignment. The index of the array
+        corresponds to the microstate and the value is the index of the
+        assigned macrostate.
+    macrostate_tmat : list of (ndarray of float, shape (N, N))
+        Transition matrices of the lumpings.
+    macrostate_trajectory : ndarray of int, shape (N, M)
+        Macrostate trajectories. N is the number of runs and M the
+        langhth of the trajectories.
+    n_macrostates : list of int
+        Number of macrostates in each lumping.
+
     Citation
     --------
     tbd
@@ -40,52 +103,69 @@ class Lumping(object):
 
     def __init__(
         self,
-        traj: npt.NDArray[np.int_],
-        tlag: int,
-        feature_traj: npt.NDArray[np.floating] = None,
+        trajectory: npt.NDArray[np.int_],
+        lagtime: int,
+        feature_trajectory: npt.NDArray[np.floating] | None = None,
         contact_threshold: float = 0.45,
-        feature_type: npt.DTypeLike = np.float64,
         pop_thr: float = 0.005,
         q_min: float = 0.5,
-        limits: list[int] = None,
-        quiet: bool = False,
         frame_length: float = 0.2,
+        limits: list[int] | None = None,
+        quiet: bool = False,
     ) -> None:
-        """Initialize a Lumping object
+        """Initialize a Lumping object.
 
         Parameters
         ----------
-            traj : ndarray of int, shape (N,)
-                The microstate trajectory. N is the number of frames.
-            tlag : int
-                Lag time used.
+        trajectory : ndarray of int, shape (N,)
+            The microstate trajectory. N is the number of frames.
+        lagtime : int
+            Lag time used.
+        feature_trajectory : ndarray of float, shape (N, M)
+            A feature trajectory of M features and N frames. For
+            example selected contact distances are passed here. Must
+            be the same as for trajectory. If None, a moch array of
+            ones is created. (default None)
+        contact_threshold : float
+            Distance in feature space below which the interaction is
+            considered positive, e.g. a contact distance below which a
+            contact is considered formed. (default 0.45)
+        pop_thr : float
+            Population threshold for macrostates. (default 0.005)
+        q_min : float
+            Minimum metastability of macrostates. (default 0.5)
+        frame_length : float
+            Length of a frame in ns. (default 0.2)
+        limits : list of int
+            If the trajectory is composed of several independent
+            simulations, this list contains the lengths of the
+            individual trajectories. (default None)
+        quiet : bool
+            Whether to hide progress reports or not. (default False)
         """
-        self.traj = traj
-        self.tlag = tlag
+        self.trajectory = trajectory
+        self.frame_length = frame_length
+        self.lagtime = lagtime
         self.pop_thr = pop_thr
         self.q_min = q_min
         self.limits = limits
-        tmat, states = mh.msm.estimate_markov_model(
-            utils.get_multi_state_traj(self.traj, self.limits),
-            self.tlag,
+        self.tmat, states = mh.msm.estimate_markov_model(
+            utils.get_multi_state_trajectory(self.trajectory, self.limits),
+            self.lagtime,
         )
-        self.tmat = tmat.astype(np.float64)
-        _, self.pop = np.unique(self.traj, return_counts=True)
+        _, self.pop = np.unique(self.trajectory, return_counts=True)
         self.n_states = len(states)
         self.quiet = quiet
-        if feature_traj is not None:
-            self._add_feature(
-                feature_traj,
-                contact_threshold=contact_threshold,
-                feature_type=feature_type,
-            )
+        if feature_trajectory is not None:
+            self.contact_threshold = contact_threshold
+            self._add_feature(feature_trajectory)
         else:
-            self._add_feature(np.ones((traj.shape, 1)))
+            self._add_feature(np.ones((trajectory.shape, 1)))
 
         self.Z = None
         self._timescales = None
         self._linkage = None
-        self._macro_pop = None
+        self._macrostate_population = None
         self._tree = None
         self._shannon_entropy = None
         self._davies_bouldin_index = None
@@ -97,19 +177,62 @@ class Lumping(object):
         self._n_i = None
         self._macro_micro_feature = None
         self.xtc_stride = None
-        self.frame_length = frame_length
         self.plot = Plotter(self)
 
-    def mpt(
+    def _add_feature(
         self,
-        kernel: Callable[
-            [npt.NDArray[float], npt.NDArray[np.int_], npt.NDArray[np.bool_]],
-            [np.int_, np.int_, npt.NDArray[np.bool_]],
-        ] = kernel_module.LumpingKernel(),
-        feature_kernel=None,
+        feature_trajectory: npt.NDArray[np.floating],
+    ):
+        """Add feature data to the instance.
+
+        feature_trajectory : ndarray of float, shape (N, M)
+            A feature trajectory of M features and N frames. For
+            example selected contact distances are passed here. Must
+            be the same as for trajectory.
+        """
+        if feature_trajectory.shape[0] != self.trajectory.shape[0]:
+            raise ValueError(
+                (
+                    "feature_trajectory must have the same length as the microstate "
+                    "trajectory (mpp.trajectory)"
+                )
+            )
+        if feature_trajectory.ndim == 2:
+            self.multi_feature_trajectory = feature_trajectory
+        else:
+            raise ValueError("feature_trajectory must be 2 D")
+
+        self.multi_feature_trajectory_bool = (
+            self.multi_feature_trajectory < self.contact_threshold
+        )
+        self.mean_feature_trajectory = self.multi_feature_trajectory_bool.mean(axis=1)
+        self.mean_feature = np.zeros(self.n_states)
+        for i in range(self.n_states):
+            self.mean_feature[i] = self.mean_feature_trajectory[
+                self.trajectory == i
+            ].mean()
+
+    def run_mpp(
+        self,
+        kernel: kernel_module.LumpingKernel = kernel_module.LumpingKernel(),
+        feature_kernel: kernel_module.FeatureKernel | None = None,
         n: int = 1,
-    ) -> (npt.NDArray[float], npt.NDArray[np.int_]):
-        """Perform MPP"""
+    ) -> None:
+        """Run the MPP algorithm.
+
+        Parameters
+        ----------
+        kernel : LumpingKernel
+            An instance of the LumpingKernel object, which determines
+            the similarity metric employed.
+            (default kernel_module.LumpingKernel())
+        feature_kernel : FeatureKernel
+            An instance of the FeatureKernel object, which determines
+            the similarity metric for the feature. None to disable
+            feature incorporation. (default None)
+        n : int
+            Count of runs for a stochastic lumping kernel. (default 1)
+        """
         self.n_runs = n
         self.kernel = kernel
         self.feature_kernel = feature_kernel
@@ -130,42 +253,15 @@ class Lumping(object):
             )
         self.assign_macrostates()
 
-    def _add_feature(
-        self,
-        feature_traj: npt.NDArray[float],
-        contact_threshold=0.45,
-        feature_type=np.float64,
-    ):
-        """
-        Add feature data to instance
-
-        feature_traj (NDArray(float)): frames x features
-        """
-        if feature_traj.shape[0] != self.traj.shape[0]:
-            raise ValueError(
-                "feature_traj must have the same length as the microstate trajectory (mpp.traj)"
-            )
-        if feature_traj.ndim == 2:
-            self.multi_feature_traj = feature_traj.astype(feature_type)
-        else:
-            raise ValueError("feature_traj must be 2 D")
-
-        self.contact_threshold = contact_threshold
-        self.multi_feature_traj_bool = self.multi_feature_traj < self.contact_threshold
-        self.feature_traj = self.multi_feature_traj_bool.mean(axis=1)
-        self.feature = np.zeros(self.n_states, dtype=feature_type)
-        for i in range(self.n_states):
-            self.feature[i] = self.feature_traj[self.traj == i].mean()
-
-    def assign_macrostates(self, macrotraj_type=np.uint8):
-        """Assign microstates to macrostates and collect associate data"""
+    def assign_macrostates(self):
+        """Assign macrostates and provide macrostate data."""
         self.macrostate_feature = []
         self.macrostate_multi_feature = []
         self.macrostate_assignment = []
-        self.macrostates_map = []
-        self.macro_tmat = []
-        self.macrotraj = np.zeros(
-            (self.n_runs, self.traj.shape[0]), dtype=macrotraj_type
+        self.macrostate_map = []
+        self.macrostate_tmat = []
+        self.macrostate_trajectory = np.zeros(
+            (self.n_runs, self.trajectory.shape[0]), dtype=self.trajectory.dtype.type
         )
         self.n_macrostates = []
 
@@ -180,34 +276,38 @@ class Lumping(object):
             )
 
             # Calculate other macrostate related values
-            self.macrostates_map.append(
-                np.zeros(self.n_states, dtype=self.traj.dtype.type)
+            self.macrostate_map.append(
+                np.zeros(self.n_states, dtype=self.trajectory.dtype.type)
             )
             mas, mis = np.where(self.macrostate_assignment[-1] == 1)
-            self.macrostates_map[-1][mis] = mas
-            self.macro_tmat.append(
-                utils.macro_tmat(self.tmat, self.macrostate_assignment[-1], self.pop)
+            self.macrostate_map[-1][mis] = mas
+            self.macrostate_tmat.append(
+                utils.macrostate_tmat(
+                    self.tmat, self.macrostate_assignment[-1], self.pop
+                )
             )
-            self.macrotraj[n_i] = utils.translate_traj(
-                self.traj, self.macrostates_map[-1]
+            self.macrostate_trajectory[n_i] = utils.translate_trajectory(
+                self.trajectory, self.macrostate_map[-1]
             )
             self.n_macrostates.append(self.macrostate_assignment[-1].shape[0])
             self.macrostate_feature.append(
                 [
-                    self.feature_traj[np.where(self.macrotraj[n_i] == i)].mean()
+                    self.mean_feature_trajectory[
+                        np.where(self.macrostate_trajectory[n_i] == i)
+                    ].mean()
                     for i in np.arange(self.n_macrostates[-1])
                 ]
             )
             self.macrostate_multi_feature.append(
                 [
-                    self.multi_feature_traj_bool[
-                        np.where(self.macrotraj[n_i] == i)
+                    self.multi_feature_trajectory_bool[
+                        np.where(self.macrostate_trajectory[n_i] == i)
                     ].mean(axis=0)
                     for i in np.arange(self.n_macrostates[-1], dtype=int)
                 ]
             )
 
-    def gpcca(self, n_macrostates, macrotraj_type=np.uint8):
+    def gpcca(self, n_macrostates: int | None = None) -> None:
         """Instead of MPP algorithm use GPCCA algorithm for lumping.
 
         Generalized Perron Cluster Cluster Analysis (GPCCA) is used
@@ -219,8 +319,12 @@ class Lumping(object):
         Parameters
         ----------
         n_macrostates : int
-            Number of macrostates
+            Number of macrostates. If None, emplod the same number of
+            macrostates as yielded from the reference lumping.
+            (default None)
         """
+        if n_macrostates is None:
+            n_macrostates = self.reference.n_macrostates[0]
         self.gpcca = gp.GPCCA(self.tmat, method="krylov")
         self.gpcca.optimize(n_macrostates)
 
@@ -228,33 +332,37 @@ class Lumping(object):
         self.n_macrostates = [n_macrostates]
 
         gma = self.gpcca.macrostate_assignment
-        gmt = np.zeros(self.traj.shape, dtype=self.traj.dtype)
+        gmt = np.zeros(self.trajectory.shape, dtype=self.trajectory.dtype)
         gmf = np.empty(self.n_macrostates[0])
         for i in range(self.n_macrostates[0]):
-            gmt[np.where(np.isin(self.traj, np.where(gma == i)[0]))[0]] = i + 1
-            gmf[i] = self.feature_traj[gmt == i + 1].mean()
+            gmt[np.where(np.isin(self.trajectory, np.where(gma == i)[0]))[0]] = i + 1
+            gmf[i] = self.mean_feature_trajectory[gmt == i + 1].mean()
 
         order = np.argsort(gmf)[::-1]
-        new_states = np.empty(self.n_macrostates[0], dtype=macrotraj_type)
-        new_states[order] = np.arange(self.n_macrostates[0], dtype=macrotraj_type)
-        self.macrostates_map = [np.empty(gma.shape, dtype=macrotraj_type)]
+        new_states = np.empty(self.n_macrostates[0], dtype=self.trajectory.dtype.type)
+        new_states[order] = np.arange(
+            self.n_macrostates[0], dtype=self.trajectory.dtype.type
+        )
+        self.macrostate_map = [np.empty(gma.shape, dtype=self.trajectory.dtype.type)]
         for i in range(self.n_macrostates[0]):
-            self.macrostates_map[0][np.where(gma == i)] = new_states[i]
+            self.macrostate_map[0][np.where(gma == i)] = new_states[i]
 
         self.macrostate_assignment = [
-            np.full((self.n_macrostates[0], self.macrostates_map[0].shape[0]), False)
+            np.full((self.n_macrostates[0], self.macrostate_map[0].shape[0]), False)
         ]
         self.macrostate_assignment[0][
-            self.macrostates_map[0],
-            np.arange(self.macrostates_map[0].shape[0], dtype=int),
+            self.macrostate_map[0],
+            np.arange(self.macrostate_map[0].shape[0], dtype=int),
         ] = True
         self.macrostate_feature = [gmf[order]]
-        self.macrotraj = np.empty(
-            (self.n_runs, self.traj.shape[0]), dtype=macrotraj_type
+        self.macrostate_trajectory = np.empty(
+            (self.n_runs, self.trajectory.shape[0]), dtype=self.trajectory.dtype.type
         )
-        self.macrotraj[0] = utils.translate_traj(self.traj, self.macrostates_map[0])
-        self.macro_tmat = [
-            utils.macro_tmat(self.tmat, self.macrostate_assignment[0], self.pop)
+        self.macrostate_trajectory[0] = utils.translate_trajectory(
+            self.trajectory, self.macrostate_map[0]
+        )
+        self.macrostate_tmat = [
+            utils.macrostate_tmat(self.tmat, self.macrostate_assignment[0], self.pop)
         ]
 
         # Create mock Z and mock full_pop for Sankey plot
@@ -266,7 +374,7 @@ class Lumping(object):
         last_merged = self.n_states
         merge = 0
         for macrostate in range(self.n_macrostates[0]):
-            microstates = np.where(self.macrostates_map[0] == macrostate)[0]
+            microstates = np.where(self.macrostate_map[0] == macrostate)[0]
             origin = microstates[0]
             if microstates.shape[0] > 1:
                 for target in microstates[1:]:
@@ -304,21 +412,21 @@ class Lumping(object):
         self.pop_thr = 0
         self.q_min = 0.5
 
-    def save_macrotraj(self, out, one_based=False):
-        """Write macrostate trajectory to a text file"""
+    def save_macrostate_trajectory(self, out, one_based=False):
+        """Write macrostate trajectory to a text file."""
         header = (
             f"# Created by Lumping class\n"
             f"# Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
-            f"# Trajectory contains {self.n_macrostates[self.n_i]} states and {self.macrotraj.shape[1]} frames.\n"
+            f"# Trajectory contains {self.n_macrostates[self.n_i]} states and {self.macrostate_trajectory.shape[1]} frames.\n"
             f"# Trajectory index: {self.n_i}\n"
         )
-        macrotraj = self.macrotraj[self.n_i]
+        macrostate_trajectory = self.macrostate_trajectory[self.n_i]
         if one_based:
-            macrotraj += 1
-        np.savetxt(out, macrotraj, fmt="%.0f", header=header)
+            macrostate_trajectory += 1
+        np.savetxt(out, macrostate_trajectory, fmt="%.0f", header=header)
 
     def save_Z(self, out, n_i="all"):
-        """Save Z matrix"""
+        """Save Z matrix."""
         if not out.endswith(".npy"):
             out += ".npy"
 
@@ -332,7 +440,7 @@ class Lumping(object):
             raise ValueError("n_i must be 'all', Iterable or int.")
 
     def load_Z(self, Z):
-        """Load Z matrix"""
+        """Load Z matrix."""
         if isinstance(Z, np.ndarray):
             self.Z = Z
         elif os.path.exists(Z):
@@ -343,11 +451,11 @@ class Lumping(object):
         self.n_runs = self.Z.shape[0]
         # n: number of macrostates
         tmat, states = mh.msm.estimate_markov_model(
-            utils.get_multi_state_traj(self.traj, self.limits),
-            self.tlag,
+            utils.get_multi_state_trajectory(self.trajectory, self.limits),
+            self.lagtime,
         )
         self.tmat = tmat.astype(float)
-        _, self.pop = np.unique(self.traj, return_counts=True)
+        _, self.pop = np.unique(self.trajectory, return_counts=True)
         self.n_states = len(states)
         self.full_pop = np.zeros((self.n_runs, 2 * self.n_states - 1), dtype=np.uint32)
         self.full_pop[:, : self.n_states] = self.pop
@@ -356,28 +464,43 @@ class Lumping(object):
         self.assign_macrostates()
 
     def save_rmsd(self, out):
+        """Save RMSD of states to numpy file."""
         np.save(out, self.rmsd)
 
     def load_rmsd(self, f_name):
+        """Save RMSD of states from numpy file."""
         self._rmsd = np.load(f_name)
 
-    def draw_random_frames_indices(self, out=None, n=20):
-        """
-        Draw n random frames for each macrostate
+    def draw_random_frames_indices(
+        self, out: Path | None = None, n: int = 20
+    ) -> npt.NDArray[np.int_] | None:
+        """Draw n random frame indices for each macrostate.
 
-        out (str): Path to directory where to save the .random[n] files
-        n (int): number of frames to draw randomly
+        Parameters
+        ----------
+        out : Path, optional
+            Directory where to save the .ndx files. If None, return
+            indices instead of being saved. (default None)
+        n : int
+            Number of random frame indices to draw. (default 20)
+
+        Returns
+        -------
+        ndarray of int, shape (N,) or None
+            N random frame indices if out is None, otherwise retutrns
+            None.
         """
         drawn_frames = np.empty((self.n_macrostates[self.n_i], n), dtype=int)
         for state in np.arange(self.n_macrostates[self.n_i]):
-            frames_in_state = np.where(self.macrotraj[self.n_i] == state)[0]
+            frames_in_state = np.where(self.macrostate_trajectory[self.n_i] == state)[0]
             drawn_frames[state] = np.random.choice(
                 frames_in_state, size=n, replace=False
             )
         if self.xtc_stride is not None:
             drawn_frames *= self.xtc_stride
-        if out:
-            Path(os.path.join(out)).mkdir(parents=True, exist_ok=True)
+        if out is not None:
+            # Path(os.path.join(out)).mkdir(parents=True, exist_ok=True)
+            out.mkdir(parents=True, exist_ok=True)
             for s, i in enumerate(drawn_frames):
                 np.savetxt(
                     os.path.join(out, f"{s + 1:02d}.ndx"),
@@ -388,15 +511,18 @@ class Lumping(object):
         else:
             return drawn_frames
 
-    def draw_random_frames(self, out, n=20):
-        """
-        Draw n random frames for each macrostate
+    def draw_random_frames(self, out: Path, n: int = 20) -> None:
+        """Draw n random frames per macrostate and write pdb files.
 
-        out (str): Path to directory where to save the pdb files
-        n (int): number of frames to draw randomly
+        Parameters
+        ----------
+        out : Path
+            Directory where to save the .pdb files.
+        n : int
+            Number of random frame indices to draw. (default 20)
         """
         for state in np.arange(self.n_macrostates[self.n_i]):
-            frames_in_state = np.where(self.macrotraj[self.n_i] == state)[0]
+            frames_in_state = np.where(self.macrostate_trajectory[self.n_i] == state)[0]
             drawn_frames = np.random.choice(frames_in_state, size=n, replace=False)
             for i, frame in enumerate(drawn_frames):
                 f = md.load_xtc(
@@ -406,13 +532,32 @@ class Lumping(object):
                 )
                 f.save_pdb(os.path.join(out, f"S{state}_{i:02d}.pdb"))
 
-    def get_best_defined_contacts(self, n=3):
-        """Calculate the variance for each contact in each macrostate."""
+    def get_best_defined_contacts(self, n: int = 3) -> npt.NDArray[np.int_]:
+        """Return the feature indices with the least variance.
+
+        Calculate the variance for each feature for each macrostete for
+        lumping n_i and return the indices for features with the least
+        variance.
+
+        Parameters
+        ----------
+        n : int
+            Number of features to return.
+
+        Returns
+        -------
+        ndarray of int, shape (N, M)
+            Indices of least varying features. N is the number of
+            macrostates and M is the number of features required
+            (parameter n).
+        """
         contacts = np.zeros((self.n_macrostates[self.n_i], n), dtype=int)
         for i in range(self.n_macrostates[self.n_i]):
             contacts[i] = np.argsort(
                 np.var(
-                    self.multi_feature_traj[self.macrotraj[self.n_i] == i],
+                    self.multi_feature_trajectory[
+                        self.macrostate_trajectory[self.n_i] == i
+                    ],
                     axis=0,
                 )
             )[:n]
@@ -467,16 +612,16 @@ class Lumping(object):
         if self._reference is None:
             k = kernel_module.LumpingKernel()
             self._reference = Lumping(
-                self.traj,
-                self.tlag,
-                self.multi_feature_traj,
+                self.trajectory,
+                self.lagtime,
+                self.multi_feature_trajectory,
                 contact_threshold=self.contact_threshold,
                 pop_thr=self.pop_thr,
                 q_min=self.q_min,
                 limits=self.limits,
                 quiet=True,
             )
-            self._reference.mpt(k)
+            self._reference.run_mpp(k)
         return self._reference
 
     @property
@@ -509,10 +654,10 @@ class Lumping(object):
     def calc_timescales(self, ntimescales=3, dtype=np.float32):
         """Calculate implied timescales"""
         self._timescales = np.zeros((self.n_runs, ntimescales), dtype=dtype)
-        for i, traj in enumerate(self.macrotraj):
+        for i, trajectory in enumerate(self.macrostate_trajectory):
             self._timescales[i, :] = mh.msm.implied_timescales(
-                utils.get_multi_state_traj(traj, self.limits),
-                [self.tlag],
+                utils.get_multi_state_trajectory(trajectory, self.limits),
+                [self.lagtime],
                 ntimescales=ntimescales,
             )[0]
 
@@ -524,19 +669,19 @@ class Lumping(object):
         return self._linkage
 
     @property
-    def macro_pop(self):
-        """The macro_pop property."""
-        if self._macro_pop is None:
-            self._macro_pop = []
+    def macrostate_population(self):
+        """The macrostate_population property."""
+        if self._macrostate_population is None:
+            self._macrostate_population = []
             for j, ma in enumerate(self.macrostate_assignment):
-                self._macro_pop.append(
+                self._macrostate_population.append(
                     np.zeros(ma.shape[0], dtype=self.full_pop.dtype.type)
                 )
                 for i, m in enumerate(ma):
-                    self._macro_pop[-1][i] = self.full_pop[j, : self.n_states][
-                        m.astype(bool)
-                    ].sum()
-        return self._macro_pop
+                    self._macrostate_population[-1][i] = self.full_pop[
+                        j, : self.n_states
+                    ][m.astype(bool)].sum()
+        return self._macrostate_population
 
     @property
     def rmsd(self):
@@ -547,15 +692,15 @@ class Lumping(object):
 
     def rmsd_sharpness(self):
         return (
-            self.rmsd.mean(axis=1) * self.macro_pop[self.n_i]
-        ).sum() / self.macro_pop[self.n_i].sum()
+            self.rmsd.mean(axis=1) * self.macrostate_population[self.n_i]
+        ).sum() / self.macrostate_population[self.n_i].sum()
 
     @property
     def shannon_entropy(self):
         """The shannon_entropy property."""
         if self._shannon_entropy is None:
             self._shannon_entropy = np.zeros(self.n_runs)
-            for i, pop in enumerate(self.macro_pop):
+            for i, pop in enumerate(self.macrostate_population):
                 self._shannon_entropy[i] = utils.shannon_entropy(pop)
         return self._shannon_entropy
 
@@ -566,7 +711,7 @@ class Lumping(object):
             self._davies_bouldin_index = np.zeros(self.n_runs)
             for i in range(self.n_runs):
                 self._davies_bouldin_index[i] = davies_bouldin_score(
-                    self.multi_feature_traj, self.macrotraj[i]
+                    self.multi_feature_trajectory, self.macrostate_trajectory[i]
                 )
         return self._davies_bouldin_index
 
@@ -574,7 +719,7 @@ class Lumping(object):
     def gmrq(self):
         """The gmrq property."""
         if self._gmrq is None:
-            self._gmrq = utils.gmrq(self.macro_tmat)
+            self._gmrq = utils.gmrq(self.macrostate_tmat)
         return self._gmrq
 
     @property
@@ -582,7 +727,8 @@ class Lumping(object):
         """Assign macrostate feature values to corresponding microstates"""
         if self._macro_micro_feature is None:
             self._macro_micro_feature = np.zeros(
-                (self.n_states, self.n_runs), dtype=self.feature_traj.dtype.type
+                (self.n_states, self.n_runs),
+                dtype=self.mean_feature_trajectory.dtype.type,
             )
             for i, (ma, mf) in enumerate(
                 zip(self.macrostate_assignment, self.macrostate_feature)
@@ -635,28 +781,28 @@ class Lumping(object):
             nodes[n + i].left = nodes[state]
             nodes[n + i].right = nodes[target_state]
         for node in nodes[n + i].leaves:
-            node.feature = self.feature[node.name]
+            node.feature = self.mean_feature[node.name]
         return nodes[n + i]
 
     @property
-    def traj(self):
+    def trajectory(self):
         """The microstate trajectory - 0-based."""
-        return self._traj
+        return self._trajectory
 
-    @traj.setter
-    def traj(self, value):
+    @trajectory.setter
+    def trajectory(self, value):
         if value.min() == 1:
             value -= 1
             warnings.warn("1-based trajectory was shifted to 0-based.")
         if np.unique(value).shape[0] > value.max() + 1:
             raise ValueError("The state numbering in the trajectory is not continuous")
         if value.max() < 2**7:
-            traj_type = np.uint8
+            trajectory_type = np.uint8
         elif value.max() < 2**15:
-            traj_type = np.uint16
+            trajectory_type = np.uint16
         else:
-            traj_type = np.uint32
-        self._traj = value.astype(traj_type)
+            trajectory_type = np.uint32
+        self._trajectory = value.astype(trajectory_type)
 
     @property
     def topology_file(self):
@@ -717,18 +863,18 @@ class Plotter:
         scale: scaling factor for plot
         """
         if use_ref:
-            ref_traj = self._obj.reference.macrotraj[0]
+            ref_trajectory = self._obj.reference.macrostate_trajectory[0]
         else:
-            ref_traj = self._obj.traj
+            ref_trajectory = self._obj.trajectory
 
-        macrotraj = utils.get_multi_state_traj(
-            self._obj.macrotraj[self._obj.n_i], self._obj.limits
+        macrostate_trajectory = utils.get_multi_state_trajectory(
+            self._obj.macrostate_trajectory[self._obj.n_i], self._obj.limits
         )
 
-        dtlag = max(1, int(1 / self._obj.frame_length))
+        dlagtime = max(1, int(1 / self._obj.frame_length))
         plot.implied_timescales(
-            [ref_traj, macrotraj],
-            np.arange(1, 4.5 * self._obj.tlag + dtlag, dtlag, dtype=int),
+            [ref_trajectory, macrostate_trajectory],
+            np.arange(1, 4.5 * self._obj.lagtime + dlagtime, dlagtime, dtype=int),
             out,
             frame_length=self._obj.frame_length,
             first_ref=True,
@@ -758,18 +904,20 @@ class Plotter:
         )
 
     def rmsd(self, out, helices=None):
-        plot.rmsd(self._obj.rmsd, self._obj.macro_pop[self._obj.n_i], helices, out)
+        plot.rmsd(
+            self._obj.rmsd, self._obj.macrostate_population[self._obj.n_i], helices, out
+        )
 
     def delta_rmsd(self, out, helices=None):
         plot.delta_rmsd(
-            self._obj.rmsd, self._obj.macro_pop[self._obj.n_i], helices, out
+            self._obj.rmsd, self._obj.macrostate_population[self._obj.n_i], helices, out
         )
 
     def contact_rep(self, cluster_file, out, scale=1):
         plot.contact_rep(
-            self._obj.multi_feature_traj,
+            self._obj.multi_feature_trajectory,
             cluster_file,
-            self._obj.macrotraj[self._obj.n_i],
+            self._obj.macrostate_trajectory[self._obj.n_i],
             out,
             utils.get_grid_format(self._obj.n_macrostates[self._obj.n_i]),
             scale=scale,
@@ -788,21 +936,21 @@ class Plotter:
         plot.stochastic_state_similarity(self._obj, self._obj.reference, out)
 
     def transition_matrix(self, out):
-        plot.transition_matrix(self._obj.macro_tmat[self._obj.n_i], out)
+        plot.transition_matrix(self._obj.macrostate_tmat[self._obj.n_i], out)
 
     def transition_time(self, out):
         plot.transition_time(
-            self._obj.macro_tmat[self._obj.n_i],
+            self._obj.macrostate_tmat[self._obj.n_i],
             out,
-            tlag=self._obj.tlag,
+            lagtime=self._obj.lagtime,
             frame_length=self._obj.frame_length,
         )
 
     def graph(self, out, u=0, f=0):
         draw_knetwork(
-            self._obj.macrotraj[self._obj.n_i],
-            self._obj.tlag,
-            self._obj.feature_traj,
+            self._obj.macrostate_trajectory[self._obj.n_i],
+            self._obj.lagtime,
+            self._obj.mean_feature_trajectory,
             out,
             u=u,
             f=f,
@@ -811,9 +959,9 @@ class Plotter:
     def sankey(self, out, ax=None, scale=1):
         plot.sankey_diagram(self._obj, self._obj.reference, out, ax=ax, scale=scale)
 
-    def macrotraj(self, out, row_length=0.2):
+    def macrostate_trajectory(self, out, row_length=0.2):
         plot.state_trajectory(
-            self._obj.macrotraj[self._obj.n_i],
+            self._obj.macrostate_trajectory[self._obj.n_i],
             out,
             row_length=row_length,
             frame_length=self._obj.frame_length,

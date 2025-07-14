@@ -16,10 +16,10 @@ class Data:
 
         self.source = self.d["source"]
 
-        self.microtraj = np.loadtxt(
+        self.microstate_trajectory = np.loadtxt(
             os.path.join(self.source, self.d["microstate trajectory"]), dtype=np.uint16
         )
-        self.mtraj_raw = np.loadtxt(
+        self.multi_state_trajectory_raw = np.loadtxt(
             os.path.join(
                 self.source,
                 self.d["multi feature trajectory"],
@@ -33,8 +33,8 @@ class Data:
                 dtype=np.int_,
             )
         )
-        self.mfeature_traj = self.mtraj_raw < 0.45
-        self.feature_traj = self.mfeature_traj.mean(axis=1)
+        self.multi_feature_trajectory = self.multi_state_trajectory_raw < 0.45
+        self.feature_trajectory = self.multi_feature_trajectory.mean(axis=1)
         self.cluster = os.path.join(self.source, self.d["cluster file"])
 
         if "topology file" in self.d:
@@ -53,7 +53,7 @@ class Data:
             self.helices = None
 
         self.frame_length = self.d["frame length"]
-        self.tlag = self.d["tlag"]
+        self.lagtime = self.d["lagtime"]
         self.pop_thr = self.d["pop_thr"]
         self.q_min = self.d["q_min"]
 
@@ -81,8 +81,8 @@ class Data:
             feature_kernel = None
         elif gij == "JS":
             feature_kernel = MPP.kernel.FeatureKernel(
-                self.mfeature_traj,
-                self.microtraj,
+                self.multi_feature_trajectory,
+                self.microstate_trajectory,
             )
         else:
             raise ValueError("feature kernel must be None, q or JS.")
@@ -97,9 +97,9 @@ class Data:
         if dij != "gpcca":
             self.prepare_mpp(dij, gij)
         self.mpp = MPP.Lumping(
-            self.microtraj,
-            self.tlag,
-            self.mtraj_raw,
+            self.microstate_trajectory,
+            self.lagtime,
+            self.multi_state_trajectory_raw,
             contact_threshold=0.45,
             pop_thr=self.pop_thr,
             q_min=self.q_min,
@@ -120,7 +120,7 @@ class Data:
             self.mpp.load_Z(out)
         else:
             Path(os.path.dirname(out)).mkdir(parents=True, exist_ok=True)
-            self.mpp.mpt(
+            self.mpp.run_mpp(
                 self.kernel,
                 feature_kernel=self.feature_kernel,
                 n=self.d["stochastic"]["n"] if "stochastic" in self.d else 1,
@@ -151,7 +151,7 @@ class Data:
 
 def plot(data, out, kind="dendrogram", scale=1):
     """
-    kind: dendrogram, timescales, sankey, contacts, macrotraj, ck_test, rmsd
+    kind: dendrogram, timescales, sankey, contacts, macrostate_trajectory, ck_test, rmsd
     """
     if kind == "dendrogram":
         print("Plotting dendrogram")
@@ -165,13 +165,13 @@ def plot(data, out, kind="dendrogram", scale=1):
     elif kind == "contacts":
         data.mpp.plot.contact_rep(data.cluster, out, scale=scale)
     elif kind == "macrotraj":
-        # traj_length = data.microtraj.shape[0]
+        # trajectory_length = data.microstate_trajectory.shape[0]
         # n_macrostates = data.mpp.n_macrostates[0]
-        # row_length = 1 / int(np.round(np.sqrt(traj_length) / (np.sqrt(n_macrostates) * 30)))
+        # row_length = 1 / int(np.round(np.sqrt(trajectory_length) / (np.sqrt(n_macrostates) * 30)))
         row_length = 1 / 6
         if data.limits is not None:
             row_length = 1 / len(data.limits)
-        data.mpp.plot.macrotraj(out, row_length=row_length)
+        data.mpp.plot.macrostate_trajectory(out, row_length=row_length)
     elif kind == "ck_test":
         data.mpp.plot.ck_test(out)
     elif kind == "rmsd":
@@ -198,23 +198,23 @@ def plot(data, out, kind="dendrogram", scale=1):
         raise ValueError(f"Unknown plot kind: {kind}")
 
 
-def draw_random_frames(mpt, data):
-    if mpt.Z is None:
-        mpt.load_Z(os.path.join(data.lumping_dir, "Z.npy"))
+def draw_random_frames(mpp, data):
+    if mpp.Z is None:
+        mpp.load_Z(os.path.join(data.lumping_dir, "Z.npy"))
     Path(os.path.join(data.lumping_dir + "random_frames/")).mkdir(
         parents=True, exist_ok=True
     )
-    mpt.topology_file = data.top
-    mpt.xtc_trajectory_file = data.xtc
-    mpt.draw_random_frames(
+    mpp.topology_file = data.top
+    mpp.xtc_trajectory_file = data.xtc
+    mpp.draw_random_frames(
         os.path.join(data.lumping_dir + "random_frames/"), n=data.n_random_frames
     )
-    return mpt
+    return mpp
 
 
-def write_random_frames_indices(mpt, out, n):
+def write_random_frames_indices(mpp, out, n):
     Path(os.path.join(out)).mkdir(parents=True, exist_ok=True)
-    mpt.draw_random_frames_indices(out, n)
+    mpp.draw_random_frames_indices(out, n)
 
 
 def parse_args():
@@ -263,7 +263,7 @@ def parse_args():
     parser.add_argument(
         "-p",
         "--plot",
-        help="Generate listed plots. Possible arguments include dendrogram, contacts, sankey, rmsd, macrotraj, timescales and more. (not yet implemented)",
+        help="Generate listed plots. Possible arguments include dendrogram, contacts, sankey, rmsd, macrostate_trajectory, timescales and more. (not yet implemented)",
     )
     parser.add_argument(
         "--get-least-moving-residues",

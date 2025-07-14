@@ -133,49 +133,46 @@ class LumpingKernel(object):
         return "<class LumpingKernel>"
 
 
-### FEATURE KERNEL ###########################################################
-
-
 # TODO:
 # Remove similarity entirely from feature kernel
 class FeatureKernel(object):
     def __init__(
         self,
-        feature_traj,
-        microstate_traj,
+        feature_trajectory,
+        microstate_trajectory,
         feature_type=np.float64,
-        traj_type=np.uint16,
+        trajectory_type=np.uint16,
         similarity="JS",
     ):
         """
-        feature_traj: either N or NxM, N being the number of frames and M the
+        feature_trajectory: either N or NxM, N being the number of frames and M the
                 number of features
         """
-        if feature_traj.ndim == 2:
-            self.feature_traj = feature_traj.astype(feature_type)
+        if feature_trajectory.ndim == 2:
+            self.feature_trajectory = feature_trajectory.astype(feature_type)
         else:
-            raise ValueError("featuretraj must be a 2 D array.")
+            raise ValueError("featuretrajectory must be a 2 D array.")
 
-        self._init_feature(microstate_traj.astype(traj_type))
+        self._init_feature(microstate_trajectory.astype(trajectory_type))
 
     def __repr__(self):
         return "<class FeatureKernel>"
 
-    def _init_feature(self, microstate_traj):
-        states, pop = np.unique(microstate_traj, return_counts=True)
+    def _init_feature(self, microstate_trajectory):
+        states, pop = np.unique(microstate_trajectory, return_counts=True)
         self.n_states = states.shape[0]
         # Populations for all states incl intermediate states
         self.full_pop = np.zeros(2 * self.n_states - 1, dtype=np.uint32)
         self.full_pop[: self.n_states] = pop
         # corresponding feature values
         self.full_feature = np.zeros(
-            (2 * self.n_states - 1, self.feature_traj.shape[1]),
-            dtype=self.feature_traj.dtype.type,
+            (2 * self.n_states - 1, self.feature_trajectory.shape[1]),
+            dtype=self.feature_trajectory.dtype.type,
         )
         for i in range(self.n_states):
-            self.full_feature[i] = self.feature_traj[microstate_traj == i + 1].mean(
-                axis=0
-            )
+            self.full_feature[i] = self.feature_trajectory[
+                microstate_trajectory == i + 1
+            ].mean(axis=0)
 
     def reset(self):
         self.full_pop[self.n_states :] = 0
@@ -214,7 +211,7 @@ class FeatureKernel(object):
         full_dim = 2 * self.n_states - 1
 
         self.n_full_feature = np.empty(
-            (Z.shape[0], full_dim, self.feature_traj.shape[1])
+            (Z.shape[0], full_dim, self.feature_trajectory.shape[1])
         )
         self.n_full_feature[:, : self.n_states] = self.full_feature[: self.n_states]
         for run, z in enumerate(Z):

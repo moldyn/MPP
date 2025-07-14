@@ -166,7 +166,7 @@ def stochastic_state_similarity(mpt1, mpt2, out):
 
 
 def implied_timescales(
-    trajs,
+    trajectorys,
     lagtimes,
     out,
     titles="",
@@ -180,8 +180,8 @@ def implied_timescales(
     frame_length in ns / frame
     """
     if first_ref:
-        ref_traj = trajs.pop(0)
-    x, y = utils.get_grid_format(len(trajs))
+        ref_trajectory = trajectorys.pop(0)
+    x, y = utils.get_grid_format(len(trajectorys))
     pplt.use_style(
         figsize=(3.8 * scale, 3.2 * scale), latex=False, colors="pastel_autumn"
     )
@@ -193,22 +193,24 @@ def implied_timescales(
     if titles != "":
         titles = titles
     else:
-        titles = [""] * len(trajs)
+        titles = [""] * len(trajectorys)
 
     min_it = None
     max_it = None
 
     if first_ref:
-        it_ref = mh.msm.implied_timescales(ref_traj, lagtimes, ntimescales=ntimescales)
+        it_ref = mh.msm.implied_timescales(
+            ref_trajectory, lagtimes, ntimescales=ntimescales
+        )
         # change from frames to ns
         it_ref *= frame_length
         min_it = it_ref.min()
         max_it = it_ref.max()
 
-    tlag = lagtimes[-1] / 4.5 * frame_length
+    lagtime = lagtimes[-1] / 4.5 * frame_length
     lagtimes_ns = lagtimes * frame_length
-    for ax, traj, title in zip(axs.flatten(), trajs, titles):
-        ax.axvline(tlag, color="pplt:grid")
+    for ax, traj, title in zip(axs.flatten(), trajectorys, titles):
+        ax.axvline(lagtime, color="pplt:grid")
         it = mh.msm.implied_timescales(traj, lagtimes, ntimescales=ntimescales)
         # change from frames to ns
         it *= frame_length
@@ -452,7 +454,7 @@ def transition_matrix(a, out, title="Transition Matrix", color_thr=0.01):
 def transition_time(
     a,
     out,
-    tlag=50.0,
+    lagtime=50.0,
     frame_length=0.2,
     title=r"Transition Times $\frac{t_\mathrm{lag}}{P}$",
     color_thr=0.01,
@@ -463,7 +465,7 @@ def transition_time(
     frame_length in ns
     """
     with np.errstate(divide="ignore"):
-        a = tlag / a * frame_length
+        a = lagtime / a * frame_length
 
     # Define the colormap for the diagonal elements (logarithmic Reds)
     diagonal_values = np.diag(a)
@@ -649,7 +651,7 @@ def add_ref(
 ### CONTACT REPRESENTATION ###################################################
 
 
-def contact_rep(contacts, cluster_file, state_traj, output, grid, scale=1):
+def contact_rep(contacts, cluster_file, state_trajectory, output, grid, scale=1):
     """
     Adapted from msmhelper.
 
@@ -672,7 +674,7 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid, scale=1):
     )
 
     # load files
-    states = np.unique(state_traj)
+    states = np.unique(state_trajectory)
     clusters = load_clusters(cluster_file)
 
     contact_idxs = np.hstack(clusters)
@@ -705,7 +707,7 @@ def contact_rep(contacts, cluster_file, state_traj, output, grid, scale=1):
 
         # ignore outliers
         for state, ax in zip(chunk, axs.flatten()):
-            contacts_state = contacts[state_traj == state]
+            contacts_state = contacts[state_trajectory == state]
             pop_state = len(contacts_state) / n_frames
 
             # get colormap
@@ -806,8 +808,8 @@ def sankey_diagram(cl, ref, out, ax=None, scale=1):
     if ax is None:
         pplt.use_style(figsize=(1.7 * scale, 3.6 * scale), true_black=True)
     sankey(
-        left=(cl.macrostates_map[cl.n_i] + 1).astype(str),
-        right=(ref.macrostates_map[0] + 1).astype(str),
+        left=(cl.macrostate_map[cl.n_i] + 1).astype(str),
+        right=(ref.macrostate_map[0] + 1).astype(str),
         leftWeight=ref.pop,
         rightWeight=ref.pop,
         leftLabels=np.arange(1, cl.n_macrostates[cl.n_i] + 1).astype(str).tolist(),
@@ -1290,7 +1292,9 @@ def state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2):
 def chapman_kolmogorov(mpt, out, frame_length=0.2):
     """Chapman-Kolmogorov Test. Frame length in ns"""
     ck = mh.msm.tests.chapman_kolmogorov_test(
-        utils.get_multi_state_traj(mpt.macrotraj[mpt.n_i], mpt.limits),
+        utils.get_multi_state_trajectory(
+            mpt.macrostate_trajectory[mpt.n_i], mpt.limits
+        ),
         [50, 50, 50, 50, 50],
         4000,
         # int(1550*frame_length),
@@ -1467,5 +1471,8 @@ def plot_ck_test(
 
 def state_network(lumping, out):
     draw_knetwork(
-        lumping.macrotraj[lumping.n_i], lumping.tlag, lumping.feature_traj, out
+        lumping.macrostate_trajectory[lumping.n_i],
+        lumping.lagtime,
+        lumping.mean_feature_trajectory,
+        out,
     )

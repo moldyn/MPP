@@ -11,11 +11,13 @@ import mdtraj as md
 from tqdm import tqdm
 
 
-def translate_traj(traj: NDArray[np.int_], map: NDArray[np.int_]) -> NDArray[np.int_]:
+def translate_trajectory(
+    trajectory: NDArray[np.int_], map: NDArray[np.int_]
+) -> NDArray[np.int_]:
     """
     Transform trajectory to other state names.
 
-    traj (NDArray[np.int_]): original state trajectory
+    trajectory (NDArray[np.int_]): original state trajectory
     map (NDArray[np.int_]): index is original state, value at that position is
             new value
 
@@ -23,19 +25,21 @@ def translate_traj(traj: NDArray[np.int_], map: NDArray[np.int_]) -> NDArray[np.
     """
     macrostates = np.unique(map)
     if map.max() < 2**8:
-        macrotraj_type = np.uint8
+        macrostate_trajectory_type = np.uint8
     elif map.max() < 2**16:
-        macrotraj_type = np.uint16
+        macrostate_trajectory_type = np.uint16
     else:
-        macrotraj_type = np.uint32
+        macrostate_trajectory_type = np.uint32
 
-    macrotraj = np.zeros(traj.shape, dtype=macrotraj_type)
+    macrostate_trajectory = np.zeros(trajectory.shape, dtype=macrostate_trajectory_type)
     for macrostate in macrostates:
-        macrotraj[np.isin(traj, np.where(map == macrostate)[0])] = macrostate
-    return macrotraj
+        macrostate_trajectory[np.isin(trajectory, np.where(map == macrostate)[0])] = (
+            macrostate
+        )
+    return macrostate_trajectory
 
 
-def macro_tmat(tmat, macrostate_assignment, pop):
+def macrostate_tmat(tmat, macrostate_assignment, pop):
     """
     transform a transition matrix from microstates to macrostates
     """
@@ -68,12 +72,12 @@ def gmrq(tmat):
 
 
 def Z_to_linkage(Z):
-    l = Z[:, :3].copy()
-    for i, row in enumerate(l):
-        mask = np.where(l[:, :2] == i + Z.shape[0] + 1)
-        l[:, :2][mask] = row[1]
-    l[:, :2] += 1
-    return l
+    linkage = Z[:, :3].copy()
+    for i, row in enumerate(linkage):
+        mask = np.where(linkage[:, :2] == i + Z.shape[0] + 1)
+        linkage[:, :2][mask] = row[1]
+    linkage[:, :2] += 1
+    return linkage
 
 
 def linkage_to_Z(linkage, pop):
@@ -85,7 +89,7 @@ def linkage_to_Z(linkage, pop):
 
     full_pop = np.zeros(2 * n_states - 1, dtype=pop.dtype.type)
     full_pop[:n_states] = pop
-    for i, l in enumerate(linkage[:-1]):
+    for i in range(len(linkage[:-1])):
         new_state = n_states + i
         old_state = Z[i, 1]
         full_pop[new_state] = full_pop[[Z[i, 0].astype(int), int(old_state)]].sum()
@@ -220,18 +224,23 @@ def weighting_function(dq):
 ### RMSD #####################################################################
 
 
-def load_traj(topfile, trajfile, atom_selection="all", frames=None, stride=None):
+def load_trajectory(
+    topfile, trajectoryfile, atom_selection="all", frames=None, stride=None
+):
     print("Loading trajectory...")
     top = md.load_topology(topfile)
     if frames is None:
         return md.load_xtc(
-            trajfile, top=top, atom_indices=top.select(atom_selection), stride=stride
+            trajectoryfile,
+            top=top,
+            atom_indices=top.select(atom_selection),
+            stride=stride,
         )
     else:
         return md.join(
             [
                 md.load_xtc(
-                    trajfile,
+                    trajectoryfile,
                     top=top,
                     atom_indices=top.select(atom_selection),
                     frame=frame,
@@ -241,22 +250,24 @@ def load_traj(topfile, trajfile, atom_selection="all", frames=None, stride=None)
         )
 
 
-def load_mean_frames(topfile, trajfile, mean_frames, dt=0.1):
+def load_mean_frames(topfile, trajectoryfile, mean_frames, dt=0.1):
     top = md.load_topology(topfile)
     idxs = [int(frame.time[0]) / dt for frame in mean_frames]
-    traj = md.join([md.load_xtc(trajfile, top=top, frame=frame) for frame in idxs])
-    return traj
+    trajectory = md.join(
+        [md.load_xtc(trajectoryfile, top=top, frame=frame) for frame in idxs]
+    )
+    return trajectory
 
 
-def find_mean_frame(traj):
-    mean_rmsd = np.array([estimate_rmsd(frame, traj) for frame in traj])
-    mean_frame = traj[np.argmin(mean_rmsd)]
+def find_mean_frame(trajectory):
+    mean_rmsd = np.array([estimate_rmsd(frame, trajectory) for frame in trajectory])
+    mean_frame = trajectory[np.argmin(mean_rmsd)]
     return mean_frame
 
 
-def estimate_rmsd(frame, traj):
+def estimate_rmsd(frame, trajectory):
     rmsd = md.rmsd(
-        traj,
+        trajectory,
         frame,
     )
     return np.mean(rmsd)
@@ -320,9 +331,9 @@ def align_trajectory_to_reference(trajectory, reference):
     return aligned_trajectory
 
 
-def calc_var(ref, traj):
+def calc_var(ref, trajectory):
     """Calculate RMSD"""
-    aligned_trajectory = align_trajectory_to_reference(traj, ref)
+    aligned_trajectory = align_trajectory_to_reference(trajectory, ref)
     d = ((aligned_trajectory - ref) ** 2).sum(axis=2)
     return d.mean(axis=0)
 
@@ -331,22 +342,22 @@ def opt_num_batches(n):
     return int(np.cbrt(n**2 / 2))
 
 
-def calc_rmsd(mpt, quiet=False):
-    t = load_traj(
-        mpt.topology_file,
-        mpt.xtc_trajectory_file,
+def calc_rmsd(lumping, quiet=False):
+    t = load_trajectory(
+        lumping.topology_file,
+        lumping.xtc_trajectory_file,
         atom_selection="name CA",
-        stride=mpt.xtc_stride,
+        stride=lumping.xtc_stride,
     )
     mean_frames = []
-    rmsd = np.empty([mpt.n_macrostates[mpt.n_i], t.n_atoms])
-    for j in range(mpt.n_macrostates[mpt.n_i]):
+    rmsd = np.empty([lumping.n_macrostates[lumping.n_i], t.n_atoms])
+    for j in range(lumping.n_macrostates[lumping.n_i]):
         if not quiet:
             print(f"Process macrostate {j}")
-        m = mpt.macrotraj[mpt.n_i] == j
+        m = lumping.macrostate_trajectory[lumping.n_i] == j
         tm = t[m]
         m_frames = []
-        n_batches = opt_num_batches(mpt.macro_pop[mpt.n_i][j])
+        n_batches = opt_num_batches(lumping.macrostate_population[lumping.n_i][j])
         for i in tqdm(range(n_batches)) if not quiet else range(n_batches):
             m_frames.append(find_mean_frame(tm[i::n_batches]))
         mean_frames.append(find_mean_frame(md.join(m_frames)))
@@ -383,17 +394,15 @@ def find_state_lengths(arr):
     return np.array(unique_states), np.array(lengths)
 
 
-def get_multi_state_traj(trajs: np.ndarray, limits: np.ndarray):
+def get_multi_state_trajectory(trajectories: np.ndarray, limits: np.ndarray):
     """Load trajectory containing several concatenated trajectories"""
     if limits is None:
-        return trajs
-    trajectories = []
+        return trajectories
+    trajectory_collection = []
     current_position = 0
     for limit in limits:
-        trajectories.append(trajs[current_position : int(current_position + limit)])
+        trajectory_collection.append(
+            trajectories[current_position : int(current_position + limit)]
+        )
         current_position += limit
-    return trajectories
-
-
-def fnc_from_multi_feature_traj(multi_feature_traj):
-    return (multi_feature_traj <= 0.45).mean(axis=1)
+    return trajectory_collection
