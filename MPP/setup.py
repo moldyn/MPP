@@ -1,9 +1,9 @@
-from MPT import __version__
+from MPP import __version__
 
 from setuptools import setup, find_packages
 
 setup(
-    name="MPT",  # Module name
+    name="MPP",  # Module name
     version=__version__,
     packages=find_packages(),  # Automatically find and include all packages
     install_requires=[  # List of dependencies for your module

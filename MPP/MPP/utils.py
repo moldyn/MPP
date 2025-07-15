@@ -200,7 +200,7 @@ def similarity(ref, sto):
                     S[1, i, n_i],
                     intersect / (ref_ma[i] * ref.full_pop[0, : ref.n_states]).sum(),
                 )
-                # clustering
+                # lumping
                 S[2, i, n_i] = max(
                     S[2, i, n_i],
                     intersect / (sto_ma[j] * ref.full_pop[0, : ref.n_states]).sum(),

@@ -4,3 +4,4 @@ from . import utils
 from . import plot
 
 __version__ = "1.0.0"
+__docformat__ = "numpy"

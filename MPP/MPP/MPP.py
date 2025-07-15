@@ -8,7 +8,6 @@ import mdtraj as md
 
 from pathlib import Path
 from tqdm import tqdm
-from typing import Callable
 from collections.abc import Iterable
 from sklearn.metrics import davies_bouldin_score
 import pygpcca as gp
@@ -52,7 +51,7 @@ class Lumping(object):
     tmat : ndarray of float, shape (N, N)
         Transition matrix of the microstate Markov state model. N is
         the number of microstates.
-    pop : ndarray of float, shape (N,)
+    pop : ndarray of int, shape (N,)
         Population of the microstates in the trajectory. N is the
         number of microstates.
     n_states : int
@@ -253,7 +252,7 @@ class Lumping(object):
             )
         self.assign_macrostates()
 
-    def assign_macrostates(self):
+    def assign_macrostates(self) -> None:
         """Assign macrostates and provide macrostate data."""
         self.macrostate_feature = []
         self.macrostate_multi_feature = []
@@ -319,7 +318,7 @@ class Lumping(object):
         Parameters
         ----------
         n_macrostates : int
-            Number of macrostates. If None, emplod the same number of
+            Number of macrostates. If None, employ the same number of
             macrostates as yielded from the reference lumping.
             (default None)
         """
@@ -542,7 +541,7 @@ class Lumping(object):
         Parameters
         ----------
         n : int
-            Number of features to return.
+            Number of features to return. (default 3)
 
         Returns
         -------
@@ -563,7 +562,27 @@ class Lumping(object):
             )[:n]
         return contacts
 
-    def get_least_moving_residues(self, contact_index_file, n=3):
+    def get_least_moving_residues(
+        self, contact_index_file: Path, n: int = 3
+    ) -> list[npt.NDArray[np.int_]]:
+        """Return residue indices of least varying feature.
+
+        Parameters
+        ----------
+        contact_index_file : Path
+            Path to contact index file. Each line contains the two
+            residue indices space separated, which are part of the
+            feature. The line index corresponds to the feature index.
+        n : int
+            Number of features to consider. (default 3)
+
+        Returns
+        -------
+        list of ndarray of int
+            One list entry per macrostate. The array contains the
+            indices of the features with least variance for the
+            respective macrostate.
+        """
         contact_indices = np.loadtxt(contact_index_file, dtype=int)
         contacts = self.get_best_defined_contacts(n)
         least_moving_residues = []
@@ -571,7 +590,24 @@ class Lumping(object):
             least_moving_residues.append(np.unique(contact_indices[c].flatten()))
         return least_moving_residues
 
-    def write_least_moving_residues(self, contact_index_file, out, n=3):
+    def write_least_moving_residues(
+        self, contact_index_file: Path, out: Path, n: int = 3
+    ) -> None:
+        """Write indices of least moving residues to an index file.
+
+        Parameters
+        ----------
+        contact_index_file : Path
+            Path to contact index file. Each line contains the two
+            residue indices space separated, which are part of the
+            feature. The line index corresponds to the feature index.
+        out : Path
+            Target file for the residue indices. Each line holds the
+            residue indices for one macrostate in a space separated
+            list
+        n : int
+            Number of features to consider. (default 3)
+        """
         if contact_index_file != "none":
             least_moving_residues = self.get_least_moving_residues(
                 contact_index_file, n=n
@@ -583,17 +619,37 @@ class Lumping(object):
             with open(out, "w") as f:
                 f.write("")
 
-    def write_pdbs(self, out):
-        utils.write_pdbs(
-            out,
-            np.log(self.rmsd),
-            self.topology_file,
-            self.xtc_trajectory_file,
-            self.mean_frames,
-        )
+    def __add__(
+        self, other: Lumping
+    ) -> tuple[Lumping, Lumping, npt.NDArray[np.floating]]:
+        """Return the state overlap between two lumpings.
 
-    def __add__(self, other):
-        """'+' operator is used to calculate similarity of macrostates."""
+        This is mostly utilized to analyze the similarity of stochastic
+        lumpings to a deterministic one.
+
+        Parameters
+        ----------
+        other : Lumping
+            Another instance of Lumping with which to compare this
+            Lumping instance.
+
+        Returns
+        -------
+        tuple of (
+                Lumping,
+                Lumping,
+                (ndarray of float, shape (3, N, M)),
+        )
+            The first Lumping object is the deterministic lumping to
+            which the stochastic lumping (second Lumping instance) is
+            compared. The array contains the results: First comes the
+            union, second the fraction in reference macrostates and
+            third the fraction in stochastic lumpings. N is the number
+            of macrostates of the reference lumping and M the number of
+            stochastic lumpings. The reference is not forcibly
+            Lumping.reference, but can be any deterministic Lumping
+            instance.
+        """
         if self.n_runs == 1 and other.n_runs >= 1:
             # reference
             ref = self
@@ -607,8 +663,17 @@ class Lumping(object):
         return ref, sto, utils.similarity(ref, sto)
 
     @property
-    def reference(self):
-        """The reference property."""
+    def reference(self) -> Lumping:
+        """The reference lupming of the system.
+
+        Only the transition probability is utilized to estimate the
+        state similarity in the lumping process.
+
+        Returns
+        -------
+        Lumping
+            An instance of Lumping with reference parameters.
+        """
         if self._reference is None:
             k = kernel_module.LumpingKernel()
             self._reference = Lumping(
@@ -625,11 +690,16 @@ class Lumping(object):
         return self._reference
 
     @property
-    def n_i(self):
+    def n_i(self) -> int:
         """Index of the lumping under consideration.
 
         0 for deterministic lumpings. Is set to the lumping with the
         longest first implied timescale, if not set manually.
+
+        Returns
+        -------
+        int
+            Index of the lumping under consideration.
         """
         if self._n_i is None:
             if self.n_runs > 1:
@@ -639,21 +709,36 @@ class Lumping(object):
         return self._n_i
 
     @n_i.setter
-    def n_i(self, value):
+    def n_i(self, value: int) -> None:
         if not isinstance(value, int):
             raise ValueError("n_i must be an integer")
         self._n_i = value
 
     @property
-    def timescales(self):
-        """The timescales property."""
+    def timescales(self) -> npt.NDArray[np.floating]:
+        """Implied timescales property.
+
+        If more than the first 3 implied timescales are required, run
+        the calc_timescales method separately.
+
+        Returns
+        -------
+        ndarray of float, shape (N, M)
+            First M implied timescales for all N runs.
+        """
         if self._timescales is None:
             self.calc_timescales()
         return self._timescales
 
-    def calc_timescales(self, ntimescales=3, dtype=np.float32):
-        """Calculate implied timescales"""
-        self._timescales = np.zeros((self.n_runs, ntimescales), dtype=dtype)
+    def calc_timescales(self, ntimescales: int = 3) -> None:
+        """Calculate implied timescales.
+
+        Parameters
+        ----------
+        ntimescales : int
+            Number of first implied timescales to calculate.
+        """
+        self._timescales = np.zeros((self.n_runs, ntimescales))
         for i, trajectory in enumerate(self.macrostate_trajectory):
             self._timescales[i, :] = mh.msm.implied_timescales(
                 utils.get_multi_state_trajectory(trajectory, self.limits),
@@ -662,15 +747,29 @@ class Lumping(object):
             )[0]
 
     @property
-    def linkage(self):
-        """The linkage property."""
+    def linkage(self) -> npt.NDArray[np.floating]:
+        """The linkage matrix.
+
+        The linkage matrix is derived from the Z matrix and utilized in
+        former implementations of the MPP algorithm.
+
+        Returns
+        -------
+        ndarray of float, shape (N-1, 3)
+            For a system of N microstates, each line defines a merging.
+            The state in the first column is merged with the state in
+            the second column and the new state has the index of the
+            second state, which is the more stable one. The
+            metastability of the first state is stored in the third
+            column.
+        """
         if self._linkage is None:
             self._linkage = utils.Z_to_linkage(self.Z[self.n_i])
         return self._linkage
 
     @property
-    def macrostate_population(self):
-        """The macrostate_population property."""
+    def macrostate_population(self) -> list[npt.NDArray[np.int_]]:
+        """Return the macrostate populations for all runs."""
         if self._macrostate_population is None:
             self._macrostate_population = []
             for j, ma in enumerate(self.macrostate_assignment):
@@ -684,20 +783,59 @@ class Lumping(object):
         return self._macrostate_population
 
     @property
-    def rmsd(self):
-        """The rmsd property."""
+    def rmsd(self) -> npt.NDArray[np.floating]:
+        """Return the root mean square deviation (RMSD) of C-alphas.
+
+        The RMSD of C-alphas is calculate so that it is minimal. The
+        mean_frames attribute holds the mdtraj objects of the frames,
+        which minimizes the RMSD, for each macrostate.
+
+        Returns
+        -------
+        ndarray of float, shape (N, M)
+            C-alpha RMSD values for N macrostates and M C-alpha atoms.
+        """
         if self._rmsd is None:
             self._rmsd, self.mean_frames = utils.calc_rmsd(self, quiet=self.quiet)
         return self._rmsd
 
-    def rmsd_sharpness(self):
+    def rmsd_sharpness(self) -> float:
+        """Returns the RMSD sharpness of a lumping.
+
+        The RMSD sharpness is given by the population weighted mean of
+        mean RMSDs:
+        s = sum_j(mean_i(rmsd_ij) * p_j) / sum_j(p_j)
+        for C-alpha i, macrostate j and population p.
+
+        Returns
+        -------
+        float
+            RMSD sharpness value
+
+        See Also
+        --------
+        Lumping.rmsd : RMSD property.
+        """
         return (
             self.rmsd.mean(axis=1) * self.macrostate_population[self.n_i]
         ).sum() / self.macrostate_population[self.n_i].sum()
 
     @property
     def shannon_entropy(self):
-        """The shannon_entropy property."""
+        """The shannon_entropy.
+
+        The Shannon entropy is employed to measure how evenly the
+        macrostate are populated in a lumping. The Shannon entropy
+        penalizes in this case very low puplated macrostates. The lower
+        the entropy, the more even the population partition of the
+        macrostates.
+
+        References
+        ----------
+        [1] Claude C. Shannon, "A Mathematical Theory of Communication",
+        The Bell System Technical Journal, Volume 27, Issue 3, 1948,
+        DOI: 10.1002/j.1538-7305.1948.tb01338.x
+        """
         if self._shannon_entropy is None:
             self._shannon_entropy = np.zeros(self.n_runs)
             for i, pop in enumerate(self.macrostate_population):
@@ -706,7 +844,15 @@ class Lumping(object):
 
     @property
     def davies_bouldin_index(self):
-        """The davies_bouldin_index property."""
+        """The davies bouldin index.
+
+        References
+        ----------
+        [1] David L. Davies; Donald W. Bouldin, "A Cluster Separation
+        Measure", IEEE Transactions on Pattern Analysis and Machine
+        Intelligence, Volume PAMI-1, Issue 2, pp. 224-227, 1979,
+        DOI: 10.1109/TPAMI.1979.4766909
+        """
         if self._davies_bouldin_index is None:
             self._davies_bouldin_index = np.zeros(self.n_runs)
             for i in range(self.n_runs):
@@ -717,14 +863,34 @@ class Lumping(object):
 
     @property
     def gmrq(self):
-        """The gmrq property."""
+        """The generalized matrix rayleigh quotient (GMRQ).
+
+        References
+        ----------
+        [1] Robert T. McGibbon; Vijay S. Pande, "Variational
+        cross-validation of slow dynamical modes in molecular
+        kinetics", The Journal of Chemical Physics, Volume 142,
+        Issue 12, 2015, DOI: 10.1063/1.4916292
+        """
         if self._gmrq is None:
             self._gmrq = utils.gmrq(self.macrostate_tmat)
         return self._gmrq
 
     @property
-    def macro_micro_feature(self):
-        """Assign macrostate feature values to corresponding microstates"""
+    def macro_micro_feature(self) -> npt.NDArray[np.floating]:
+        """Assign macrostate feature values to corresponding microstates.
+
+        This is useful for the analysis of stochastic lumpings.
+
+        Returns
+        -------
+        ndarray of float, shape (n_states, n_runs)
+            Contains macrostate feature values for each microstate.
+
+        See Also
+        --------
+        MPP.plot.macro_feature
+        """
         if self._macro_micro_feature is None:
             self._macro_micro_feature = np.zeros(
                 (self.n_states, self.n_runs),
@@ -738,8 +904,14 @@ class Lumping(object):
         return self._macro_micro_feature
 
     @property
-    def tree(self):
-        """The tree property."""
+    def tree(self) -> list[MPP.core.BinaryTreeNode]:
+        """The lumping tree.
+
+        This property holds the lumping trees of all lumpings performed
+        by this object. The root node is stored for each lumping.
+
+
+        """
         if self._tree is None:
             self._tree = []
             for z, pop in zip(self.Z, self.full_pop):
