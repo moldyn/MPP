@@ -81,6 +81,9 @@ class BinaryTreeNode(NodeMixin):
         self._feature_norm = None
         self._colors = None
 
+    def __repr__(self):
+        return f"<Node of state {self.name}>"
+
     @property
     def population(self):
         """Population of state."""

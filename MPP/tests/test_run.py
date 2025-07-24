@@ -47,7 +47,7 @@ class TestRunScript(unittest.TestCase):
         with open(MAPPING_FILE, "r") as f:
             self.param_map = yaml.safe_load(f)
 
-    def _run_command(self, config_path, d, g, output_file):
+    def _run_command(self, config_path, d, g, output_file, r=None, o=None):
         """Helper to invoke the run script."""
         args = [
             str(config_path),
@@ -56,6 +56,12 @@ class TestRunScript(unittest.TestCase):
             "-Z",
             str(output_file),
         ]
+        if r is not None:
+            args.append("-r")
+            args.append(str(r))
+        if o is not None:
+            args.append("-o")
+            args.append(str(o))
         return _run_main_with_args(args)
 
     def _get_key(self, d, g):
@@ -151,5 +157,49 @@ class TestRunScript(unittest.TestCase):
     def test_aSyn_t(self):
         self.run_and_validate_output("aSyn", "T", "none")
 
+    def test_aSyn_kl_js(self):
+        self.run_and_validate_output("aSyn", "KL", "JS")
+
     def test_aSyn_t_stoch(self):
         self.run_and_validate_output("aSyn", "T", "none", stochastic=True)
+
+    def assert_same_file_count(self, expected_dir, actual_dir, pattern="*"):
+        expected_files = list(Path(expected_dir).glob(pattern))
+        actual_files = list(Path(actual_dir).glob(pattern))
+
+        self.assertEqual(
+            len(actual_files),
+            len(expected_files),
+            f"Mismatch in file count: expected {len(expected_files)} but got {len(actual_files)}",
+        )
+
+    def _run_random_frames_indices(self, dataset, d, g, r=20):
+        key = self._get_key(d, g)
+        z_file = self.base_data_dir / dataset / "expected_output" / key / "Z.npy"
+        config_file = self.base_data_dir / dataset / "config.yaml"
+        with self.subTest(dataset=dataset, d=d, g=g, r=r):
+            with tempfile.TemporaryDirectory() as tmpdir:
+                output_dir = Path(tmpdir)
+
+                exit_code, stdout, stderr = self._run_command(
+                    config_file, d, g, z_file, r=r, o=output_dir
+                )
+                self.assertEqual(exit_code, 0, f"Failed for {stderr} {d}-{g}")
+
+                # Compare with expected
+                expected_path = (
+                    self.base_data_dir
+                    / dataset
+                    / "expected_output"
+                    / key
+                    / "random_frames"
+                )
+                self.assertTrue(
+                    expected_path.exists(),
+                    f"Expected directory missing: {expected_path}",
+                )
+
+                self.assert_same_file_count(expected_path, output_dir, pattern="*.ndx")
+
+    def test_random_frames_indices_aSyn_t_ref(self):
+        self._run_random_frames_indices("aSyn", "T", "none")

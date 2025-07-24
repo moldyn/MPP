@@ -127,14 +127,14 @@ class Data:
             )
             self.mpp.save_Z(out)
 
-    def perform_gpcca(self, n_macrostates, out=None, overwrite=False):
+    def perform_gpcca(self, n_macrostates="ref", out=None, overwrite=False):
         """n_macrostates: int or 'ref' for n_macrostates from reference (T)"""
+        if n_macrostates == "ref":
+            n_macrostates = self.mpp.reference.n_macrostates[0]
         if out is not None and os.path.exists(out) and not overwrite:
             print("Loading existing Z")
-            self.mpp.load_Z(out)
+            self.mpp.load_Z(out, gpcca=True)
         else:
-            if n_macrostates == "ref":
-                n_macrostates = self.mpp.reference.n_macrostates[0]
             self.mpp.gpcca(n_macrostates)
             if out is not None:
                 self.mpp.save_Z(out)
@@ -207,14 +207,16 @@ def draw_random_frames(mpp, data):
     mpp.topology_file = data.top
     mpp.xtc_trajectory_file = data.xtc
     mpp.draw_random_frames(
-        os.path.join(data.lumping_dir + "random_frames/"), n=data.n_random_frames
+        # os.path.join(data.lumping_dir + "random_frames/"), n=data.n_random_frames
+        Path(data.lumping_dir) / "random_frames/",
+        n=data.n_random_frames,
     )
     return mpp
 
 
 def write_random_frames_indices(mpp, out, n):
-    Path(os.path.join(out)).mkdir(parents=True, exist_ok=True)
-    mpp.draw_random_frames_indices(out, n)
+    # Path(os.path.join(out)).mkdir(parents=True, exist_ok=True)
+    mpp.draw_random_frames_indices(Path(out), n)
 
 
 def parse_args():
@@ -273,7 +275,6 @@ def parse_args():
 
 
 def main():
-    print("MPP.run running")
     args = parse_args()
 
     # Parse input files

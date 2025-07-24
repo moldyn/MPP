@@ -119,7 +119,13 @@ class LumpingKernel(object):
             raise ValueError("Method must be either 'p' or 'n'")
 
         # Get similarities of the options
-        p_options = trans_probs[transitions[options]]
+        p_options = (
+            trans_probs[transitions[options]] if len(options) > 1 else np.ones(1)
+        )
+        if np.isnan(p_options).any():
+            raise ValueError(f"p_options contains NaN: {p_options}")
+        if sum(p_options) == 0:
+            raise ValueError(f"sum of p_options is 0: {p_options}")
 
         # Select the target state
         mask_target_state = np.random.choice(

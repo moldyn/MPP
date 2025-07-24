@@ -6,6 +6,7 @@ import numpy.typing as npt
 import msmhelper as mh
 import mdtraj as md
 
+from typing import Literal
 from pathlib import Path
 from tqdm import tqdm
 from collections.abc import Iterable
@@ -37,7 +38,7 @@ class Lumping(object):
     trajectory : ndarray of int, shape (N,)
         The microstate trajectory. N is the number of frames.
     lagtime : int
-        Lagtime used.
+        Lagtime used, in frames.
     frame_length : float
         Length of a frame in ns. (default 0.2)
     pop_thr : float
@@ -48,9 +49,8 @@ class Lumping(object):
         If the trajectory is composed of several independent
         simulations, this list contains the lengths of the individual
         trajectories. (default None)
-    tmat : ndarray of float, shape (N, N)
-        Transition matrix of the microstate Markov state model. N is
-        the number of microstates.
+    tmat : ndarray of float, shape (n_states, n_states)
+        Transition matrix of the microstate Markov state model.
     pop : ndarray of int, shape (N,)
         Population of the microstates in the trajectory. N is the
         number of microstates.
@@ -65,24 +65,16 @@ class Lumping(object):
     mean_feature : ndarray of float, shape (N,)
         The mean feature for each of N microstates.
     Z : ndarray of float, shape (N-1, 4)
-        The Z matrix defines a lumping and is organized like the
-        Z matrix returned from scipy.cluster.hierarchy.linkage. N is
-        the number of microstates and each row describes a merging of
-        two states in the first step of the MPP algorithm. The first
-        two columns contain the state indices, which are merged. The
-        third column holds the metastability of the less stable state
-        (the state in the first column) and the last column provides
-        the population of the new state, which has index N + i, where i
-        is the row index.
+        The Z matrix defines how the microstates are lumped together.
     reference : Lumping
         Instance of the Lumping object with reference parameters, that
         are, the only the transition probability is utilized as
         similarity metric.
-    macrostate_assignment : list of (ndarray of bool, shape (N, M))
-        Macrostate assignment of the lumpings. N is the number of
-        macrostates and M the number of microstates. Elements, whose
-        indices correspond to an assignment are True, all other
-        elements are False.
+    macrostate_assignment : list of (ndarray of bool,
+            shape (Lumping.n_macrostates, Lumping.n_states))
+        Macrostate assignment of the lumpings. Elements, whose indices
+        correspond to an assignment are True, all other elements are
+        False.
     macrostate_map : list of (ndarray of int, shape (N,))
         Map arrays of the assignment. The index of the array
         corresponds to the microstate and the value is the index of the
@@ -99,6 +91,65 @@ class Lumping(object):
     --------
     tbd
     """
+
+    lagtime: int
+    """The lagtime used, in frames."""
+
+    contact_threshold: float
+    """Distance below which a feature (e.g. a contact) is considered
+    formed.
+    """
+
+    pop_thr: float
+    """Minimum population allowed for macrostates."""
+
+    q_min: float
+    """Minimum metastability allowed for macrostates."""
+
+    limits: list[int]
+    """When concatenated trajectories are used, the lengths of the
+    individual trajectories.
+    """
+
+    n_states: int
+    """The number of microstates."""
+
+    quiet: bool
+    """Suppress progress reports."""
+
+    Z: npt.NDArray[float]
+    """The Z matrix defines how the microstates are lumped together.
+
+    A 2D array of float, shape (Lumping.n_states-1, 4). The Z matrix
+    defines a lumping and is organized like the Z matrix returned from
+    scipy.cluster.hierarchy.linkage. Each row describes a merging of
+    two states in the first step of the MPP algorithm. The first two
+    columns contain the state indices, which are merged. The third
+    column holds the metastability of the less stable state (the state
+    in the first column) and the last column provides the population of
+    the new state, which has index Lumping.n_states + i, where i is the
+    row index.
+    """
+
+    xtc_stride: float
+    """Use only every Lumping.xtc_stride frame of the xtc trajectory."""
+
+    plot: "Plotter"
+    """Produce various plots of the lumping."""
+
+    macrostate_feature: list[list[float]]
+    """Mean macrostate feature."""
+
+    macrostate_multi_feature: list[list[npt.NDArray[np.floating]]]
+    """Macrostate features."""
+
+    macrostate_assignment: list[npt.NDArray[bool]]
+    """Macrostate assignments."""
+
+    macrostate_map: list[npt.NDArray]
+    # macrostate_tmat = []
+    # macrostate_trajectory = np.zeros(
+    # n_macrostates = []
 
     def __init__(
         self,
@@ -322,15 +373,27 @@ class Lumping(object):
             macrostates as yielded from the reference lumping.
             (default None)
         """
+        # Create the reference anyways as pop_thr and q_min are changed
         if n_macrostates is None:
             n_macrostates = self.reference.n_macrostates[0]
+        else:
+            self.reference
+
+        # Change pop_thr and q_min in order to make sure that tiny macrostates
+        # can be created as well.
+        self.pop_thr = 0
+        self.q_min = 0.5
+
         self.gpcca = gp.GPCCA(self.tmat, method="krylov")
         self.gpcca.optimize(n_macrostates)
 
         self.n_runs = 1
         self.n_macrostates = [n_macrostates]
 
-        gma = self.gpcca.macrostate_assignment
+        self._assign_macrostates_from_gpcca(self.gpcca.macrostate_assignment)
+        self._create_mock_Z()
+
+    def _assign_macrostates_from_gpcca(self, gma):
         gmt = np.zeros(self.trajectory.shape, dtype=self.trajectory.dtype)
         gmf = np.empty(self.n_macrostates[0])
         for i in range(self.n_macrostates[0]):
@@ -364,6 +427,7 @@ class Lumping(object):
             utils.macrostate_tmat(self.tmat, self.macrostate_assignment[0], self.pop)
         ]
 
+    def _create_mock_Z(self):
         # Create mock Z and mock full_pop for Sankey plot
         # After implementation remove mock Z.npy file in run.py
         self.Z = np.zeros((self.n_runs, self.n_states - 1, 4), dtype=np.float64)
@@ -407,11 +471,7 @@ class Lumping(object):
             else:
                 last_merged = origin
 
-        self.tree
-        self.pop_thr = 0
-        self.q_min = 0.5
-
-    def save_macrostate_trajectory(self, out, one_based=False):
+    def save_macrostate_trajectory(self, out: Path, one_based: bool = False) -> None:
         """Write macrostate trajectory to a text file."""
         header = (
             f"# Created by Lumping class\n"
@@ -424,8 +484,16 @@ class Lumping(object):
             macrostate_trajectory += 1
         np.savetxt(out, macrostate_trajectory, fmt="%.0f", header=header)
 
-    def save_Z(self, out, n_i="all"):
-        """Save Z matrix."""
+    def save_Z(self, out: Path, n_i: int | Iterable | Literal["all"] = "all") -> None:
+        """Save Z matrix.
+
+        Parameters
+        ----------
+        out : Path
+            Where to save the Z matrix.
+        n_i : int or iterable of int or {"all"}
+            Which lumpings to save.
+        """
         if not out.endswith(".npy"):
             out += ".npy"
 
@@ -438,7 +506,7 @@ class Lumping(object):
         else:
             raise ValueError("n_i must be 'all', Iterable or int.")
 
-    def load_Z(self, Z):
+    def load_Z(self, Z, gpcca=False):
         """Load Z matrix."""
         if isinstance(Z, np.ndarray):
             self.Z = Z
@@ -460,7 +528,22 @@ class Lumping(object):
         self.full_pop[:, : self.n_states] = self.pop
         self.full_pop[:, self.n_states :] = self.Z[:, :, 3]
 
-        self.assign_macrostates()
+        if gpcca:
+            # First create the reference, then change pop_thr and q_min
+            self.reference
+
+            # Change pop_thr and q_min in order to make sure that tiny macrostates
+            # can be created as well.
+            self.pop_thr = 0
+            self.q_min = 0.5
+
+            self.n_macrostates = [((self.Z[0, :, 2] > self.q_min).sum() + 1)]
+            gma = utils.get_macrostate_assignment_from_tree(self.tree[0])
+            self._assign_macrostates_from_gpcca(
+                np.array([np.where(i)[0][0] for i in gma.T])
+            )
+        else:
+            self.assign_macrostates()
 
     def save_rmsd(self, out):
         """Save RMSD of states to numpy file."""
@@ -620,8 +703,8 @@ class Lumping(object):
                 f.write("")
 
     def __add__(
-        self, other: Lumping
-    ) -> tuple[Lumping, Lumping, npt.NDArray[np.floating]]:
+        self, other: "Lumping"
+    ) -> tuple["Lumping", "Lumping", npt.NDArray[np.floating]]:
         """Return the state overlap between two lumpings.
 
         This is mostly utilized to analyze the similarity of stochastic
@@ -663,7 +746,7 @@ class Lumping(object):
         return ref, sto, utils.similarity(ref, sto)
 
     @property
-    def reference(self) -> Lumping:
+    def reference(self) -> "Lumping":
         """The reference lupming of the system.
 
         Only the transition probability is utilized to estimate the
@@ -821,14 +904,19 @@ class Lumping(object):
         ).sum() / self.macrostate_population[self.n_i].sum()
 
     @property
-    def shannon_entropy(self):
-        """The shannon_entropy.
+    def shannon_entropy(self) -> npt.NDArray[np.floating]:
+        """The Shannon entropy.
 
         The Shannon entropy is employed to measure how evenly the
         macrostate are populated in a lumping. The Shannon entropy
         penalizes in this case very low puplated macrostates. The lower
         the entropy, the more even the population partition of the
         macrostates.
+
+        Returns
+        -------
+        ndarray of float, shape (Lumping.n_i,)
+            Array contains the Shannon entropy for each run.
 
         References
         ----------
@@ -843,8 +931,13 @@ class Lumping(object):
         return self._shannon_entropy
 
     @property
-    def davies_bouldin_index(self):
+    def davies_bouldin_index(self) -> npt.NDArray[np.floating]:
         """The davies bouldin index.
+
+        Returns
+        -------
+        ndarray of float, shape (Lumping.n_i,)
+            Array contains the Davies Bouldin index for each run.
 
         References
         ----------
@@ -862,8 +955,13 @@ class Lumping(object):
         return self._davies_bouldin_index
 
     @property
-    def gmrq(self):
+    def gmrq(self) -> npt.NDArray[np.floating]:
         """The generalized matrix rayleigh quotient (GMRQ).
+
+        Returns
+        -------
+        ndarray of float, shape (Lumping.n_i,)
+            Array contains the GMRQ for each run.
 
         References
         ----------
@@ -904,7 +1002,7 @@ class Lumping(object):
         return self._macro_micro_feature
 
     @property
-    def tree(self) -> list[MPP.core.BinaryTreeNode]:
+    def tree(self) -> list[core.BinaryTreeNode]:
         """The lumping tree.
 
         This property holds the lumping trees of all lumpings performed
@@ -957,7 +1055,7 @@ class Lumping(object):
         return nodes[n + i]
 
     @property
-    def trajectory(self):
+    def trajectory(self) -> npt.NDArray[np.int_]:
         """The microstate trajectory - 0-based."""
         return self._trajectory
 
@@ -1005,8 +1103,8 @@ class Lumping(object):
             raise FileNotFoundError(f"No such file: {value}")
 
     @property
-    def frame_length(self):
-        """The frame_length property. Frame length in ns."""
+    def frame_length(self) -> float:
+        """The frame length in ns."""
         return self._frame_length
 
     @frame_length.setter

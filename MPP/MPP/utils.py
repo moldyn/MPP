@@ -354,9 +354,11 @@ def calc_rmsd(lumping, quiet=False):
     for j in range(lumping.n_macrostates[lumping.n_i]):
         if not quiet:
             print(f"Process macrostate {j}")
-        m = lumping.macrostate_trajectory[lumping.n_i] == j
-        tm = t[m]
+        # m = lumping.macrostate_trajectory[lumping.n_i] == j
+        # tm = t[m]
+        tm = t[lumping.macrostate_trajectory[lumping.n_i] == j]
         m_frames = []
+        # Batched run for speed
         n_batches = opt_num_batches(lumping.macrostate_population[lumping.n_i][j])
         for i in tqdm(range(n_batches)) if not quiet else range(n_batches):
             m_frames.append(find_mean_frame(tm[i::n_batches]))
