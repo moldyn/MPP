@@ -1,0 +1,9 @@
+name: pymol
+channels:
+  - conda-forge
+  - schrodingerb
+dependencies:
+  - https://gitlab.kitware.com/vtk/vtk-m/-/archive/v1.8.0/vtk-m-v1.8.0.tar.bz2
+  # - pymol
+  - pymol-bundle
+prefix: /home/fg149/miniconda3/envs/pymol

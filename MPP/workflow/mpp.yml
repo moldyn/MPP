@@ -1,0 +1,30 @@
+name: mpp
+channels:
+  - defaults
+dependencies:
+  - networkx
+  - numpy
+  - python >=3.10, <3.13
+  - tqdm
+  - pip
+  - pip:
+      - anytree
+      - bezier
+      - fa2-modified
+      - matplotlib
+      - mdanalysis
+      - mdtraj
+      - mosaic-clustering
+      - -e /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/
+      - msmhelper
+      - numba
+      - pandas
+      - pip
+      - pipdeptree
+      - pipreqs
+      - prettypyplot
+      - pyyaml
+      - scikit-learn
+      - scipy
+      - seaborn
+prefix: /home/fg149/miniconda3/envs/mpp

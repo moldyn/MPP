@@ -1,0 +1,236 @@
+configfile: "config/lumpings.yaml"
+
+import os
+
+
+def get_d(wildcards):
+  return config[wildcards.lumping]["kernel similarity"]
+
+def get_g(wildcards):
+  return config[wildcards.lumping]["feature kernel"]
+
+def get_top_file(wildcards):
+  configfile: "config/" + wildcards.system + ".yaml"
+  return config["source"] + config["topology file"]
+
+def get_xtc_file(wildcards):
+  configfile: "config/" + wildcards.system + ".yaml"
+  return config["source"] + config["xtc file"]
+
+def get_contact_index_file(wildcards):
+  configfile: "config/" + wildcards.system + ".yaml"
+  if "contact index file" in config:
+    return os.path.join(config["source"], config["contact index file"])
+  else:
+    return "none"
+
+def get_mem_mb(wildcards):
+  configfile: "config/" + wildcards.system + ".yaml"
+  return os.path.getsize(os.path.join(config["source"], config["xtc file"])) / 1e6 + 500
+
+rule gen_Z:
+  input:
+    "config/{system}.yaml",
+  output:
+    "results/{system}/{lumping}/Z.npy"
+  params:
+    d=get_d,
+    g=get_g
+  conda:
+    "mpp"
+  cache: True
+  shell:
+    "python -m MPP.run {input} {params.d} {params.g} -Z {output}"
+
+rule plot_png:
+  input:
+    config="config/{system}.yaml",
+    z="results/{system}/{lumping}/Z.npy"
+  output:
+    # "results/{system}/{lumping}/{plot}.png"
+    report(
+        "results/{system}/{lumping}/{plot}.png",
+        caption="report/plot.rst",
+        category="{system}",
+        subcategory="{lumping}",
+        labels={
+            "System": "{system}",
+            "Plot": "{plot}",
+          }
+        )
+  params:
+    d=get_d,
+    g=get_g
+  resources:
+    mem_mb=get_mem_mb
+  conda:
+    "mpp"
+    # "mpp.yml"
+  shell:
+    "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -p {wildcards.plot} -o {output}"
+
+rule plot:
+  input:
+    config="config/{system}.yaml",
+    z="results/{system}/{lumping}/Z.npy"
+  output:
+    "results/{system}/{lumping}/{plot}.pdf"
+    # report(
+    #     "results/{system}/{lumping}/{plot}.pdf",
+    #     category="{system}",
+    #     subcategory="{lumping}",
+    #     labels={
+    #         "System": "{system}",
+    #         "Plot": "{plot}",
+    #       }
+    #     )
+  params:
+    d=get_d,
+    g=get_g
+  conda:
+    "mpp"
+    # "mpp.yml"
+  shell:
+    "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -p {wildcards.plot} -o {output}"
+
+rule rmsd:
+  input:
+    config="config/{system}.yaml",
+    z="results/{system}/{lumping}/Z.npy"
+  output:
+    "results/{system}/{lumping}/rmsd.npy"
+  params:
+    d=get_d,
+    g=get_g
+  resources:
+    mem_mb=get_mem_mb
+  conda:
+    "mpp"
+    # "mpp.yml"
+  shell:
+    "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} --rmsd {output}"
+
+checkpoint draw_random:
+  input:
+    config="config/{system}.yaml",
+    z="results/{system}/{lumping}/Z.npy"
+  output:
+    macrostates=directory("results/{system}/{lumping}/random_frames/")
+  params:
+    d=get_d,
+    g=get_g,
+    n=20
+  conda:
+    "mpp"
+    # "mpp.yml"
+  shell:
+    "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -r {params.n} -o {output}"
+
+rule get_pdb_frames:
+  input:
+    "results/{system}/{lumping}/random_frames/{macrostate}.ndx"
+  output:
+    "results/{system}/{lumping}/random_pdbs/{macrostate}.pdb"
+  params:
+    top=get_top_file,
+    xtc=get_xtc_file,
+  shell:
+    """mkdir -p random_pdbs
+gmx trjconv -s {params.top} -f {params.xtc} -o {output} -fr {input} <<eof
+1
+eof"""
+
+rule render_pdb_files:
+  input:
+    pdb="results/{system}/{lumping}/random_pdbs/{macrostate}.pdb",
+    ndx="results/{system}/{lumping}/least_moving_residues.ndx",
+  output:
+    "results/{system}/{lumping}/random_pngs/{macrostate}.png"
+  conda:
+    "pymol"
+  params:
+    ndx_file=get_contact_index_file,
+  shell:
+    # "mkdir -p random_pngs; pymol -cq workflow/scripts/render_random_structures.py -- {input.pdb} {output} {input.ndx}"
+    "pymol -cq workflow/scripts/render_random_structures.py -- {input.pdb} {output} {input.ndx}"
+
+def aggregate_input(wildcards):
+    checkpoint_output = checkpoints.draw_random.get(**wildcards).output[0]
+    return expand("results/{system}/{lumping}/random_pngs/{macrostate}.png",
+           system=wildcards.system,
+           lumping=wildcards.lumping,
+           macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.ndx")).macrostate)
+
+def aggregate_input_pdb(wildcards):
+    checkpoint_output = checkpoints.draw_random.get(**wildcards).output[0]
+    return expand("results/{system}/{lumping}/random_pdbs/{macrostate}.pdb",
+           system=wildcards.system,
+           lumping=wildcards.lumping,
+           macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.ndx")).macrostate)
+
+rule aggregate:
+  input:
+    aggregate_input
+  output:
+    "results/{system}/{lumping}/macrostates.txt"
+  shell:
+    "echo {input} > {output}"
+
+rule aggregate_pdb:
+  input:
+    aggregate_input_pdb
+  output:
+    "results/{system}/{lumping}/macrostates_pdb.txt"
+  shell:
+    "echo {input} > {output}"
+
+
+rule get_least_moving_residues:
+  input:
+    config="config/{system}.yaml",
+    z="results/{system}/{lumping}/Z.npy"
+  output:
+    "results/{system}/{lumping}/least_moving_residues.ndx"
+  params:
+    d=get_d,
+    g=get_g,
+    ndx_file=get_contact_index_file,
+  conda:
+    "mpp"
+  shell:
+    "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -o {output} --get-least-moving-residues {params.ndx_file}"
+
+
+
+
+
+rule report:
+  input:
+    "results/{system}/{lumping}/sankey.pdf",
+    "results/{system}/{lumping}/dendrogram.pdf",
+    "results/{system}/{lumping}/ck_test.pdf",
+    "results/{system}/{lumping}/timescales.pdf",
+    "results/{system}/{lumping}/contacts.pdf",
+    "results/{system}/{lumping}/macrotraj.pdf",
+  output:
+    "results/{system}/{lumping}/report.tex",
+  conda:
+    "mpp"
+  shell:
+    "python workflow/scripts/report.py {wildcards.system} {wildcards.lumping}"
+
+rule report_rmsd:
+  input:
+    "results/{system}/{lumping}/sankey.pdf",
+    "results/{system}/{lumping}/dendrogram.pdf",
+    "results/{system}/{lumping}/ck_test.pdf",
+    "results/{system}/{lumping}/timescales.pdf",
+    "results/{system}/{lumping}/contacts.pdf",
+    "results/{system}/{lumping}/macrotraj.pdf",
+    "results/{system}/{lumping}/rmsd.pdf",
+  output:
+    "results/{system}/{lumping}/report_rmsd.tex",
+  conda:
+    "mpp"
+  shell:
+    "python workflow/scripts/report.py {wildcards.system} {wildcards.lumping} -r"
