@@ -95,7 +95,7 @@ class LumpingKernel(object):
 
         # Apply feature kernel, if there is one
         if feature_kernel:
-            feature = feature_kernel.apply(full_tmat[state], state, mask)
+            feature = feature_kernel.apply(state, mask)
             if not isinstance(feature, np.ndarray):  # and feature == 0:
                 feature = np.array([1.0])
             trans_probs *= feature
@@ -139,8 +139,6 @@ class LumpingKernel(object):
         return "<class LumpingKernel>"
 
 
-# TODO:
-# Remove similarity entirely from feature kernel
 class FeatureKernel(object):
     def __init__(
         self,
@@ -148,7 +146,6 @@ class FeatureKernel(object):
         microstate_trajectory,
         feature_type=np.float64,
         trajectory_type=np.uint16,
-        similarity="JS",
     ):
         """
         feature_trajectory: either N or NxM, N being the number of frames and M the
@@ -165,6 +162,8 @@ class FeatureKernel(object):
         return "<class FeatureKernel>"
 
     def _init_feature(self, microstate_trajectory):
+        if microstate_trajectory.min() == 1:
+            microstate_trajectory -= 1
         states, pop = np.unique(microstate_trajectory, return_counts=True)
         self.n_states = states.shape[0]
         # Populations for all states incl intermediate states
@@ -177,14 +176,14 @@ class FeatureKernel(object):
         )
         for i in range(self.n_states):
             self.full_feature[i] = self.feature_trajectory[
-                microstate_trajectory == i + 1
+                microstate_trajectory == i
             ].mean(axis=0)
 
     def reset(self):
         self.full_pop[self.n_states :] = 0
         self.full_feature[self.n_states :] = 0
 
-    def apply(self, trans_prob, state, mask):
+    def apply(self, state, mask):
         f = self.js(state, mask)
         f -= f.min()
         if f.sum() != 0:
