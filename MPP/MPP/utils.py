@@ -6,14 +6,14 @@ Utilities for MPP.
 """
 
 import numpy as np
-from numpy.typing import NDArray
+import numpy.typing as npt
 import mdtraj as md
 from tqdm import tqdm
 
 
 def translate_trajectory(
-    trajectory: NDArray[np.int_], map: NDArray[np.int_]
-) -> NDArray[np.int_]:
+    trajectory: npt.NDArray[np.int_], map: npt.NDArray[np.int_]
+) -> npt.NDArray[np.int_]:
     """
     Transform trajectory to other state names.
 
@@ -331,11 +331,26 @@ def align_trajectory_to_reference(trajectory, reference):
     return aligned_trajectory
 
 
-def calc_var(ref, trajectory):
-    """Calculate RMSD"""
+def calc_var(
+    ref: npt.NDArray[np.floating], trajectory: npt.NDArray[np.floating]
+) -> npt.NDArray[np.floating]:
+    """Calculate RMSD
+
+    Parameters
+    ----------
+    ref, trajectory : ndarray of float, shape (N, M, 3)
+        N frames, M atoms
+
+    Returns
+    -------
+    ndarray of float, shape (M,)
+    """
     aligned_trajectory = align_trajectory_to_reference(trajectory, ref)
-    d = ((aligned_trajectory - ref) ** 2).sum(axis=2)
-    return d.mean(axis=0)
+    # d = ((aligned_trajectory - ref) ** 2).sum(axis=2)
+    # Calculate the distance
+    d_square = ((aligned_trajectory - ref) ** 2).sum(axis=2)
+    # return d.mean(axis=0)
+    return np.sqrt(d_square.mean(axis=0))
 
 
 def opt_num_batches(n):
@@ -396,7 +411,7 @@ def find_state_lengths(arr):
     return np.array(unique_states), np.array(lengths)
 
 
-def get_multi_state_trajectory(trajectories: np.ndarray, limits: np.ndarray):
+def get_multi_state_trajectory(trajectories: npt.NDArray, limits: npt.NDArray):
     """Load trajectory containing several concatenated trajectories"""
     if limits is None:
         return trajectories
@@ -408,3 +423,6 @@ def get_multi_state_trajectory(trajectories: np.ndarray, limits: np.ndarray):
         )
         current_position += limit
     return trajectory_collection
+
+
+# def calc_feature_rmsd(lumping:)

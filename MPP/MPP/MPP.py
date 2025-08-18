@@ -548,10 +548,14 @@ class Lumping(object):
     def save_rmsd(self, out):
         """Save RMSD of states to numpy file."""
         np.save(out, self.rmsd)
+        fname, ext = os.path.splitext(out)
+        self.save_mean_frames(fname + "_mean_frames.pdb")
 
     def load_rmsd(self, f_name):
         """Save RMSD of states from numpy file."""
         self._rmsd = np.load(f_name)
+        fname, ext = os.path.splitext(f_name)
+        self.save_mean_frames(fname + "_mean_frames.pdb")
 
     def draw_random_frames_indices(
         self, out: Path | None = None, n: int = 20
@@ -881,6 +885,14 @@ class Lumping(object):
         if self._rmsd is None:
             self._rmsd, self.mean_frames = utils.calc_rmsd(self, quiet=self.quiet)
         return self._rmsd
+
+    def save_mean_frames(self, out):
+        """Save mean frames to out."""
+        self.mean_frames.save(out)
+
+    def load_mean_frames(self, fname):
+        """Load mean frames from fname."""
+        self.mean_frames = md.load(fname)
 
     def rmsd_sharpness(self) -> float:
         """Returns the RMSD sharpness of a lumping.
