@@ -98,7 +98,8 @@ rule rmsd:
     config="data/{system}/input/config.yml",
     z="data/{system}/results/{lumping}/Z.npy"
   output:
-    "data/{system}/results/{lumping}/rmsd.npy"
+    npy="data/{system}/results/{lumping}/rmsd.npy",
+    pdb="data/{system}/results/{lumping}/rmsd_mean_frames.ndx"
   params:
     d=get_d,
     g=get_g
@@ -108,7 +109,7 @@ rule rmsd:
     "mpp"
     # "mpp.yml"
   shell:
-    "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} --rmsd {output}"
+    "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} --rmsd {output.npy}"
 
 checkpoint draw_random:
   input:
@@ -126,7 +127,7 @@ checkpoint draw_random:
   shell:
     "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -r {params.n} -o {output}"
 
-rule get_pdb_frames:
+rule get_random_pdb_frames:
   input:
     "data/{system}/results/{lumping}/random_frames/{macrostate}.ndx"
   output:
@@ -137,7 +138,21 @@ rule get_pdb_frames:
   shell:
     """mkdir -p random_pdbs
 gmx trjconv -s {params.top} -f {params.xtc} -o {output} -fr {input} <<eof
-1
+0
+eof"""
+
+rule get_mean_frames_pdb:
+  input:
+    "data/{system}/results/{lumping}/rmsd_mean_frames.ndx"
+  output:
+    "data/{system}/results/{lumping}/mean_frames.pdb"
+  params:
+    top=get_top_file,
+    xtc=get_xtc_file,
+  shell:
+    """mkdir -p random_pdbs
+gmx trjconv -s {params.top} -f {params.xtc} -o {output} -fr {input} <<eof
+0
 eof"""
 
 rule render_pdb_files:

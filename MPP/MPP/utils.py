@@ -225,7 +225,11 @@ def weighting_function(dq):
 
 
 def load_trajectory(
-    topfile, trajectoryfile, atom_selection="all", frames=None, stride=None
+    topfile,
+    trajectoryfile,
+    atom_selection: str = "all",
+    frames: npt.NDArray = None,
+    stride: int = 1,
 ):
     print("Loading trajectory...")
     top = md.load_topology(topfile)
@@ -237,6 +241,8 @@ def load_trajectory(
             stride=stride,
         )
     else:
+        if stride > 1:
+            frames *= stride
         return md.join(
             [
                 md.load_xtc(
@@ -261,16 +267,31 @@ def load_mean_frames(topfile, trajectoryfile, mean_frames, dt=0.1):
 
 def find_mean_frame(trajectory):
     mean_rmsd = np.array([estimate_rmsd(frame, trajectory) for frame in trajectory])
-    mean_frame = trajectory[np.argmin(mean_rmsd)]
-    return mean_frame
+    index_mean_frame = np.argmin(mean_rmsd)
+    mean_frame = trajectory[index_mean_frame]
+    return mean_frame, np.array(index_mean_frame)
 
 
 def estimate_rmsd(frame, trajectory):
+    """Calculate mean RMSD"""
     rmsd = md.rmsd(
         trajectory,
         frame,
     )
     return np.mean(rmsd)
+
+
+def find_mean_frame_feature(trajectory):
+    mean_rmsd = np.array(
+        [estimate_rmsd_feature(frame, trajectory) for frame in trajectory]
+    )
+    index_mean_frame = np.argmin(mean_rmsd)
+    mean_frame = trajectory[index_mean_frame]
+    return mean_frame, np.array(index_mean_frame)
+
+
+def estimate_rmsd_feature(frame, trajectory):
+    return np.sqrt(((trajectory - frame) ** 2).mean())
 
 
 def align_trajectory_to_reference(trajectory, reference):
@@ -353,6 +374,12 @@ def calc_var(
     return np.sqrt(d_square.mean(axis=0))
 
 
+def calc_var_feature(
+    ref: npt.NDArray[np.floating], trajectory: npt.NDArray[np.floating]
+) -> npt.NDArray[np.floating]:
+    return np.sqrt(((trajectory - ref) ** 2).mean(axis=0))
+
+
 def opt_num_batches(n):
     return int(np.cbrt(n**2 / 2))
 
@@ -365,21 +392,67 @@ def calc_rmsd(lumping, quiet=False):
         stride=lumping.xtc_stride,
     )
     mean_frames = []
+    mean_frames_idx = []
     rmsd = np.empty([lumping.n_macrostates[lumping.n_i], t.n_atoms])
     for j in range(lumping.n_macrostates[lumping.n_i]):
         if not quiet:
             print(f"Process macrostate {j}")
-        # m = lumping.macrostate_trajectory[lumping.n_i] == j
-        # tm = t[m]
-        tm = t[lumping.macrostate_trajectory[lumping.n_i] == j]
+        traj_mask = lumping.macrostate_trajectory[lumping.n_i] == j
+        tm = t[traj_mask]
         m_frames = []
+        m_frames_idx = []
+
         # Batched run for speed
         n_batches = opt_num_batches(lumping.macrostate_population[lumping.n_i][j])
         for i in tqdm(range(n_batches)) if not quiet else range(n_batches):
-            m_frames.append(find_mean_frame(tm[i::n_batches]))
-        mean_frames.append(find_mean_frame(md.join(m_frames)))
+            mean_frame, index_mean_frame = find_mean_frame(tm[i::n_batches])
+            m_frames.append(mean_frame)
+            m_frames_idx.append(index_mean_frame)
+
+        # Calculate best frame from all batches
+        mean_frame, index_mean_frame_batch = find_mean_frame(md.join(m_frames))
+        mean_frames.append(mean_frame)
+
+        # Transform index_mean_frame_batch to index in entire trajectory (t)
+        index_mean_frame_macrostate = (
+            m_frames_idx[index_mean_frame_batch] * n_batches + index_mean_frame_batch
+        )
+        index_mean_frame = np.where(traj_mask)[0][index_mean_frame_macrostate]
+        mean_frames_idx.append(index_mean_frame)
         rmsd[j] = calc_var(mean_frames[j].xyz, tm.xyz)
-    return rmsd, mean_frames
+    return rmsd, np.array(mean_frames_idx)
+
+
+def calc_rmsd_feature(lumping):
+    t = lumping.multi_feature_trajectory
+    mean_frames = []
+    mean_frames_idx = []
+    rmsd = np.empty([lumping.n_macrostates[lumping.n_i], t.n_atoms])
+    for j in range(lumping.n_macrostates[lumping.n_i]):
+        traj_mask = lumping.macrostate_trajectory[lumping.n_i] == j
+        tm = t[traj_mask]
+        m_frames = []
+        m_frames_idx = []
+
+        # Batched run for speed
+        n_batches = opt_num_batches(lumping.macrostate_population[lumping.n_i][j])
+        for i in range(n_batches):
+            mean_frame, index_mean_frame = find_mean_frame_feature(tm[i::n_batches])
+            m_frames.append(mean_frame)
+            m_frames_idx.append(index_mean_frame)
+
+        # Calculate best frame from all batches
+        mean_frame, index_mean_frame_batch = find_mean_frame_feature(np.array(m_frames))
+        mean_frames.append(mean_frame)
+
+        # Transform index_mean_frame_batch to index in entire trajectory (t)
+        index_mean_frame_macrostate = (
+            m_frames_idx[index_mean_frame_batch] * n_batches + index_mean_frame_batch
+        )
+        index_mean_frame = np.where(traj_mask)[0][index_mean_frame_macrostate]
+        mean_frames_idx.append(index_mean_frame)
+        rmsd[j] = calc_var(mean_frames[j].xyz, tm.xyz)
+    return rmsd, np.array(mean_frames_idx)
 
 
 def find_state_lengths(arr):

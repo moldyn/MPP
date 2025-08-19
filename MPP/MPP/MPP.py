@@ -226,7 +226,12 @@ class Lumping(object):
         self._rmsd = None
         self._n_i = None
         self._macro_micro_feature = None
-        self.xtc_stride = None
+        # Whether to use CA cartesian coordinates for RMSD calculation
+        # of the feature ("feature")
+        self.rmsd_feature = "CA"
+        self._mean_frames_idx = None
+        self.mean_frames = None
+        self.xtc_stride = 1
         self.plot = Plotter(self)
 
     def _add_feature(
@@ -549,13 +554,13 @@ class Lumping(object):
         """Save RMSD of states to numpy file."""
         np.save(out, self.rmsd)
         fname, ext = os.path.splitext(out)
-        self.save_mean_frames(fname + "_mean_frames.pdb")
+        self.save_mean_frames_idx(fname + "_mean_frames.ndx")
 
     def load_rmsd(self, f_name):
         """Save RMSD of states from numpy file."""
         self._rmsd = np.load(f_name)
         fname, ext = os.path.splitext(f_name)
-        self.save_mean_frames(fname + "_mean_frames.pdb")
+        self.load_mean_frames_idx(fname + "_mean_frames.ndx")
 
     def draw_random_frames_indices(
         self, out: Path | None = None, n: int = 20
@@ -883,16 +888,40 @@ class Lumping(object):
             C-alpha RMSD values for N macrostates and M C-alpha atoms.
         """
         if self._rmsd is None:
-            self._rmsd, self.mean_frames = utils.calc_rmsd(self, quiet=self.quiet)
+            if self.rmsd_feature == "CA":
+                self._rmsd, self._mean_frames_idx = utils.calc_rmsd(
+                    self, quiet=self.quiet
+                )
+            elif self.rmsd_feature == "feature":
+                self._rmsd, self._mean_frames_idx = utils.calc_rmsd_feature(self)
         return self._rmsd
 
-    def save_mean_frames(self, out):
-        """Save mean frames to out."""
-        self.mean_frames.save(out)
+    def save_mean_frames_idx(self, out):
+        """Save mean frames index to out."""
+        np.savetxt(out, self._mean_frames_idx, fmt="%.0f", header="[frames]")
 
-    def load_mean_frames(self, fname):
-        """Load mean frames from fname."""
-        self.mean_frames = md.load(fname)
+    def load_mean_frames_idx(self, fname):
+        """Load mean frames index from fname."""
+        self._mean_frames_idx = np.loadtxt(fname)
+
+    # Don't use this method, rather use gmx instead.
+    def load_mean_frames(self):
+        """Load mean frames"""
+        if self._mean_frames_idx is None:
+            print("You first need to load the mean frame indices.")
+        else:
+            self.mean_frames = utils.load_trajectory(
+                self.topology_file,
+                self.xtc_trajectory_file,
+                frames=self._mean_frames_idx,
+                stride=self.xtc_stride,
+            )
+
+    def save_mean_frames(self, out):
+        if self.mean_frames is None:
+            self.load_mean_frames()
+        if self._mean_frames_idx is not None:
+            self.mean_frames.save(out)
 
     def rmsd_sharpness(self) -> float:
         """Returns the RMSD sharpness of a lumping.
