@@ -1,0 +1,18 @@
+js:
+  feature kernel: JS
+  kernel similarity: none
+kl:
+  feature kernel: none
+  kernel similarity: KL
+kl_js:
+  feature kernel: JS
+  kernel similarity: KL
+t:
+  feature kernel: none
+  kernel similarity: T
+t_js:
+  feature kernel: JS
+  kernel similarity: T
+gpcca:
+  feature kernel: ref
+  kernel similarity: gpcca

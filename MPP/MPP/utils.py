@@ -427,7 +427,7 @@ def calc_rmsd_feature(lumping):
     t = lumping.multi_feature_trajectory
     mean_frames = []
     mean_frames_idx = []
-    rmsd = np.empty([lumping.n_macrostates[lumping.n_i], t.n_atoms])
+    rmsd = np.empty([lumping.n_macrostates[lumping.n_i], t.shape[1]])
     for j in range(lumping.n_macrostates[lumping.n_i]):
         traj_mask = lumping.macrostate_trajectory[lumping.n_i] == j
         tm = t[traj_mask]
@@ -451,7 +451,7 @@ def calc_rmsd_feature(lumping):
         )
         index_mean_frame = np.where(traj_mask)[0][index_mean_frame_macrostate]
         mean_frames_idx.append(index_mean_frame)
-        rmsd[j] = calc_var(mean_frames[j].xyz, tm.xyz)
+        rmsd[j] = calc_var_feature(mean_frames[j], tm)
     return rmsd, np.array(mean_frames_idx)
 
 

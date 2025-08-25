@@ -93,13 +93,13 @@ rule plot:
   shell:
     "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -p {wildcards.plot} -o {output}"
 
-rule rmsd:
+rule rmsd_CA:
   input:
     config="data/{system}/input/config.yml",
     z="data/{system}/results/{lumping}/Z.npy"
   output:
-    npy="data/{system}/results/{lumping}/rmsd.npy",
-    pdb="data/{system}/results/{lumping}/rmsd_mean_frames.ndx"
+    npy="data/{system}/results/{lumping}/rmsd_CA.npy",
+    pdb="data/{system}/results/{lumping}/rmsd_CA_mean_frames.ndx"
   params:
     d=get_d,
     g=get_g
@@ -110,6 +110,24 @@ rule rmsd:
     # "mpp.yml"
   shell:
     "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} --rmsd {output.npy}"
+
+rule rmsd_feature:
+  input:
+    config="data/{system}/input/config.yml",
+    z="data/{system}/results/{lumping}/Z.npy"
+  output:
+    npy="data/{system}/results/{lumping}/rmsd_feature.npy",
+    pdb="data/{system}/results/{lumping}/rmsd_feature_mean_frames.ndx"
+  params:
+    d=get_d,
+    g=get_g
+  resources:
+    mem_mb=get_mem_mb
+  conda:
+    "mpp"
+    # "mpp.yml"
+  shell:
+    "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} --rmsd {output.npy} --rmsd-feature feature"
 
 checkpoint draw_random:
   input:
@@ -141,11 +159,25 @@ gmx trjconv -s {params.top} -f {params.xtc} -o {output} -fr {input} <<eof
 0
 eof"""
 
-rule get_mean_frames_pdb:
+rule get_mean_frames_pdb_CA:
   input:
-    "data/{system}/results/{lumping}/rmsd_mean_frames.ndx"
+    "data/{system}/results/{lumping}/rmsd_CA_mean_frames.ndx"
   output:
-    "data/{system}/results/{lumping}/mean_frames.pdb"
+    "data/{system}/results/{lumping}/mean_frames_CA.pdb"
+  params:
+    top=get_top_file,
+    xtc=get_xtc_file,
+  shell:
+    """mkdir -p random_pdbs
+gmx trjconv -s {params.top} -f {params.xtc} -o {output} -fr {input} <<eof
+0
+eof"""
+
+rule get_mean_frames_pdb_feature:
+  input:
+    "data/{system}/results/{lumping}/rmsd_feature_mean_frames.ndx"
+  output:
+    "data/{system}/results/{lumping}/mean_frames_feature.pdb"
   params:
     top=get_top_file,
     xtc=get_xtc_file,

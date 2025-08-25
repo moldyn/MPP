@@ -176,10 +176,10 @@ def plot(data, out, kind="dendrogram", scale=1):
         data.mpp.plot.ck_test(out)
     elif kind == "rmsd":
         # data.get_rmsd(os.path.splitext(out)[0] + ".npy")
-        data.get_rmsd(os.path.join(os.path.dirname(out), "rmsd.npy"))
+        data.get_rmsd(os.path.join(os.path.dirname(out), "rmsd_CA.npy"))
         data.mpp.plot.rmsd(out, helices=data.helices)
     elif kind == "delta_rmsd":
-        data.get_rmsd(os.path.join(os.path.dirname(out), "rmsd.npy"))
+        data.get_rmsd(os.path.join(os.path.dirname(out), "rmsd_CA.npy"))
         data.mpp.plot.delta_rmsd(out, helices=data.helices)
     elif kind == "state_network":
         print("Plotting state network")
@@ -252,6 +252,11 @@ def parse_args():
         help="Generate and write RMSD to file.",
     )
     parser.add_argument(
+        "--rmsd-feature",
+        help="'CA' for C-alpha RMSD or 'feature' for features. (default: CA)",
+        default="CA",
+    )
+    parser.add_argument(
         "--xtc-stride",
         help="Read every nth frame.",
     )
@@ -286,7 +291,8 @@ def main():
         data.perform_mpp(args.Z)
 
     if args.rmsd:
-        data.get_rmsd(args.rmsd, overwrite=True)
+        data.mpp.rmsd_feature = args.rmsd_feature
+        data.get_rmsd(args.rmsd, overwrite=False)
 
     # for p in args.plot:
     if args.plot:
