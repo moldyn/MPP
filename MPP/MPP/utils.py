@@ -455,6 +455,69 @@ def calc_rmsd_feature(lumping):
     return rmsd, np.array(mean_frames_idx)
 
 
+# def _calc_rmsd_generic(lumping, get_traj, find_mean, calc_var_fn, quiet=False):
+#     t = get_traj(lumping)
+#     mean_frames = []
+#     mean_frames_idx = []
+#     rmsd = np.empty([lumping.n_macrostates[lumping.n_i], t.shape[1]])
+#
+#     for j in range(lumping.n_macrostates[lumping.n_i]):
+#         if not quiet:
+#             print(f"Process macrostate {j}")
+#         traj_mask = lumping.macrostate_trajectory[lumping.n_i] == j
+#         tm = t[traj_mask]
+#         m_frames = []
+#         m_frames_idx = []
+#
+#         # Batched run for speed
+#         n_batches = opt_num_batches(lumping.macrostate_population[lumping.n_i][j])
+#         for i in (tqdm(range(n_batches)) if not quiet else range(n_batches)):
+#             mean_frame, idx = find_mean(tm[i::n_batches])
+#             m_frames.append(mean_frame)
+#             m_frames_idx.append(idx)
+#
+#         # Best frame from all batches
+#         mean_frame, idx_batch = find_mean(np.array(m_frames))
+#         mean_frames.append(mean_frame)
+#
+#         # Convert back to full trajectory index
+#         index_macro = m_frames_idx[idx_batch] * n_batches + idx_batch
+#         index_mean_frame = np.where(traj_mask)[0][index_macro]
+#         mean_frames_idx.append(index_mean_frame)
+#
+#         rmsd[j] = calc_var_fn(mean_frames[j], tm)
+#
+#     return rmsd, np.array(mean_frames_idx)
+#
+#
+# # Specializations
+# def calc_rmsd(lumping, quiet=False):
+#     def get_traj(lumping):
+#         return load_trajectory(
+#             lumping.topology_file,
+#             lumping.xtc_trajectory_file,
+#             atom_selection="name CA",
+#             stride=lumping.xtc_stride,
+#         )
+#     return _calc_rmsd_generic(
+#         lumping,
+#         get_traj,
+#         find_mean_frame,
+#         lambda mean, tm: calc_var(mean.xyz, tm.xyz),
+#         quiet=quiet,
+#     )
+#
+#
+# def calc_rmsd_feature(lumping, quiet=False):
+#     return _calc_rmsd_generic(
+#         lumping,
+#         lambda l: l.multi_feature_trajectory,
+#         find_mean_frame_feature,
+#         calc_var_feature,
+#         quiet=quiet,
+#     )
+
+
 def find_state_lengths(arr):
     # Lists to store unique states and their consecutive counts
     unique_states = []

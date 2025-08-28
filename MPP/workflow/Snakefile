@@ -1,4 +1,4 @@
-configfile: "workflow/lumpings.yml"
+configfile: "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/lumpings.yml"
 
 import os
 
@@ -24,6 +24,13 @@ def get_contact_index_file(wildcards):
   else:
     return "none"
 
+def get_xtc_stride(wildcards):
+  configfile: "data/" + wildcards.system + "/input/config.yml"
+  if "xtc stride" in config:
+    return int(config["xtc stride"])
+  else:
+    return 1
+
 def get_mem_mb(wildcards):
   configfile: "data/" + wildcards.system + "/input/config.yml"
   return os.path.getsize(os.path.join(config["source"], config["xtc file"])) / 1e6 + 500
@@ -42,48 +49,29 @@ rule gen_Z:
   shell:
     "python -m MPP.run {input} {params.d} {params.g} -Z {output}"
 
-rule plot_png:
-  input:
-    config="data/{system}/input/config.yml",
-    z="data/{system}/results/{lumping}/Z.npy"
-  output:
-    "data/{system}/results/{lumping}/{plot}.png"
-    # report(
-    #     "data/{system}/results/{lumping}/{plot}.png",
-    #     caption="report/plot.rst",
-    #     category="{system}",
-    #     subcategory="{lumping}",
-    #     labels={
-    #         "System": "{system}",
-    #         "Plot": "{plot}",
-    #       }
-    #     )
-  params:
-    d=get_d,
-    g=get_g
-  resources:
-    mem_mb=get_mem_mb
-  conda:
-    "mpp"
-    # "mpp.yml"
-  shell:
-    "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -p {wildcards.plot} -o {output}"
+# rule plot_png:
+#   input:
+#     config="data/{system}/input/config.yml",
+#     z="data/{system}/results/{lumping}/Z.npy"
+#   output:
+#     "data/{system}/results/{lumping}/{plot}.png"
+#   params:
+#     d=get_d,
+#     g=get_g
+#   resources:
+#     mem_mb=get_mem_mb
+#   conda:
+#     "mpp"
+#     # "mpp.yml"
+#   shell:
+#     "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -p {wildcards.plot} -o {output}"
 
 rule plot:
   input:
     config="data/{system}/input/config.yml",
     z="data/{system}/results/{lumping}/Z.npy"
   output:
-    "data/{system}/results/{lumping}/{plot}.pdf"
-    # report(
-    #     "data/{system}/results/{lumping}/{plot}.pdf",
-    #     category="{system}",
-    #     subcategory="{lumping}",
-    #     labels={
-    #         "System": "{system}",
-    #         "Plot": "{plot}",
-    #       }
-    #     )
+    "data/{system}/results/{lumping}/{plot}.{extension}"
   params:
     d=get_d,
     g=get_g
@@ -99,7 +87,7 @@ rule rmsd_CA:
     z="data/{system}/results/{lumping}/Z.npy"
   output:
     npy="data/{system}/results/{lumping}/rmsd_CA.npy",
-    pdb="data/{system}/results/{lumping}/rmsd_CA_mean_frames.ndx"
+    ndx="data/{system}/results/{lumping}/rmsd_CA_mean_frames.ndx"
   params:
     d=get_d,
     g=get_g
@@ -117,7 +105,7 @@ rule rmsd_feature:
     z="data/{system}/results/{lumping}/Z.npy"
   output:
     npy="data/{system}/results/{lumping}/rmsd_feature.npy",
-    pdb="data/{system}/results/{lumping}/rmsd_feature_mean_frames.ndx"
+    ndx="data/{system}/results/{lumping}/rmsd_feature_mean_frames.ndx"
   params:
     d=get_d,
     g=get_g
@@ -144,6 +132,52 @@ checkpoint draw_random:
     # "mpp.yml"
   shell:
     "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -r {params.n} -o {output}"
+
+def aggregate_input(wildcards):
+    checkpoint_output = checkpoints.draw_random.get(**wildcards).output[0]
+    return expand("data/{system}/results/{lumping}/random_pngs/{macrostate}.png",
+           system=wildcards.system,
+           lumping=wildcards.lumping,
+           macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.ndx")).macrostate)
+
+def aggregate_input_pdb(wildcards):
+    checkpoint_output = checkpoints.draw_random.get(**wildcards).output[0]
+    return expand("data/{system}/results/{lumping}/random_pdbs/{macrostate}.pdb",
+           system=wildcards.system,
+           lumping=wildcards.lumping,
+           macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.ndx")).macrostate)
+
+rule aggregate:
+  input:
+    aggregate_input
+  output:
+    "data/{system}/results/{lumping}/macrostates.txt"
+  shell:
+    "echo {input} > {output}"
+
+rule aggregate_pdb:
+  input:
+    aggregate_input_pdb
+  output:
+    "data/{system}/results/{lumping}/macrostates_pdb.txt"
+  shell:
+    "echo {input} > {output}"
+
+
+rule get_least_moving_residues:
+  input:
+    config="data/{system}/input/config.yml",
+    z="data/{system}/results/{lumping}/Z.npy"
+  output:
+    "data/{system}/results/{lumping}/least_moving_residues.ndx"
+  params:
+    d=get_d,
+    g=get_g,
+    ndx_file=get_contact_index_file,
+  conda:
+    "mpp"
+  shell:
+    "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -o {output} --get-least-moving-residues {params.ndx_file}"
 
 rule get_random_pdb_frames:
   input:
@@ -201,53 +235,32 @@ rule render_pdb_files:
     # "mkdir -p random_pngs; pymol -cq workflow/scripts/render_random_structures.py -- {input.pdb} {output} {input.ndx}"
     "pymol -cq workflow/render_random_structures.py -- {input.pdb} {output} {input.ndx}"
 
-def aggregate_input(wildcards):
-    checkpoint_output = checkpoints.draw_random.get(**wildcards).output[0]
-    return expand("data/{system}/results/{lumping}/random_pngs/{macrostate}.png",
-           system=wildcards.system,
-           lumping=wildcards.lumping,
-           macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.ndx")).macrostate)
 
-def aggregate_input_pdb(wildcards):
-    checkpoint_output = checkpoints.draw_random.get(**wildcards).output[0]
-    return expand("data/{system}/results/{lumping}/random_pdbs/{macrostate}.pdb",
-           system=wildcards.system,
-           lumping=wildcards.lumping,
-           macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.ndx")).macrostate)
-
-rule aggregate:
-  input:
-    aggregate_input
-  output:
-    "data/{system}/results/{lumping}/macrostates.txt"
-  shell:
-    "echo {input} > {output}"
-
-rule aggregate_pdb:
-  input:
-    aggregate_input_pdb
-  output:
-    "data/{system}/results/{lumping}/macrostates_pdb.txt"
-  shell:
-    "echo {input} > {output}"
-
-
-rule get_least_moving_residues:
+checkpoint draw_cluster_in_states:
   input:
     config="data/{system}/input/config.yml",
-    z="data/{system}/results/{lumping}/Z.npy"
+    frames="data/{system}/results/{lumping}/mean_frames_{rmsd_feature}.pdb"
   output:
-    "data/{system}/results/{lumping}/least_moving_residues.ndx"
-  params:
-    d=get_d,
-    g=get_g,
-    ndx_file=get_contact_index_file,
+    directory("data/{system}/results/{lumping}/mean_frames_{rmsd_feature}_{clusters}/")
   conda:
-    "mpp"
+    "pymol"
   shell:
-    "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -o {output} --get-least-moving-residues {params.ndx_file}"
+    "workflow/create_cluster_pml.py {output} {input.config} {input.frames} {wildcards.clusters}"
 
+def aggregate_input_draw_cluster(wildcards):
+    checkpoint_output = checkpoints.draw_cluster_in_states.get(**wildcards).output[0]
+    return expand("data/{system}/results/{lumping}/mean_frames_{rmsd_feature}/{macrostate}.png",
+           system=wildcards.system,
+           lumping=wildcards.lumping,
+           macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.png")).macrostate)
 
+rule aggregate_draw_cluster:
+  input:
+    aggregate_input_draw_cluster
+  output:
+    "data/{system}/results/{lumping}/rmsd_mean_{rmsd_feature}_{clusters}.txt"
+  shell:
+    "echo {input} > {output}"
 
 
 

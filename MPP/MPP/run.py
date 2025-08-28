@@ -154,7 +154,6 @@ def plot(data, out, kind="dendrogram", scale=1):
     kind: dendrogram, timescales, sankey, contacts, macrostate_trajectory, ck_test, rmsd
     """
     if kind == "dendrogram":
-        print("Plotting dendrogram")
         data.mpp.plot.dendrogram(out, scale=scale, offset=0.0)
     elif kind == "timescales":
         if "n timescales" in data.d:
@@ -194,6 +193,8 @@ def plot(data, out, kind="dendrogram", scale=1):
         data.mpp.plot.transition_matrix(out)
     elif kind == "transition_time":
         data.mpp.plot.transition_time(out)
+    elif kind == "macrostate_trajectory":
+        data.mpp.save_macrostate_trajectory(out, one_based=True)
     else:
         raise ValueError(f"Unknown plot kind: {kind}")
 

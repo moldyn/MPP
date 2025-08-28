@@ -1,4 +1,4 @@
-# Documentation of the MPT package
+# Documentation of the MPP package
 This package implements the most probable path (MPP) algorithm, which is used to reduce the number of discrete states of a Markov process. Based on a microstate trajectory, a Markov state model is estimated utilising [msmhelper](https://github.com/moldyn/msmhelper), and then, the number of states is reduced so that the new macrostates exhibit a given minimum population and metastability.
 
 ## Features
@@ -10,6 +10,52 @@ This package implements the most probable path (MPP) algorithm, which is used to
   - Incorporation Jenson-Shannon divergence of a feature (e.g. contact distances)
   - Stochastic lumping
 - Variety of analysis plots
+
+# Snakemake Workflow
+Snakemake is a workflow organization tool and used here to provide a high level user interface. In general, you only need to tell snakemake which file you would like to have, e.g.
+
+```bash
+snakemake --cores 'all' --sdm conda -p data/HP35/results/{t,t_js,kl,kl_js}/dendrogram.pdf --cache
+```
+
+Explanation of some flags:
+
+- `--cores` Number of cores to utilize. 'all' for all cores.
+- `--software-deployment-method, --sdm` Use conda to deploy software environment.
+- `--snakefile, -s` Use a non-local snakefile. Use e.g. `-s /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile`
+- `--dry-run, --dryrun, n` Do not execute anything, just print out the jobs that would be run.
+- `--cache` So rules may be eligible for caching. Enable it with this option.
+- `--force, -f` Force recreation of the given file(s).
+- `--printshellcmds, -p` Print out the shell commands that will be executed.
+
+More information can be found here: [Snakemake Documentation](https://snakemake.readthedocs.io/en/stable/executing/cli.html)
+
+Note that bash parameter expansion (the use of `{` and `}`) is possible to create e.g. several diagrams at once for multiple systems and/or setups.
+
+## Data Directory Structure
+
+```bash
+data/
+├── System1
+│   ├── input
+│   │   ├── clusters
+│   │   ├── config.yml
+│   │   ├── contact_distances_trajectory
+│   │   ├── contacts.ndx
+│   │   ├── microstate_trajectory
+│   │   ├── README.md
+│   │   ├── topology.pdb
+│   │   ├── trajectory.xtc
+│   │   └── view
+│   └── results
+│       ├── t
+│       │   ├── output_file1
+│       │   ├── output_file2
+│       │   └── ...
+│       ├── kl
+│
+├── System2
+```
 
 # Old file descriptions
 ## core.py

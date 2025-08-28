@@ -3,7 +3,7 @@ channels:
   - defaults
 dependencies:
   - networkx
-  - numpy
+  - numpy < 2.3
   - python >=3.10, <3.13
   - tqdm
   - pip
@@ -24,7 +24,12 @@ dependencies:
       - pipreqs
       - prettypyplot
       - pyyaml
+      - pygpcca
+      - mpi4py
+      - petsc 
+      - slepc
+      - petsc4py 
+      - slepc4py
       - scikit-learn
       - scipy
       - seaborn
-prefix: /home/fg149/miniconda3/envs/mpp

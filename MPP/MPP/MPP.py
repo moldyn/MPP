@@ -83,7 +83,10 @@ class Lumping(object):
         Transition matrices of the lumpings.
     macrostate_trajectory : ndarray of int, shape (N, M)
         Macrostate trajectories. N is the number of runs and M the
-        langhth of the trajectories.
+        length of the trajectories.
+    macrostate_population : ndarray of int, shape (N, M)
+        Macrostate populations in frames. N is the number of runs and
+        M is the number of macrostates.
     n_macrostates : list of int
         Number of macrostates in each lumping.
 
@@ -479,10 +482,10 @@ class Lumping(object):
     def save_macrostate_trajectory(self, out: Path, one_based: bool = False) -> None:
         """Write macrostate trajectory to a text file."""
         header = (
-            f"# Created by Lumping class\n"
-            f"# Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
-            f"# Trajectory contains {self.n_macrostates[self.n_i]} states and {self.macrostate_trajectory.shape[1]} frames.\n"
-            f"# Trajectory index: {self.n_i}\n"
+            f"Created by Lumping class\n"
+            f"Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
+            f"Trajectory contains {self.n_macrostates[self.n_i]} states and {self.macrostate_trajectory.shape[1]} frames.\n"
+            f"Trajectory index: {self.n_i}\n"
         )
         macrostate_trajectory = self.macrostate_trajectory[self.n_i]
         if one_based:

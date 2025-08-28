@@ -183,7 +183,7 @@ def implied_timescales(
         ref_trajectory = trajectorys.pop(0)
     x, y = utils.get_grid_format(len(trajectorys))
     pplt.use_style(
-        figsize=(3.8 * scale, 3.2 * scale), latex=False, colors="pastel_autumn"
+        figsize=(2.7 * scale, 2.7 * scale), latex=False, colors="pastel_autumn"
     )
     fig, axs = plt.subplots(y, x, sharex=True, sharey=True)
     plt.grid(False)
@@ -233,7 +233,8 @@ def implied_timescales(
         ax.set_title(title)
 
     for ax in axs.flatten():
-        ax.set_ylim(min(min_it * 0.9, int(lagtimes_ns.shape[0] / 4)), max_it * 1.5)
+        # ax.set_ylim(min(min_it * 0.9, int(lagtimes_ns.shape[0] / 4)), max_it * 1.5)
+        ax.set_ylim(min_it * 0.7, max_it * 1.5)
 
     if len(axs.shape) == 2:
         for ax in axs[-1]:
@@ -282,7 +283,8 @@ def _plot_impl_times(impl_times, lagtimes, ax, ls="-"):
         ax.plot(lagtimes, impl_time, label=label, color=colors[idx], ls=ls)
 
     xlim = lagtimes[0], lagtimes[-1]
-    ref_low = int(lagtimes.shape[0] / 4)
+    ref_low = int(lagtimes.shape[0] / 9 * 2)
+    # ref_low = int(lagtimes[-1] / 9 * 2)
     ax.set_xlim(xlim)
     # highlight diagonal
     x_i = np.arange(ref_low, xlim[1])
@@ -1276,7 +1278,7 @@ def state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2):
     axs[-1].set_xlabel(r"t / $\mu$s")
 
     for ax in axs:
-        ax.set_ylim(unique_states.min() - 1, unique_states.max())
+        ax.set_ylim(unique_states.min() - 1, unique_states.max() + 1)
 
     # Set axis limits
     plt.xlim(0, x_max)

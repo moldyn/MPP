@@ -1,101 +1,155 @@
 #!/usr/bin/env python3
+
+import __main__
+
+__main__.pymol_argv = ["pymol", "-cq"]
+
+import pymol
+
+pymol.finish_launching()
+
+from pymol import cmd
+
 import numpy as np
 import argparse
 import yaml
+import itertools
+import os
 
 
-PYMOL_HEADER = """reset; cd /data/HP35_contactsVSdihedrals/Contacts/mosaic/CPM0.78; reinitialize; load villin_360K.pdb; set cartoon_discrete_colors, on; util.cbss("all","white","white","white",_self=cmd); bg_color white;
-set ray_trace_fog, 0
-set ray_trace_mode, 1
-set ray_trace_gain, 1
-set set_ray_trace_slope, 50
-set light_count, 0
-set ray_texture, 0
-set antialias, 5
-set ambient, 1
-set dash_gap, 0
-set dash_radius, .15
-set depth_cue, 0
-set sphere_scale, 0.3
-set sphere_quality, 10
-color 0xdddfe5, resi 1-35
-set_view (    -0.092613213,   -0.974311054,   -0.205098271,    -0.811263561,   -0.045582026,    0.582863152,    -0.577268422,    0.220377758,   -0.786223531,     0.001260591,   -0.000029638,  -64.085952759,     8.856776237,   -0.973796844,   66.159248352,  -199.907592773,  328.409393311,  -20.000000000 )
-"""
+COLORS = [
+    "0xe9c46a",
+    "0x264653",
+    "0xe76f51",
+    "0x2a9d8f",
+    "0xf4a261",
+    "0x264653",
+    "0xe76f51",
+]
 
 
-def parse_cluster_selecton(cluster_string):
+def setup_pymol():
+    cmd.bg_color("white")
+    settings = [
+        ("ray_trace_fog", 0),
+        ("ray_trace_mode", 1),
+        ("ray_trace_gain", 1),
+        ("ray_trace_slope", 50),
+        ("light_count", 0),
+        ("ray_texture", 0),
+        ("antialias", 5),
+        ("ambient", 1),
+        ("dash_gap", 0),
+        ("dash_radius", 0.15),
+        ("depth_cue", 0),
+        ("sphere_scale", 0.3),
+        ("sphere_quality", 10),
+        ("cartoon_discrete_colors", "on"),
+    ]
+    for name, value in settings:
+        cmd.set(name, value)
+
+
+def setup_structures(cfg: dict, structure: str) -> list:
+    cmd.load(structure, "structure")
+    cmd.split_states("structure")
+    cmd.delete("structure")
+    cmd.load(os.path.join(cfg["source"], cfg["topology file"]), "reference")
+    objects = cmd.get_object_list(selection="(all)")[:-1]
+    for obj in objects:
+        cmd.align(obj, "reference")
+    return objects
+
+
+def parse_cluster_selecton(cluster_string: str) -> list:
+    """Returns a list containing the selected cluster indices"""
     clusters_list = cluster_string.split(",")
-    clusters = set()
+    clusters = list()
     for arg in clusters_list:
         if "-" in arg:
             split_arg = arg.split("-")
-            clusters.update(range(int(split_arg[0]), int(split_arg[0]) + 1))
+            clusters += list(range(int(split_arg[0]), int(split_arg[1]) + 1))
         else:
-            clusters.add(int(arg))
+            clusters.append(int(arg))
     return clusters
 
 
-def save_cluster(pymol, cluster, coords, label, color, ndx):
-    pymol.writelines(f"\n \n # Cluster {label} \n \n")
-    for num, coord in enumerate(cluster, coords):
-        C1, C2 = ndx[coord]
-        pymol.writelines(
-            f"distance dist{num}, {C1}/CA, {C2}/CA \n"
-            f"hide labels, dist{num} \n"
-            f"set dash_color, {color}, dist{num} \n",
+def setup_cluster(obj, cluster, color, ndx):
+    for contact in cluster:
+        r1, r2 = ndx[contact]
+        cmd.distance(f"dist{contact}_{obj}", f"{obj}///{r1}/CA", f"{obj}///{r2}/CA")
+        cmd.hide("labels", f"dist{contact}_{obj}")
+        cmd.set("dash_color", color, f"dist{contact}_{obj}")
+        cmd.select(f"CA{contact}_{obj}", f"{obj}///{r1}/CA or {obj}///{r2}/CA")
+        cmd.show("spheres", f"CA{contact}_{obj}")
+
+
+def delete_cluster(obj, cluster, color, ndx):
+    for contact in cluster:
+        r1, r2 = ndx[contact]
+        cmd.delete(f"dist{contact}_{obj}")
+        cmd.hide("spheres", f"CA{contact}_{obj}")
+        cmd.delete(f"CA{contact}_{obj}")
+
+
+def save_cluster(f, cluster, color, ndx):
+    for contact in cluster:
+        r1, r2 = ndx[contact]
+        f.writelines(
+            f"distance dist{contact}, {r1}/CA, {r2}/CA \n"
+            f"hide labels, dist{contact} \n"
+            f"set dash_color, {color}, dist{contact} \n"
+            f"select CA{contact}, {r1}/CA or {r2}/CA \nshow spheres, CA{contact} \n"
         )
-        pymol.writelines(
-            f"select CA{num}, {C1}/CA or {C2}/CA \nshow spheres, CA{num} \n",
-        )
-
-    coordinate_str = ", ".join(
-        [f"$r_{{{ndx[coord][0]}, {ndx[coord][1]}}}$" for coord in cluster]
-    )
-    print(coordinate_str)
 
 
-def estimate_pymol(filename, clusters, ndx, ncs):
-    ticks = np.cumsum([len(c) for c in clusters])
-    ticks = [0, *ticks[:-1]]
-    # colors = ['#ef476f', '#ffd166', '#06d6a0', '#118ab2']
-    # colors = ['#e30b5d', '#f2ce49', '#00a877', '#367588']
-    colors = ["#db3575", "#e2ca71", "#519a8e", "#554bb4"]
-    colors = ["#7ab5cd", "#f4a261", "#2a9d8f", "#e76f51"]
-    colors = [
-        "#e9c46a",
-        "#264653",
-        "#e76f51",
-        "#2a9d8f",
-        "#f4a261",
-        "#264653",
-        "#e76f51",
-    ]
-    colors = [colors[idx % len(colors)] for idx in range(ncs)]
-    colors = [f"0x{c[1:]}" for c in colors]
+def set_view(cfg):
+    cmd.set_view(tuple(np.loadtxt(os.path.join(cfg["source"], cfg["view"]))))
 
-    with open(f"{filename}.pml", "w") as pymol:
-        for numf in np.arange(0, len(clusters), len(colors)):
-            pymol.writelines(PYMOL_HEADER)
-            for numc, color in enumerate(colors):
-                if numc + numf >= len(clusters):
-                    break
-                save_cluster(
-                    pymol,
-                    clusters[numf + numc],
-                    ticks[numf + numc],
-                    numf + numc + 1,
-                    color,
-                    ndx,
-                )
-            pymol.writelines(
-                f"\nray 500, 500\npng {filename}.pymol{numf}.png\n\n",
+
+def write_distances_script(filename, clusters, ndx):
+    colors = list(itertools.islice(itertools.cycle(COLORS), len(clusters)))
+    with open(filename, "w") as f:
+        for (cluster_idx, cluster), color in zip(clusters, colors):
+            f.writelines(f"\n \n # Cluster {cluster_idx} \n \n")
+            save_cluster(
+                f,
+                cluster,
+                color,
+                ndx,
             )
+
+
+def create_images(output, cfg, structure, clusters, ndx):
+    colors = list(itertools.islice(itertools.cycle(COLORS), len(clusters)))
+    objects = setup_structures(cfg, structure)
+    setup_pymol()
+    cmd.color("0xdddfe5", "all")
+    cmd.hide("all")
+    set_view(cfg)
+    for i, obj in enumerate(objects):
+        # cmd.reinitialize()
+        # setup_pymol()
+        # setup_structures(cfg, structure)
+        # cmd.color("0xdddfe5", "all")
+        # cmd.hide("all")
+        # set_view(cfg)
+
+        cmd.show("cartoon", f"{obj} and polymer")
+        for (cluster_idx, cluster), color in zip(clusters, colors):
+            setup_cluster(obj, cluster, color, ndx)
+        cmd.png(
+            os.path.join(output, f"{i:02d}.png"), cfg["width"], cfg["height"], ray=1
+        )
+        cmd.hide("cartoon", f"{obj} and polymer")
+        for (cluster_idx, cluster), color in zip(clusters, colors):
+            delete_cluster(obj, cluster, color, ndx)
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
         prog="Create a PyMol script to draw contact clusters",
-        decription=(
+        description=(
             "This script draws the contacts of given clusters into a "
             "pdb structure and stores a png file."
         ),
@@ -109,12 +163,8 @@ def parse_args():
         help="Config file (yml)",
     )
     parser.add_argument(
-        "structures",
+        "structure_file",
         help="PDB file which may contain several models",
-    )
-    parser.add_argument(
-        "model",
-        help="If the PDB contains multiple models, select one",
     )
     parser.add_argument(
         "clusters",
@@ -125,33 +175,37 @@ def parse_args():
 
 def main():
     args = parse_args()
+    os.makedirs(args.output, exist_ok=True)
     with open(args.config, "r") as f:
         cfg = yaml.safe_load(f)
 
+    # List of lists containing the contacts of each cluster
     clusters = []
-    with open(cfg["source"] + cfg["cluster file"], "r") as f:
+    with open(os.path.join(cfg["source"], cfg["cluster file"]), "r") as f:
         for line in f:
             if line.startswith("#"):
                 continue
             clusters.append([int(i) for i in line.split()])
 
-    ndx = np.loadtxt(cfg["source"] + cfg["contact index file"], dtype=int)
+    # Definition of the contacts (list of residue pairs)
+    ndx = np.loadtxt(os.path.join(cfg["source"], cfg["contact index file"]), dtype=int)
 
-    for clusterfile in (
-        "hp35.selected_contacts.gaussian10f.cor.CPM0.78.clusters.sorted",
-        "hp35.selected_contacts.gaussian10f.cor.CPM0.78.clusters.sorted2",
-    ):
-        clusters = np.array(
-            [
-                [int(val) for val in cluster.split()]
-                for cluster in np.loadtxt(
-                    clusterfile,
-                    delimiter="\n",
-                    dtype=str,
-                )
-            ]
-        )
-        estimate_pymol(clusterfile, clusters, ndx, 7)
+    # Set of selected clusters
+    cluster_selection = parse_cluster_selecton(args.clusters)
+
+    # write_distances_script(
+    #     os.path.join(args.output, "draw_distances.pml"),
+    #     [(i, clusters[i - 1]) for i in cluster_selection],
+    #     ndx,
+    # )
+
+    create_images(
+        args.output,
+        cfg,
+        args.structure_file,
+        [(i, clusters[i - 1]) for i in cluster_selection],
+        ndx,
+    )
 
 
 if __name__ == "__main__":
