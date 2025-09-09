@@ -1,5 +1,9 @@
 configfile: "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/lumpings.yml"
 
+# TODO:
+# - good way to load lumpings.yml
+# - source in config file required? Probably yes, because of all the file that are loaded within python.
+
 import os
 
 
@@ -66,12 +70,16 @@ rule gen_Z:
 #   shell:
 #     "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -p {wildcards.plot} -o {output}"
 
+# TODO:
+# Extension problem here
 rule plot:
   input:
     config="data/{system}/input/config.yml",
     z="data/{system}/results/{lumping}/Z.npy"
   output:
-    "data/{system}/results/{lumping}/{plot}.{extension}"
+    "data/{system}/results/{lumping}/{plot}.{ext}"
+  wildcard_constraints:
+    ext="pdf|png|txt"
   params:
     d=get_d,
     g=get_g
@@ -179,6 +187,8 @@ rule get_least_moving_residues:
   shell:
     "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -o {output} --get-least-moving-residues {params.ndx_file}"
 
+# TODO:
+# Mind the xtc stride / --skip not working; rewrite of .ndx required
 rule get_random_pdb_frames:
   input:
     "data/{system}/results/{lumping}/random_frames/{macrostate}.ndx"

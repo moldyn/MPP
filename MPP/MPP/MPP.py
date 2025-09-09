@@ -100,7 +100,7 @@ class Lumping(object):
 
     contact_threshold: float
     """Distance below which a feature (e.g. a contact) is considered
-    formed.
+    formed. If None, directly use the feature.
     """
 
     pop_thr: float
@@ -182,7 +182,8 @@ class Lumping(object):
         contact_threshold : float
             Distance in feature space below which the interaction is
             considered positive, e.g. a contact distance below which a
-            contact is considered formed. (default 0.45)
+            contact is considered formed. If None, directly use the
+            feature (default 0.45)
         pop_thr : float
             Population threshold for macrostates. (default 0.005)
         q_min : float
@@ -223,6 +224,7 @@ class Lumping(object):
         self._shannon_entropy = None
         self._davies_bouldin_index = None
         self._gmrq = None
+        self._gmrq2 = None
         self._reference = None
         self._topology_file = None
         self._xtc_trajectory_file = None
@@ -232,6 +234,7 @@ class Lumping(object):
         # Whether to use CA cartesian coordinates for RMSD calculation
         # of the feature ("feature")
         self.rmsd_feature = "CA"
+        self.rmsd_estimator = np.argmin
         self._mean_frames_idx = None
         self.mean_frames = None
         self.xtc_stride = 1
@@ -260,9 +263,12 @@ class Lumping(object):
         else:
             raise ValueError("feature_trajectory must be 2 D")
 
-        self.multi_feature_trajectory_bool = (
-            self.multi_feature_trajectory < self.contact_threshold
-        )
+        if self.contact_threshold is None:
+            self.multi_feature_trajectory_bool = self.multi_feature_trajectory
+        else:
+            self.multi_feature_trajectory_bool = (
+                self.multi_feature_trajectory < self.contact_threshold
+            )
         self.mean_feature_trajectory = self.multi_feature_trajectory_bool.mean(axis=1)
         self.mean_feature = np.zeros(self.n_states)
         for i in range(self.n_states):
@@ -433,6 +439,14 @@ class Lumping(object):
         )
         self.macrostate_tmat = [
             utils.macrostate_tmat(self.tmat, self.macrostate_assignment[0], self.pop)
+        ]
+        self.macrostate_multi_feature = [
+            [
+                self.multi_feature_trajectory_bool[
+                    np.where(self.macrostate_trajectory[0] == i)
+                ].mean(axis=0)
+                for i in np.arange(self.n_macrostates[-1], dtype=int)
+            ]
         ]
 
     def _create_mock_Z(self):
@@ -893,10 +907,12 @@ class Lumping(object):
         if self._rmsd is None:
             if self.rmsd_feature == "CA":
                 self._rmsd, self._mean_frames_idx = utils.calc_rmsd(
-                    self, quiet=self.quiet
+                    self, estimator=self.rmsd_estimator, quiet=self.quiet
                 )
             elif self.rmsd_feature == "feature":
-                self._rmsd, self._mean_frames_idx = utils.calc_rmsd_feature(self)
+                self._rmsd, self._mean_frames_idx = utils.calc_rmsd_feature(
+                    self, estimator=self.rmsd_estimator, quiet=self.quiet
+                )
         return self._rmsd
 
     def save_mean_frames_idx(self, out):
@@ -905,7 +921,7 @@ class Lumping(object):
 
     def load_mean_frames_idx(self, fname):
         """Load mean frames index from fname."""
-        self._mean_frames_idx = np.loadtxt(fname)
+        self._mean_frames_idx = np.loadtxt(fname, dtype=int)
 
     # Don't use this method, rather use gmx instead.
     def load_mean_frames(self):
@@ -1017,6 +1033,13 @@ class Lumping(object):
         if self._gmrq is None:
             self._gmrq = utils.gmrq(self.macrostate_tmat)
         return self._gmrq
+
+    @property
+    def gmrq2(self) -> npt.NDArray[np.floating]:
+        """Sum of the first three eigenvalue squares."""
+        if self._gmrq2 is None:
+            self._gmrq2 = utils.gmrq2(self.macrostate_tmat)
+        return self._gmrq2
 
     @property
     def macro_micro_feature(self) -> npt.NDArray[np.floating]:

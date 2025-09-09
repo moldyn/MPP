@@ -9,10 +9,29 @@ import numpy as np
 import MPP
 
 
+OPTIONAL_PARAMS = [
+    "cluster file",
+    "contact index file",
+    "contact threshold",
+    "limits",
+    "topology file",
+    "xtc file",
+    "helices",
+    "frame length",
+    "view",
+    "width",
+    "height",
+]
+
+DEFAULTS = {k: None for k in OPTIONAL_PARAMS}
+DEFAULTS["contact threshold"] = 0.45
+
+
 class Data:
     def __init__(self, yaml_file):
         with open(yaml_file, "r") as f:
-            self.d = yaml.safe_load(f)
+            config = yaml.safe_load(f) or {}
+        self.d = {**DEFAULTS, **config}
 
         self.source = self.d["source"]
 
@@ -23,7 +42,8 @@ class Data:
             os.path.join(
                 self.source,
                 self.d["multi feature trajectory"],
-            )
+            ),
+            ndmin=2,
         )
         self.limits = (
             None
@@ -35,22 +55,19 @@ class Data:
         )
         self.multi_feature_trajectory = self.multi_state_trajectory_raw < 0.45
         self.feature_trajectory = self.multi_feature_trajectory.mean(axis=1)
-        self.cluster = os.path.join(self.source, self.d["cluster file"])
 
-        if "topology file" in self.d:
-            self.top = os.path.join(self.source, self.d["topology file"])
-        else:
-            self.top = None
-        if "xtc file" in self.d:
-            self.xtc = os.path.join(self.source, self.d["xtc file"])
-        else:
-            self.xtc = None
-        if "helices" in self.d:
-            self.helices = np.loadtxt(
-                os.path.join(self.source, self.d["helices"]), dtype=int
-            )
-        else:
-            self.helices = None
+        self.cluster = None
+        self.top = None
+        self.xtc = None
+        self.helices = None
+        for file, param in [
+            ("cluster file", self.cluster),
+            ("topology file", self.top),
+            ("xtc file", self.xtc),
+            ("helices", self.helices),
+        ]:
+            if self.d[file] is not None:
+                param = os.path.join(self.source, self.d[file])
 
         self.frame_length = self.d["frame length"]
         self.lagtime = self.d["lagtime"]
@@ -100,15 +117,15 @@ class Data:
             self.microstate_trajectory,
             self.lagtime,
             self.multi_state_trajectory_raw,
-            contact_threshold=0.45,
+            contact_threshold=self.d["contact threshold"],
             pop_thr=self.pop_thr,
             q_min=self.q_min,
             limits=self.limits,
             quiet=True,
         )
-        if os.path.exists(self.top):
+        if self.top is not None and os.path.exists(self.top):
             self.mpp.topology_file = self.top
-        if os.path.exists(self.xtc):
+        if self.xtc is not None and os.path.exists(self.xtc):
             self.mpp.xtc_trajectory_file = self.xtc
         self.mpp.xtc_stride = self.d.get("xtc stride", None)
         self.mpp.frame_length = self.frame_length
@@ -293,6 +310,7 @@ def main():
 
     if args.rmsd:
         data.mpp.rmsd_feature = args.rmsd_feature
+        data.mpp.rmsd_estimator = MPP.utils.argmedian
         data.get_rmsd(args.rmsd, overwrite=False)
 
     # for p in args.plot:

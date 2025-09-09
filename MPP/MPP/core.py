@@ -335,7 +335,7 @@ class BinaryTreeNode(NodeMixin):
     @property
     def x(self):
         """X coordinates for dandrogram for this node"""
-        return np.array([self.x_origin, self.x_origin, self.x_target])
+        return np.array([self.x_origin, self.x_origin, self.x_target]) + 0.5
 
     @property
     def x_origin(self):
