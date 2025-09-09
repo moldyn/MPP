@@ -180,7 +180,7 @@ def rmsd_sum(d):
 
 
 def rmsd_inv(d):
-    return [1 / rmsd_sum[0]]
+    return [1 / rmsd_sum(d)[0]]
 
 
 def shannon_entropy(d):
@@ -200,7 +200,7 @@ def gmrq2(d):
 
 
 def implied_timescales(d):
-    return d.mpp.timescales[0]
+    return d.mpp.timescales[0] * d.mpp.frame_length
 
 
 def population(d):
@@ -329,14 +329,16 @@ for system in interesting_lumpings:
 
 dhp = d_lum["HP35"]["t"]
 
-d_inter = create_dict(d_lum, inter)
-d_intra_inv = create_dict(d_lum, rmsd_inv)
-d_Q = create_dict(d_lum, Q)
-d_H = create_dict(d_lum, shannon_entropy)
-d_Q_H = create_dict(d_lum, Q_H)
+# d_inter = create_dict(d_lum, inter)
+# d_intra_inv = create_dict(d_lum, rmsd_inv)
+# d_Q = create_dict(d_lum, Q)
+# d_H = create_dict(d_lum, shannon_entropy)
+# d_Q_H = create_dict(d_lum, Q_H)
 
 d_gmrq = create_dict(d_lum, gmrq)
 d_gmrq2 = create_dict(d_lum, gmrq2)
+
+d_its = create_dict(d_lum, implied_timescales)
 
 # d_inter = create_dict(d_lum, inter)
 # d_Q = create_dict(d_lum, Q)

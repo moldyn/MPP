@@ -68,7 +68,7 @@ def gmrq(tmat):
     for i, t in enumerate(tmat):
         val, vec = np.linalg.eig(t)
         val.sort()
-        q[i] = val[-3:].sum()
+        q[i] = val[-4:-1].sum()
     return q
 
 
@@ -78,7 +78,7 @@ def gmrq2(tmat):
     for i, t in enumerate(tmat):
         val, vec = np.linalg.eig(t)
         val.sort()
-        q[i] = (val[-3:] ** 2).sum()
+        q[i] = (val[-4:-1] ** 2).sum()
     return q
 
 

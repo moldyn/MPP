@@ -825,7 +825,7 @@ class Lumping(object):
 
     @property
     def timescales(self) -> npt.NDArray[np.floating]:
-        """Implied timescales property.
+        """Implied timescales property, in frames.
 
         If more than the first 3 implied timescales are required, run
         the calc_timescales method separately.
@@ -840,7 +840,7 @@ class Lumping(object):
         return self._timescales
 
     def calc_timescales(self, ntimescales: int = 3) -> None:
-        """Calculate implied timescales.
+        """Calculate implied timescales in frames.
 
         Parameters
         ----------
