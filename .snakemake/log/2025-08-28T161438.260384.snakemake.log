@@ -1,0 +1,45 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job      count
+-----  -------
+gen_Z        1
+plot         1
+total        2
+
+Select jobs to execute...
+Execute 1 jobs...
+[Thu Aug 28 16:14:38 2025]
+localrule gen_Z:
+    input: data/sample_system/input/config.yml
+    output: data/sample_system/results/kl/Z.npy
+    jobid: 1
+    reason: Forced execution
+    wildcards: system=sample_system, lumping=kl
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/sample_system/input/config.yml KL none -Z data/sample_system/results/kl/Z.npy
+Terminating processes on user request, this might take some time.
+WorkflowError:
+Error exporting conda environment --name 'mpp':
+
+CondaError: KeyboardInterrupt
+
+
+[Thu Aug 28 16:14:39 2025]
+Error in rule gen_Z:
+    message: None
+    jobid: 1
+    input: data/sample_system/input/config.yml
+    output: data/sample_system/results/kl/Z.npy
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/sample_system/input/config.yml KL none -Z data/sample_system/results/kl/Z.npy
+        (command exited with non-zero exit code)
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-28T161438.260384.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.

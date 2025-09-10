@@ -1,0 +1,230 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job      count
+-----  -------
+rmsd         6
+total        6
+
+Select jobs to execute...
+Execute 6 jobs...
+[Mon Aug 18 13:03:47 2025]
+localrule rmsd:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/rmsd.npy, data/HP35/results/js/rmsd_mean_frames.pdb
+    jobid: 6
+    reason: Missing output files: data/HP35/results/js/rmsd_mean_frames.pdb
+    wildcards: system=HP35, lumping=js
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy --rmsd data/HP35/results/js/rmsd.npy
+Activating conda environment: mpp
+[Mon Aug 18 13:03:48 2025]
+localrule rmsd:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/rmsd.npy, data/HP35/results/kl/rmsd_mean_frames.pdb
+    jobid: 10
+    reason: Missing output files: data/HP35/results/kl/rmsd_mean_frames.pdb
+    wildcards: system=HP35, lumping=kl
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy --rmsd data/HP35/results/kl/rmsd.npy
+Activating conda environment: mpp
+[Mon Aug 18 13:03:48 2025]
+localrule rmsd:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/rmsd.npy, data/HP35/results/t/rmsd_mean_frames.pdb
+    jobid: 4
+    reason: Missing output files: data/HP35/results/t/rmsd_mean_frames.pdb
+    wildcards: system=HP35, lumping=t
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy --rmsd data/HP35/results/t/rmsd.npy
+Activating conda environment: mpp
+[Mon Aug 18 13:03:49 2025]
+localrule rmsd:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/rmsd.npy, data/HP35/results/gpcca/rmsd_mean_frames.pdb
+    jobid: 8
+    reason: Missing output files: data/HP35/results/gpcca/rmsd_mean_frames.pdb
+    wildcards: system=HP35, lumping=gpcca
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy --rmsd data/HP35/results/gpcca/rmsd.npy
+Activating conda environment: mpp
+[Mon Aug 18 13:03:49 2025]
+localrule rmsd:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/rmsd.npy, data/HP35/results/t_js/rmsd_mean_frames.pdb
+    jobid: 0
+    reason: Missing output files: data/HP35/results/t_js/rmsd_mean_frames.pdb
+    wildcards: system=HP35, lumping=t_js
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy --rmsd data/HP35/results/t_js/rmsd.npy
+Activating conda environment: mpp
+[Mon Aug 18 13:03:49 2025]
+localrule rmsd:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/rmsd.npy, data/HP35/results/kl_js/rmsd_mean_frames.pdb
+    jobid: 2
+    reason: Missing output files: data/HP35/results/kl_js/rmsd_mean_frames.pdb
+    wildcards: system=HP35, lumping=kl_js
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy --rmsd data/HP35/results/kl_js/rmsd.npy
+Activating conda environment: mpp
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 112:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy --rmsd data/HP35/results/t_js/rmsd.npy' returned non-zero exit status 1.
+[Mon Aug 18 13:07:34 2025]
+Error in rule rmsd:
+    message: None
+    jobid: 0
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/rmsd.npy, data/HP35/results/t_js/rmsd_mean_frames.pdb
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy --rmsd data/HP35/results/t_js/rmsd.npy
+        (command exited with non-zero exit code)
+Removing output files of failed job rmsd since they might be corrupted:
+data/HP35/results/t_js/rmsd.npy
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 112:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy --rmsd data/HP35/results/kl_js/rmsd.npy' returned non-zero exit status 1.
+[Mon Aug 18 13:08:16 2025]
+Error in rule rmsd:
+    message: None
+    jobid: 2
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/rmsd.npy, data/HP35/results/kl_js/rmsd_mean_frames.pdb
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy --rmsd data/HP35/results/kl_js/rmsd.npy
+        (command exited with non-zero exit code)
+Removing output files of failed job rmsd since they might be corrupted:
+data/HP35/results/kl_js/rmsd.npy
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 112:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy --rmsd data/HP35/results/js/rmsd.npy' returned non-zero exit status 1.
+[Mon Aug 18 13:08:19 2025]
+Error in rule rmsd:
+    message: None
+    jobid: 6
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/rmsd.npy, data/HP35/results/js/rmsd_mean_frames.pdb
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy --rmsd data/HP35/results/js/rmsd.npy
+        (command exited with non-zero exit code)
+Removing output files of failed job rmsd since they might be corrupted:
+data/HP35/results/js/rmsd.npy
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 112:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy --rmsd data/HP35/results/t/rmsd.npy' returned non-zero exit status 1.
+[Mon Aug 18 13:08:28 2025]
+Error in rule rmsd:
+    message: None
+    jobid: 4
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/rmsd.npy, data/HP35/results/t/rmsd_mean_frames.pdb
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy --rmsd data/HP35/results/t/rmsd.npy
+        (command exited with non-zero exit code)
+Removing output files of failed job rmsd since they might be corrupted:
+data/HP35/results/t/rmsd.npy
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 112:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy --rmsd data/HP35/results/kl/rmsd.npy' returned non-zero exit status 1.
+[Mon Aug 18 13:09:23 2025]
+Error in rule rmsd:
+    message: None
+    jobid: 10
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/rmsd.npy, data/HP35/results/kl/rmsd_mean_frames.pdb
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy --rmsd data/HP35/results/kl/rmsd.npy
+        (command exited with non-zero exit code)
+Removing output files of failed job rmsd since they might be corrupted:
+data/HP35/results/kl/rmsd.npy
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 112:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy --rmsd data/HP35/results/gpcca/rmsd.npy' returned non-zero exit status 1.
+[Mon Aug 18 13:51:17 2025]
+Error in rule rmsd:
+    message: None
+    jobid: 8
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/rmsd.npy, data/HP35/results/gpcca/rmsd_mean_frames.pdb
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy --rmsd data/HP35/results/gpcca/rmsd.npy
+        (command exited with non-zero exit code)
+Removing output files of failed job rmsd since they might be corrupted:
+data/HP35/results/gpcca/rmsd.npy
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look below for error messages
+[Mon Aug 18 13:51:17 2025]
+Error in rule rmsd:
+    message: None
+    jobid: 6
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/rmsd.npy, data/HP35/results/js/rmsd_mean_frames.pdb
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy --rmsd data/HP35/results/js/rmsd.npy
+        (command exited with non-zero exit code)
+[Mon Aug 18 13:51:17 2025]
+Error in rule rmsd:
+    message: None
+    jobid: 10
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/rmsd.npy, data/HP35/results/kl/rmsd_mean_frames.pdb
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy --rmsd data/HP35/results/kl/rmsd.npy
+        (command exited with non-zero exit code)
+[Mon Aug 18 13:51:17 2025]
+Error in rule rmsd:
+    message: None
+    jobid: 4
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/rmsd.npy, data/HP35/results/t/rmsd_mean_frames.pdb
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy --rmsd data/HP35/results/t/rmsd.npy
+        (command exited with non-zero exit code)
+[Mon Aug 18 13:51:17 2025]
+Error in rule rmsd:
+    message: None
+    jobid: 8
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/rmsd.npy, data/HP35/results/gpcca/rmsd_mean_frames.pdb
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy --rmsd data/HP35/results/gpcca/rmsd.npy
+        (command exited with non-zero exit code)
+[Mon Aug 18 13:51:17 2025]
+Error in rule rmsd:
+    message: None
+    jobid: 0
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/rmsd.npy, data/HP35/results/t_js/rmsd_mean_frames.pdb
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy --rmsd data/HP35/results/t_js/rmsd.npy
+        (command exited with non-zero exit code)
+[Mon Aug 18 13:51:17 2025]
+Error in rule rmsd:
+    message: None
+    jobid: 2
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/rmsd.npy, data/HP35/results/kl_js/rmsd_mean_frames.pdb
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy --rmsd data/HP35/results/kl_js/rmsd.npy
+        (command exited with non-zero exit code)
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-18T130347.211598.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.

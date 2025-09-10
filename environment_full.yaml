@@ -1,0 +1,29 @@
+name: base
+channels:
+  - defaults
+dependencies:
+  - networkx=3.1=py312h06a4308_0
+  - numpy=1.26.4=py312hc5e2394_0
+  - python=3.12.2=h996f2a0_0
+  - tqdm=4.66.2=py312he106c6f_0
+  - yaml-cpp=0.8.0=h6a678d5_0
+  - pip:
+      - anytree==2.12.1
+      - fa2-modified==0.3.9
+      - matplotlib==3.10.0
+      - mdanalysis==2.7.0
+      - mdtraj==1.9.9
+      - mosaic-clustering==0.4.1
+      - mpt==1.0.0
+      - msmhelper==1.1.1
+      - numba==0.59.1
+      - pandas==2.2.3
+      - pip==24.3.1
+      - pipdeptree==2.24.0
+      - pipreqs==0.5.0
+      - prettypyplot==0.11.0
+      - pyyaml==6.0.2
+      - scikit-learn==1.6.1
+      - scipy==1.15.1
+      - seaborn==0.13.2
+prefix: /home/fg149/miniconda3

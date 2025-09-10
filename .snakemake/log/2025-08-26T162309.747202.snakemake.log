@@ -1,0 +1,401 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job                            count
+---------------------------  -------
+gen_Z                              5
+get_mean_frames_pdb_CA             5
+get_mean_frames_pdb_feature        5
+rmsd_CA                            5
+rmsd_feature                       5
+total                             25
+
+Select jobs to execute...
+Execute 5 jobs...
+[Tue Aug 26 16:23:09 2025]
+localrule gen_Z:
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/t_js/Z.npy
+    jobid: 13
+    reason: Missing output files: data/aSyn/results/t_js/Z.npy
+    wildcards: system=aSyn, lumping=t_js
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml T JS -Z data/aSyn/results/t_js/Z.npy
+[Tue Aug 26 16:23:10 2025]
+localrule gen_Z:
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/t/Z.npy
+    jobid: 16
+    reason: Missing output files: data/aSyn/results/t/Z.npy
+    wildcards: system=aSyn, lumping=t
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml T none -Z data/aSyn/results/t/Z.npy
+[Tue Aug 26 16:23:10 2025]
+localrule gen_Z:
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/gpcca/Z.npy
+    jobid: 2
+    reason: Missing output files: data/aSyn/results/gpcca/Z.npy
+    wildcards: system=aSyn, lumping=gpcca
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml gpcca ref -Z data/aSyn/results/gpcca/Z.npy
+[Tue Aug 26 16:23:10 2025]
+localrule gen_Z:
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/kl_js/Z.npy
+    jobid: 10
+    reason: Missing output files: data/aSyn/results/kl_js/Z.npy
+    wildcards: system=aSyn, lumping=kl_js
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml KL JS -Z data/aSyn/results/kl_js/Z.npy
+[Tue Aug 26 16:23:10 2025]
+localrule gen_Z:
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/kl/Z.npy
+    jobid: 5
+    reason: Missing output files: data/aSyn/results/kl/Z.npy
+    wildcards: system=aSyn, lumping=kl
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml KL none -Z data/aSyn/results/kl/Z.npy
+Activating conda environment: mpp
+Activating conda environment: mpp
+Activating conda environment: mpp
+Activating conda environment: mpp
+Activating conda environment: mpp
+Moving output file data/aSyn/results/t_js/Z.npy to cache.
+Moving output file data/aSyn/results/t/Z.npy to cache.
+Moving output file data/aSyn/results/kl/Z.npy to cache.
+Symlinking output file data/aSyn/results/t_js/Z.npy from cache.
+Moving output file data/aSyn/results/kl_js/Z.npy to cache.
+Symlinking output file data/aSyn/results/t/Z.npy from cache.
+Symlinking output file data/aSyn/results/kl/Z.npy from cache.
+Symlinking output file data/aSyn/results/kl_js/Z.npy from cache.
+[Tue Aug 26 16:23:34 2025]
+Finished jobid: 13 (Rule: gen_Z)
+1 of 25 steps (4%) done
+Select jobs to execute...
+Execute 2 jobs...
+[Tue Aug 26 16:23:35 2025]
+localrule rmsd_CA:
+    input: data/aSyn/input/config.yml, data/aSyn/results/t_js/Z.npy
+    output: data/aSyn/results/t_js/rmsd_CA.npy, data/aSyn/results/t_js/rmsd_CA_mean_frames.ndx
+    jobid: 12
+    reason: Updated input files: data/aSyn/input/config.yml; Input files updated by another job: data/aSyn/results/t_js/Z.npy
+    wildcards: system=aSyn, lumping=t_js
+    resources: tmpdir=/tmp, mem_mb=72271, mem_mib=68923
+Shell command: python -m MPP.run data/aSyn/input/config.yml T JS -Z data/aSyn/results/t_js/Z.npy --rmsd data/aSyn/results/t_js/rmsd_CA.npy
+Activating conda environment: mpp
+[Tue Aug 26 16:23:35 2025]
+localrule rmsd_feature:
+    input: data/aSyn/input/config.yml, data/aSyn/results/t_js/Z.npy
+    output: data/aSyn/results/t_js/rmsd_feature.npy, data/aSyn/results/t_js/rmsd_feature_mean_frames.ndx
+    jobid: 20
+    reason: Input files updated by another job: data/aSyn/results/t_js/Z.npy
+    wildcards: system=aSyn, lumping=t_js
+    resources: tmpdir=/tmp, mem_mb=72271, mem_mib=68923
+Shell command: python -m MPP.run data/aSyn/input/config.yml T JS -Z data/aSyn/results/t_js/Z.npy --rmsd data/aSyn/results/t_js/rmsd_feature.npy --rmsd-feature feature
+Activating conda environment: mpp
+[Tue Aug 26 16:23:35 2025]
+Finished jobid: 16 (Rule: gen_Z)
+2 of 25 steps (8%) done
+[Tue Aug 26 16:23:35 2025]
+Finished jobid: 5 (Rule: gen_Z)
+3 of 25 steps (12%) done
+[Tue Aug 26 16:23:35 2025]
+Finished jobid: 10 (Rule: gen_Z)
+4 of 25 steps (16%) done
+Select jobs to execute...
+Execute 6 jobs...
+[Tue Aug 26 16:23:35 2025]
+localrule rmsd_CA:
+    input: data/aSyn/input/config.yml, data/aSyn/results/t/Z.npy
+    output: data/aSyn/results/t/rmsd_CA.npy, data/aSyn/results/t/rmsd_CA_mean_frames.ndx
+    jobid: 22
+    reason: Updated input files: data/aSyn/input/config.yml; Input files updated by another job: data/aSyn/results/t/Z.npy
+    wildcards: system=aSyn, lumping=t
+    resources: tmpdir=/tmp, mem_mb=72271, mem_mib=68923
+Shell command: python -m MPP.run data/aSyn/input/config.yml T none -Z data/aSyn/results/t/Z.npy --rmsd data/aSyn/results/t/rmsd_CA.npy
+Activating conda environment: mpp
+[Tue Aug 26 16:23:35 2025]
+localrule rmsd_feature:
+    input: data/aSyn/input/config.yml, data/aSyn/results/kl_js/Z.npy
+    output: data/aSyn/results/kl_js/rmsd_feature.npy, data/aSyn/results/kl_js/rmsd_feature_mean_frames.ndx
+    jobid: 9
+    reason: Input files updated by another job: data/aSyn/results/kl_js/Z.npy
+    wildcards: system=aSyn, lumping=kl_js
+    resources: tmpdir=/tmp, mem_mb=72271, mem_mib=68923
+Shell command: python -m MPP.run data/aSyn/input/config.yml KL JS -Z data/aSyn/results/kl_js/Z.npy --rmsd data/aSyn/results/kl_js/rmsd_feature.npy --rmsd-feature feature
+Activating conda environment: mpp
+[Tue Aug 26 16:23:35 2025]
+localrule rmsd_feature:
+    input: data/aSyn/input/config.yml, data/aSyn/results/kl/Z.npy
+    output: data/aSyn/results/kl/rmsd_feature.npy, data/aSyn/results/kl/rmsd_feature_mean_frames.ndx
+    jobid: 4
+    reason: Input files updated by another job: data/aSyn/results/kl/Z.npy
+    wildcards: system=aSyn, lumping=kl
+    resources: tmpdir=/tmp, mem_mb=72271, mem_mib=68923
+Shell command: python -m MPP.run data/aSyn/input/config.yml KL none -Z data/aSyn/results/kl/Z.npy --rmsd data/aSyn/results/kl/rmsd_feature.npy --rmsd-feature feature
+Activating conda environment: mpp
+[Tue Aug 26 16:23:35 2025]
+localrule rmsd_CA:
+    input: data/aSyn/input/config.yml, data/aSyn/results/kl/Z.npy
+    output: data/aSyn/results/kl/rmsd_CA.npy, data/aSyn/results/kl/rmsd_CA_mean_frames.ndx
+    jobid: 7
+    reason: Updated input files: data/aSyn/input/config.yml; Input files updated by another job: data/aSyn/results/kl/Z.npy
+    wildcards: system=aSyn, lumping=kl
+    resources: tmpdir=/tmp, mem_mb=72271, mem_mib=68923
+Shell command: python -m MPP.run data/aSyn/input/config.yml KL none -Z data/aSyn/results/kl/Z.npy --rmsd data/aSyn/results/kl/rmsd_CA.npy
+Activating conda environment: mpp
+[Tue Aug 26 16:23:35 2025]
+localrule rmsd_CA:
+    input: data/aSyn/input/config.yml, data/aSyn/results/kl_js/Z.npy
+    output: data/aSyn/results/kl_js/rmsd_CA.npy, data/aSyn/results/kl_js/rmsd_CA_mean_frames.ndx
+    jobid: 24
+    reason: Updated input files: data/aSyn/input/config.yml; Input files updated by another job: data/aSyn/results/kl_js/Z.npy
+    wildcards: system=aSyn, lumping=kl_js
+    resources: tmpdir=/tmp, mem_mb=72271, mem_mib=68923
+Shell command: python -m MPP.run data/aSyn/input/config.yml KL JS -Z data/aSyn/results/kl_js/Z.npy --rmsd data/aSyn/results/kl_js/rmsd_CA.npy
+Activating conda environment: mpp
+[Tue Aug 26 16:23:35 2025]
+localrule rmsd_feature:
+    input: data/aSyn/input/config.yml, data/aSyn/results/t/Z.npy
+    output: data/aSyn/results/t/rmsd_feature.npy, data/aSyn/results/t/rmsd_feature_mean_frames.ndx
+    jobid: 15
+    reason: Input files updated by another job: data/aSyn/results/t/Z.npy
+    wildcards: system=aSyn, lumping=t
+    resources: tmpdir=/tmp, mem_mb=72271, mem_mib=68923
+Shell command: python -m MPP.run data/aSyn/input/config.yml T none -Z data/aSyn/results/t/Z.npy --rmsd data/aSyn/results/t/rmsd_feature.npy --rmsd-feature feature
+Activating conda environment: mpp
+Moving output file data/aSyn/results/gpcca/Z.npy to cache.
+Symlinking output file data/aSyn/results/gpcca/Z.npy from cache.
+[Tue Aug 26 16:23:39 2025]
+Finished jobid: 2 (Rule: gen_Z)
+5 of 25 steps (20%) done
+Select jobs to execute...
+Execute 2 jobs...
+[Tue Aug 26 16:23:39 2025]
+localrule rmsd_feature:
+    input: data/aSyn/input/config.yml, data/aSyn/results/gpcca/Z.npy
+    output: data/aSyn/results/gpcca/rmsd_feature.npy, data/aSyn/results/gpcca/rmsd_feature_mean_frames.ndx
+    jobid: 18
+    reason: Input files updated by another job: data/aSyn/results/gpcca/Z.npy
+    wildcards: system=aSyn, lumping=gpcca
+    resources: tmpdir=/tmp, mem_mb=72271, mem_mib=68923
+Shell command: python -m MPP.run data/aSyn/input/config.yml gpcca ref -Z data/aSyn/results/gpcca/Z.npy --rmsd data/aSyn/results/gpcca/rmsd_feature.npy --rmsd-feature feature
+Activating conda environment: mpp
+[Tue Aug 26 16:23:39 2025]
+localrule rmsd_CA:
+    input: data/aSyn/input/config.yml, data/aSyn/results/gpcca/Z.npy
+    output: data/aSyn/results/gpcca/rmsd_CA.npy, data/aSyn/results/gpcca/rmsd_CA_mean_frames.ndx
+    jobid: 1
+    reason: Updated input files: data/aSyn/input/config.yml; Input files updated by another job: data/aSyn/results/gpcca/Z.npy
+    wildcards: system=aSyn, lumping=gpcca
+    resources: tmpdir=/tmp, mem_mb=72271, mem_mib=68923
+Shell command: python -m MPP.run data/aSyn/input/config.yml gpcca ref -Z data/aSyn/results/gpcca/Z.npy --rmsd data/aSyn/results/gpcca/rmsd_CA.npy
+Activating conda environment: mpp
+[Tue Aug 26 16:23:45 2025]
+Finished jobid: 9 (Rule: rmsd_feature)
+6 of 25 steps (24%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 26 16:23:45 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/aSyn/results/kl_js/rmsd_feature_mean_frames.ndx
+    output: data/aSyn/results/kl_js/mean_frames_feature.pdb
+    jobid: 8
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=kl_js
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/kl_js/mean_frames_feature.pdb -fr data/aSyn/results/kl_js/rmsd_feature_mean_frames.ndx -skip 20 <<eof
+0
+eof
+[Tue Aug 26 16:23:46 2025]
+Finished jobid: 20 (Rule: rmsd_feature)
+7 of 25 steps (28%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 26 16:23:46 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/aSyn/results/t_js/rmsd_feature_mean_frames.ndx
+    output: data/aSyn/results/t_js/mean_frames_feature.pdb
+    jobid: 19
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=t_js
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/t_js/mean_frames_feature.pdb -fr data/aSyn/results/t_js/rmsd_feature_mean_frames.ndx -skip 20 <<eof
+0
+eof
+[Tue Aug 26 16:23:47 2025]
+Finished jobid: 4 (Rule: rmsd_feature)
+8 of 25 steps (32%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 26 16:23:47 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/aSyn/results/kl/rmsd_feature_mean_frames.ndx
+    output: data/aSyn/results/kl/mean_frames_feature.pdb
+    jobid: 3
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=kl
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/kl/mean_frames_feature.pdb -fr data/aSyn/results/kl/rmsd_feature_mean_frames.ndx -skip 20 <<eof
+0
+eof
+[Tue Aug 26 16:23:50 2025]
+Finished jobid: 15 (Rule: rmsd_feature)
+9 of 25 steps (36%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 26 16:23:50 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/aSyn/results/t/rmsd_feature_mean_frames.ndx
+    output: data/aSyn/results/t/mean_frames_feature.pdb
+    jobid: 14
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=t
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/t/mean_frames_feature.pdb -fr data/aSyn/results/t/rmsd_feature_mean_frames.ndx -skip 20 <<eof
+0
+eof
+[Tue Aug 26 16:23:57 2025]
+Finished jobid: 18 (Rule: rmsd_feature)
+10 of 25 steps (40%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 26 16:23:57 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/aSyn/results/gpcca/rmsd_feature_mean_frames.ndx
+    output: data/aSyn/results/gpcca/mean_frames_feature.pdb
+    jobid: 17
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=gpcca
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/gpcca/mean_frames_feature.pdb -fr data/aSyn/results/gpcca/rmsd_feature_mean_frames.ndx -skip 20 <<eof
+0
+eof
+[Tue Aug 26 16:35:40 2025]
+Finished jobid: 19 (Rule: get_mean_frames_pdb_feature)
+11 of 25 steps (44%) done
+[Tue Aug 26 16:35:40 2025]
+Finished jobid: 3 (Rule: get_mean_frames_pdb_feature)
+12 of 25 steps (48%) done
+[Tue Aug 26 16:35:40 2025]
+Finished jobid: 17 (Rule: get_mean_frames_pdb_feature)
+13 of 25 steps (52%) done
+[Tue Aug 26 16:35:40 2025]
+Finished jobid: 14 (Rule: get_mean_frames_pdb_feature)
+14 of 25 steps (56%) done
+[Tue Aug 26 16:35:40 2025]
+Finished jobid: 8 (Rule: get_mean_frames_pdb_feature)
+15 of 25 steps (60%) done
+[Tue Aug 26 16:37:30 2025]
+Finished jobid: 12 (Rule: rmsd_CA)
+16 of 25 steps (64%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 26 16:37:30 2025]
+localrule get_mean_frames_pdb_CA:
+    input: data/aSyn/results/t_js/rmsd_CA_mean_frames.ndx
+    output: data/aSyn/results/t_js/mean_frames_CA.pdb
+    jobid: 11
+    reason: Input files updated by another job: data/aSyn/results/t_js/rmsd_CA_mean_frames.ndx
+    wildcards: system=aSyn, lumping=t_js
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/t_js/mean_frames_CA.pdb -fr data/aSyn/results/t_js/rmsd_CA_mean_frames.ndx -skip 20 <<eof
+0
+eof
+[Tue Aug 26 16:37:34 2025]
+Finished jobid: 7 (Rule: rmsd_CA)
+17 of 25 steps (68%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 26 16:37:34 2025]
+localrule get_mean_frames_pdb_CA:
+    input: data/aSyn/results/kl/rmsd_CA_mean_frames.ndx
+    output: data/aSyn/results/kl/mean_frames_CA.pdb
+    jobid: 6
+    reason: Input files updated by another job: data/aSyn/results/kl/rmsd_CA_mean_frames.ndx
+    wildcards: system=aSyn, lumping=kl
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/kl/mean_frames_CA.pdb -fr data/aSyn/results/kl/rmsd_CA_mean_frames.ndx -skip 20 <<eof
+0
+eof
+[Tue Aug 26 16:37:35 2025]
+Finished jobid: 24 (Rule: rmsd_CA)
+18 of 25 steps (72%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 26 16:37:35 2025]
+localrule get_mean_frames_pdb_CA:
+    input: data/aSyn/results/kl_js/rmsd_CA_mean_frames.ndx
+    output: data/aSyn/results/kl_js/mean_frames_CA.pdb
+    jobid: 23
+    reason: Input files updated by another job: data/aSyn/results/kl_js/rmsd_CA_mean_frames.ndx
+    wildcards: system=aSyn, lumping=kl_js
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/kl_js/mean_frames_CA.pdb -fr data/aSyn/results/kl_js/rmsd_CA_mean_frames.ndx -skip 20 <<eof
+0
+eof
+[Tue Aug 26 16:37:49 2025]
+Finished jobid: 22 (Rule: rmsd_CA)
+19 of 25 steps (76%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 26 16:37:49 2025]
+localrule get_mean_frames_pdb_CA:
+    input: data/aSyn/results/t/rmsd_CA_mean_frames.ndx
+    output: data/aSyn/results/t/mean_frames_CA.pdb
+    jobid: 21
+    reason: Input files updated by another job: data/aSyn/results/t/rmsd_CA_mean_frames.ndx
+    wildcards: system=aSyn, lumping=t
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/t/mean_frames_CA.pdb -fr data/aSyn/results/t/rmsd_CA_mean_frames.ndx -skip 20 <<eof
+0
+eof
+[Tue Aug 26 16:37:52 2025]
+Finished jobid: 1 (Rule: rmsd_CA)
+20 of 25 steps (80%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 26 16:37:52 2025]
+localrule get_mean_frames_pdb_CA:
+    input: data/aSyn/results/gpcca/rmsd_CA_mean_frames.ndx
+    output: data/aSyn/results/gpcca/mean_frames_CA.pdb
+    jobid: 0
+    reason: Input files updated by another job: data/aSyn/results/gpcca/rmsd_CA_mean_frames.ndx
+    wildcards: system=aSyn, lumping=gpcca
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/gpcca/mean_frames_CA.pdb -fr data/aSyn/results/gpcca/rmsd_CA_mean_frames.ndx -skip 20 <<eof
+0
+eof
+[Tue Aug 26 16:50:27 2025]
+Finished jobid: 11 (Rule: get_mean_frames_pdb_CA)
+21 of 25 steps (84%) done
+[Tue Aug 26 16:50:27 2025]
+Finished jobid: 0 (Rule: get_mean_frames_pdb_CA)
+22 of 25 steps (88%) done
+[Tue Aug 26 16:50:27 2025]
+Finished jobid: 21 (Rule: get_mean_frames_pdb_CA)
+23 of 25 steps (92%) done
+[Tue Aug 26 16:50:27 2025]
+Finished jobid: 23 (Rule: get_mean_frames_pdb_CA)
+24 of 25 steps (96%) done
+[Tue Aug 26 16:50:27 2025]
+Finished jobid: 6 (Rule: get_mean_frames_pdb_CA)
+25 of 25 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-26T162309.747202.snakemake.log

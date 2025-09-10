@@ -1,0 +1,125 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job                       count
+----------------------  -------
+draw_cluster_in_states        5
+total                         5
+
+Select jobs to execute...
+Execute 4 jobs...
+[Tue Aug 26 15:22:39 2025]
+localcheckpoint draw_cluster_in_states:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/mean_frames_feature.pdb
+    output: data/HP35/results/kl/mean_frames_feature_1-5
+    jobid: 8
+    reason: Missing output files: data/HP35/results/kl/mean_frames_feature_1-5
+    wildcards: system=HP35, lumping=kl, rmsd_feature=feature, clusters=1-5
+    resources: tmpdir=/tmp
+Shell command: workflow/create_cluster_pml.py data/HP35/results/kl/mean_frames_feature_1-5 data/HP35/input/config.yml data/HP35/results/kl/mean_frames_feature.pdb 1-5
+DAG of jobs will be updated after completion.
+Activating conda environment: pymol
+[Tue Aug 26 15:22:40 2025]
+localcheckpoint draw_cluster_in_states:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/mean_frames_feature.pdb
+    output: data/HP35/results/t_js/mean_frames_feature_1-5
+    jobid: 16
+    reason: Missing output files: data/HP35/results/t_js/mean_frames_feature_1-5
+    wildcards: system=HP35, lumping=t_js, rmsd_feature=feature, clusters=1-5
+    resources: tmpdir=/tmp
+Shell command: workflow/create_cluster_pml.py data/HP35/results/t_js/mean_frames_feature_1-5 data/HP35/input/config.yml data/HP35/results/t_js/mean_frames_feature.pdb 1-5
+DAG of jobs will be updated after completion.
+Activating conda environment: pymol
+[Tue Aug 26 15:22:40 2025]
+localcheckpoint draw_cluster_in_states:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/mean_frames_feature.pdb
+    output: data/HP35/results/gpcca/mean_frames_feature_1-5
+    jobid: 4
+    reason: Missing output files: data/HP35/results/gpcca/mean_frames_feature_1-5
+    wildcards: system=HP35, lumping=gpcca, rmsd_feature=feature, clusters=1-5
+    resources: tmpdir=/tmp
+Shell command: workflow/create_cluster_pml.py data/HP35/results/gpcca/mean_frames_feature_1-5 data/HP35/input/config.yml data/HP35/results/gpcca/mean_frames_feature.pdb 1-5
+DAG of jobs will be updated after completion.
+Activating conda environment: pymol
+[Tue Aug 26 15:22:40 2025]
+localcheckpoint draw_cluster_in_states:
+    input: data/HP35/input/config.yml, data/HP35/results/t/mean_frames_feature.pdb
+    output: data/HP35/results/t/mean_frames_feature_1-5
+    jobid: 0
+    reason: Missing output files: data/HP35/results/t/mean_frames_feature_1-5
+    wildcards: system=HP35, lumping=t, rmsd_feature=feature, clusters=1-5
+    resources: tmpdir=/tmp
+Shell command: workflow/create_cluster_pml.py data/HP35/results/t/mean_frames_feature_1-5 data/HP35/input/config.yml data/HP35/results/t/mean_frames_feature.pdb 1-5
+DAG of jobs will be updated after completion.
+Activating conda environment: pymol
+Select jobs to execute...
+Waiting at most 5 seconds for missing files:
+data/HP35/results/t/mean_frames_feature_1-5 (missing locally)
+MissingOutputException in rule draw_cluster_in_states in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 251:
+Job 0 completed successfully, but some output files are missing. Missing files after 5 seconds. This might be due to filesystem latency. If that is the case, consider to increase the wait time with --latency-wait:
+data/HP35/results/t/mean_frames_feature_1-5 (missing locally, parent dir contents: ck_test.png, macrotraj.pdf, timescales.png, timescales.pdf, sankey.png, sankey.pdf, ck_test.pdf, contacts.png, contacts.pdf, macrotraj.png, dendrogram.pdf, dendrogram.png, Z.npy, rmsd_feature.npy, rmsd_feature_mean_frames.ndx, mean_frames_feature.pdb, rmsd_CA.npy, rmsd_CA_mean_frames.ndx, mean_frames_CA.pdb)
+Waiting at most 5 seconds for missing files:
+data/HP35/results/gpcca/mean_frames_feature_1-5 (missing locally)
+MissingOutputException in rule draw_cluster_in_states in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 251:
+Job 4  completed successfully, but some output files are missing. Missing files after 5 seconds. This might be due to filesystem latency. If that is the case, consider to increase the wait time with --latency-wait:
+data/HP35/results/gpcca/mean_frames_feature_1-5 (missing locally, parent dir contents: timescales.png, sankey.png, sankey.pdf, macrotraj.png, contacts.png, ck_test.png, macrotraj.pdf, contacts.pdf, timescales.pdf, ck_test.pdf, dendrogram.pdf, dendrogram.png, Z.npy, rmsd_feature.npy, rmsd_feature_mean_frames.ndx, mean_frames_feature.pdb, rmsd_CA.npy, rmsd_CA_mean_frames.ndx, mean_frames_CA.pdb)
+Waiting at most 5 seconds for missing files:
+data/HP35/results/t_js/mean_frames_feature_1-5 (missing locally)
+MissingOutputException in rule draw_cluster_in_states in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 251:
+Job 16  completed successfully, but some output files are missing. Missing files after 5 seconds. This might be due to filesystem latency. If that is the case, consider to increase the wait time with --latency-wait:
+data/HP35/results/t_js/mean_frames_feature_1-5 (missing locally, parent dir contents: timescales.pdf, contacts.pdf, ck_test.png, ck_test.pdf, sankey.png, sankey.pdf, macrotraj.png, timescales.png, contacts.png, macrotraj.pdf, dendrogram.pdf, dendrogram.png, Z.npy, rmsd_feature.npy, rmsd_feature_mean_frames.ndx, mean_frames_feature.pdb, rmsd_CA.npy, rmsd_CA_mean_frames.ndx, mean_frames_CA.pdb)
+Waiting at most 5 seconds for missing files:
+data/HP35/results/kl/mean_frames_feature_1-5 (missing locally)
+MissingOutputException in rule draw_cluster_in_states in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 251:
+Job 8  completed successfully, but some output files are missing. Missing files after 5 seconds. This might be due to filesystem latency. If that is the case, consider to increase the wait time with --latency-wait:
+data/HP35/results/kl/mean_frames_feature_1-5 (missing locally, parent dir contents: sankey.png, timescales.pdf, ck_test.pdf, contacts.png, macrotraj.pdf, macrotraj.png, sankey.pdf, timescales.png, ck_test.png, contacts.pdf, dendrogram.png, dendrogram.pdf, Z.npy, rmsd_feature.npy, rmsd_feature_mean_frames.ndx, mean_frames_feature.pdb, rmsd_CA.npy, rmsd_CA_mean_frames.ndx, mean_frames_CA.pdb)
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look below for error messages
+[Tue Aug 26 15:23:05 2025]
+Error in rule draw_cluster_in_states:
+    message: None
+    jobid: 4
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/mean_frames_feature.pdb
+    output: data/HP35/results/gpcca/mean_frames_feature_1-5
+    conda-env: pymol
+    shell:
+        workflow/create_cluster_pml.py data/HP35/results/gpcca/mean_frames_feature_1-5 data/HP35/input/config.yml data/HP35/results/gpcca/mean_frames_feature.pdb 1-5
+        (command exited with non-zero exit code)
+[Tue Aug 26 15:23:05 2025]
+Error in rule draw_cluster_in_states:
+    message: None
+    jobid: 8
+    input: data/HP35/input/config.yml, data/HP35/results/kl/mean_frames_feature.pdb
+    output: data/HP35/results/kl/mean_frames_feature_1-5
+    conda-env: pymol
+    shell:
+        workflow/create_cluster_pml.py data/HP35/results/kl/mean_frames_feature_1-5 data/HP35/input/config.yml data/HP35/results/kl/mean_frames_feature.pdb 1-5
+        (command exited with non-zero exit code)
+[Tue Aug 26 15:23:05 2025]
+Error in rule draw_cluster_in_states:
+    message: None
+    jobid: 16
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/mean_frames_feature.pdb
+    output: data/HP35/results/t_js/mean_frames_feature_1-5
+    conda-env: pymol
+    shell:
+        workflow/create_cluster_pml.py data/HP35/results/t_js/mean_frames_feature_1-5 data/HP35/input/config.yml data/HP35/results/t_js/mean_frames_feature.pdb 1-5
+        (command exited with non-zero exit code)
+[Tue Aug 26 15:23:05 2025]
+Error in rule draw_cluster_in_states:
+    message: None
+    jobid: 0
+    input: data/HP35/input/config.yml, data/HP35/results/t/mean_frames_feature.pdb
+    output: data/HP35/results/t/mean_frames_feature_1-5
+    conda-env: pymol
+    shell:
+        workflow/create_cluster_pml.py data/HP35/results/t/mean_frames_feature_1-5 data/HP35/input/config.yml data/HP35/results/t/mean_frames_feature.pdb 1-5
+        (command exited with non-zero exit code)
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-26T152239.062817.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.

@@ -1,0 +1,1019 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job         count
+--------  -------
+plot           36
+plot_png       36
+total          72
+
+Select jobs to execute...
+Execute 32 jobs...
+[Thu Aug 14 15:02:10 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/dendrogram.png
+    jobid: 38
+    reason: Missing output files: data/HP35/results/js/dendrogram.png
+    wildcards: system=HP35, lumping=js, plot=dendrogram
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p dendrogram -o data/HP35/results/js/dendrogram.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/timescales.pdf
+    jobid: 21
+    reason: Missing output files: data/HP35/results/kl/timescales.pdf
+    wildcards: system=HP35, lumping=kl, plot=timescales
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p timescales -o data/HP35/results/kl/timescales.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/ck_test.png
+    jobid: 54
+    reason: Missing output files: data/HP35/results/t/ck_test.png
+    wildcards: system=HP35, lumping=t, plot=ck_test
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy -p ck_test -o data/HP35/results/t/ck_test.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/macrotraj.pdf
+    jobid: 22
+    reason: Missing output files: data/HP35/results/kl/macrotraj.pdf
+    wildcards: system=HP35, lumping=kl, plot=macrotraj
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p macrotraj -o data/HP35/results/kl/macrotraj.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/ck_test.png
+    jobid: 12
+    reason: Missing output files: data/HP35/results/t_js/ck_test.png
+    wildcards: system=HP35, lumping=t_js, plot=ck_test
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p ck_test -o data/HP35/results/t_js/ck_test.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/dendrogram.pdf
+    jobid: 60
+    reason: Missing output files: data/HP35/results/t/dendrogram.pdf
+    wildcards: system=HP35, lumping=t, plot=dendrogram
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy -p dendrogram -o data/HP35/results/t/dendrogram.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/timescales.pdf
+    jobid: 45
+    reason: Missing output files: data/HP35/results/js/timescales.pdf
+    wildcards: system=HP35, lumping=js, plot=timescales
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p timescales -o data/HP35/results/js/timescales.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/contacts.png
+    jobid: 75
+    reason: Missing output files: data/HP35/results/gpcca/contacts.png
+    wildcards: system=HP35, lumping=gpcca, plot=contacts
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p contacts -o data/HP35/results/gpcca/contacts.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/ck_test.pdf
+    jobid: 30
+    reason: Missing output files: data/HP35/results/t_js/ck_test.pdf
+    wildcards: system=HP35, lumping=t_js, plot=ck_test
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p ck_test -o data/HP35/results/t_js/ck_test.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/timescales.pdf
+    jobid: 13
+    reason: Missing output files: data/HP35/results/t_js/timescales.pdf
+    wildcards: system=HP35, lumping=t_js, plot=timescales
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p timescales -o data/HP35/results/t_js/timescales.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/dendrogram.png
+    jobid: 61
+    reason: Missing output files: data/HP35/results/t/dendrogram.png
+    wildcards: system=HP35, lumping=t, plot=dendrogram
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy -p dendrogram -o data/HP35/results/t/dendrogram.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/dendrogram.png
+    jobid: 76
+    reason: Missing output files: data/HP35/results/kl_js/dendrogram.png
+    wildcards: system=HP35, lumping=kl_js, plot=dendrogram
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p dendrogram -o data/HP35/results/kl_js/dendrogram.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/dendrogram.pdf
+    jobid: 31
+    reason: Missing output files: data/HP35/results/js/dendrogram.pdf
+    wildcards: system=HP35, lumping=js, plot=dendrogram
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p dendrogram -o data/HP35/results/js/dendrogram.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/macrotraj.pdf
+    jobid: 46
+    reason: Missing output files: data/HP35/results/js/macrotraj.pdf
+    wildcards: system=HP35, lumping=js, plot=macrotraj
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p macrotraj -o data/HP35/results/js/macrotraj.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/ck_test.png
+    jobid: 14
+    reason: Missing output files: data/HP35/results/js/ck_test.png
+    wildcards: system=HP35, lumping=js, plot=ck_test
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p ck_test -o data/HP35/results/js/ck_test.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/timescales.png
+    jobid: 51
+    reason: Missing output files: data/HP35/results/gpcca/timescales.png
+    wildcards: system=HP35, lumping=gpcca, plot=timescales
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p timescales -o data/HP35/results/gpcca/timescales.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/timescales.png
+    jobid: 32
+    reason: Missing output files: data/HP35/results/t/timescales.png
+    wildcards: system=HP35, lumping=t, plot=timescales
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy -p timescales -o data/HP35/results/t/timescales.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/dendrogram.png
+    jobid: 47
+    reason: Missing output files: data/HP35/results/gpcca/dendrogram.png
+    wildcards: system=HP35, lumping=gpcca, plot=dendrogram
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p dendrogram -o data/HP35/results/gpcca/dendrogram.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/timescales.pdf
+    jobid: 62
+    reason: Missing output files: data/HP35/results/t/timescales.pdf
+    wildcards: system=HP35, lumping=t, plot=timescales
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy -p timescales -o data/HP35/results/t/timescales.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/macrotraj.png
+    jobid: 15
+    reason: Missing output files: data/HP35/results/kl/macrotraj.png
+    wildcards: system=HP35, lumping=kl, plot=macrotraj
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p macrotraj -o data/HP35/results/kl/macrotraj.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/ck_test.png
+    jobid: 77
+    reason: Missing output files: data/HP35/results/gpcca/ck_test.png
+    wildcards: system=HP35, lumping=gpcca, plot=ck_test
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p ck_test -o data/HP35/results/gpcca/ck_test.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/macrotraj.pdf
+    jobid: 63
+    reason: Missing output files: data/HP35/results/t/macrotraj.pdf
+    wildcards: system=HP35, lumping=t, plot=macrotraj
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy -p macrotraj -o data/HP35/results/t/macrotraj.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/sankey.pdf
+    jobid: 48
+    reason: Missing output files: data/HP35/results/gpcca/sankey.pdf
+    wildcards: system=HP35, lumping=gpcca, plot=sankey
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p sankey -o data/HP35/results/gpcca/sankey.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/timescales.png
+    jobid: 49
+    reason: Missing output files: data/HP35/results/kl_js/timescales.png
+    wildcards: system=HP35, lumping=kl_js, plot=timescales
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p timescales -o data/HP35/results/kl_js/timescales.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/dendrogram.pdf
+    jobid: 34
+    reason: Missing output files: data/HP35/results/gpcca/dendrogram.pdf
+    wildcards: system=HP35, lumping=gpcca, plot=dendrogram
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p dendrogram -o data/HP35/results/gpcca/dendrogram.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/sankey.png
+    jobid: 64
+    reason: Missing output files: data/HP35/results/gpcca/sankey.png
+    wildcards: system=HP35, lumping=gpcca, plot=sankey
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p sankey -o data/HP35/results/gpcca/sankey.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/sankey.png
+    jobid: 18
+    reason: Missing output files: data/HP35/results/kl/sankey.png
+    wildcards: system=HP35, lumping=kl, plot=sankey
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p sankey -o data/HP35/results/kl/sankey.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/ck_test.pdf
+    jobid: 35
+    reason: Missing output files: data/HP35/results/kl/ck_test.pdf
+    wildcards: system=HP35, lumping=kl, plot=ck_test
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p ck_test -o data/HP35/results/kl/ck_test.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/contacts.png
+    jobid: 65
+    reason: Missing output files: data/HP35/results/kl/contacts.png
+    wildcards: system=HP35, lumping=kl, plot=contacts
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p contacts -o data/HP35/results/kl/contacts.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/ck_test.pdf
+    jobid: 50
+    reason: Missing output files: data/HP35/results/kl_js/ck_test.pdf
+    wildcards: system=HP35, lumping=kl_js, plot=ck_test
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p ck_test -o data/HP35/results/kl_js/ck_test.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:11 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/contacts.pdf
+    jobid: 66
+    reason: Missing output files: data/HP35/results/t_js/contacts.pdf
+    wildcards: system=HP35, lumping=t_js, plot=contacts
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p contacts -o data/HP35/results/t_js/contacts.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:12 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/macrotraj.png
+    jobid: 19
+    reason: Missing output files: data/HP35/results/gpcca/macrotraj.png
+    wildcards: system=HP35, lumping=gpcca, plot=macrotraj
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p macrotraj -o data/HP35/results/gpcca/macrotraj.png
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:34 2025]
+Finished jobid: 18 (Rule: plot_png)
+1 of 72 steps (1%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:34 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/macrotraj.png
+    jobid: 73
+    reason: Missing output files: data/HP35/results/js/macrotraj.png
+    wildcards: system=HP35, lumping=js, plot=macrotraj
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p macrotraj -o data/HP35/results/js/macrotraj.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:34 2025]
+Finished jobid: 64 (Rule: plot_png)
+2 of 72 steps (3%) done
+[Thu Aug 14 15:02:34 2025]
+Finished jobid: 21 (Rule: plot)
+3 of 72 steps (4%) done
+[Thu Aug 14 15:02:34 2025]
+Finished jobid: 48 (Rule: plot)
+4 of 72 steps (6%) done
+[Thu Aug 14 15:02:34 2025]
+Finished jobid: 54 (Rule: plot_png)
+5 of 72 steps (7%) done
+[Thu Aug 14 15:02:34 2025]
+Finished jobid: 35 (Rule: plot)
+6 of 72 steps (8%) done
+[Thu Aug 14 15:02:34 2025]
+Finished jobid: 51 (Rule: plot_png)
+7 of 72 steps (10%) done
+[Thu Aug 14 15:02:34 2025]
+Finished jobid: 65 (Rule: plot_png)
+8 of 72 steps (11%) done
+[Thu Aug 14 15:02:34 2025]
+Finished jobid: 75 (Rule: plot_png)
+9 of 72 steps (12%) done
+Select jobs to execute...
+Execute 8 jobs...
+[Thu Aug 14 15:02:34 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/dendrogram.pdf
+    jobid: 67
+    reason: Missing output files: data/HP35/results/kl_js/dendrogram.pdf
+    wildcards: system=HP35, lumping=kl_js, plot=dendrogram
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p dendrogram -o data/HP35/results/kl_js/dendrogram.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:34 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/macrotraj.png
+    jobid: 44
+    reason: Missing output files: data/HP35/results/kl_js/macrotraj.png
+    wildcards: system=HP35, lumping=kl_js, plot=macrotraj
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p macrotraj -o data/HP35/results/kl_js/macrotraj.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:34 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/contacts.pdf
+    jobid: 58
+    reason: Missing output files: data/HP35/results/js/contacts.pdf
+    wildcards: system=HP35, lumping=js, plot=contacts
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p contacts -o data/HP35/results/js/contacts.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:34 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/ck_test.png
+    jobid: 11
+    reason: Missing output files: data/HP35/results/kl/ck_test.png
+    wildcards: system=HP35, lumping=kl, plot=ck_test
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p ck_test -o data/HP35/results/kl/ck_test.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:34 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/sankey.pdf
+    jobid: 26
+    reason: Missing output files: data/HP35/results/kl_js/sankey.pdf
+    wildcards: system=HP35, lumping=kl_js, plot=sankey
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p sankey -o data/HP35/results/kl_js/sankey.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:34 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/sankey.png
+    jobid: 33
+    reason: Missing output files: data/HP35/results/t_js/sankey.png
+    wildcards: system=HP35, lumping=t_js, plot=sankey
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p sankey -o data/HP35/results/t_js/sankey.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:34 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/ck_test.png
+    jobid: 43
+    reason: Missing output files: data/HP35/results/kl_js/ck_test.png
+    wildcards: system=HP35, lumping=kl_js, plot=ck_test
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p ck_test -o data/HP35/results/kl_js/ck_test.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:34 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/sankey.pdf
+    jobid: 74
+    reason: Missing output files: data/HP35/results/t/sankey.pdf
+    wildcards: system=HP35, lumping=t, plot=sankey
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy -p sankey -o data/HP35/results/t/sankey.pdf
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:34 2025]
+Finished jobid: 77 (Rule: plot_png)
+10 of 72 steps (14%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:34 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/contacts.pdf
+    jobid: 37
+    reason: Missing output files: data/HP35/results/t/contacts.pdf
+    wildcards: system=HP35, lumping=t, plot=contacts
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy -p contacts -o data/HP35/results/t/contacts.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:34 2025]
+Finished jobid: 19 (Rule: plot_png)
+11 of 72 steps (15%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Thu Aug 14 15:02:34 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/macrotraj.png
+    jobid: 20
+    reason: Missing output files: data/HP35/results/t_js/macrotraj.png
+    wildcards: system=HP35, lumping=t_js, plot=macrotraj
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p macrotraj -o data/HP35/results/t_js/macrotraj.png
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:36 2025]
+Finished jobid: 49 (Rule: plot_png)
+12 of 72 steps (17%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:36 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/contacts.png
+    jobid: 53
+    reason: Missing output files: data/HP35/results/t/contacts.png
+    wildcards: system=HP35, lumping=t, plot=contacts
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy -p contacts -o data/HP35/results/t/contacts.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:36 2025]
+Finished jobid: 45 (Rule: plot)
+13 of 72 steps (18%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Thu Aug 14 15:02:36 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/sankey.png
+    jobid: 68
+    reason: Missing output files: data/HP35/results/kl_js/sankey.png
+    wildcards: system=HP35, lumping=kl_js, plot=sankey
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p sankey -o data/HP35/results/kl_js/sankey.png
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:36 2025]
+Finished jobid: 13 (Rule: plot)
+14 of 72 steps (19%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:36 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/dendrogram.png
+    jobid: 39
+    reason: Missing output files: data/HP35/results/kl/dendrogram.png
+    wildcards: system=HP35, lumping=kl, plot=dendrogram
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p dendrogram -o data/HP35/results/kl/dendrogram.png
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:37 2025]
+Finished jobid: 38 (Rule: plot_png)
+15 of 72 steps (21%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:37 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/contacts.png
+    jobid: 69
+    reason: Missing output files: data/HP35/results/kl_js/contacts.png
+    wildcards: system=HP35, lumping=kl_js, plot=contacts
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p contacts -o data/HP35/results/kl_js/contacts.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:37 2025]
+Finished jobid: 31 (Rule: plot)
+16 of 72 steps (22%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Thu Aug 14 15:02:37 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/sankey.png
+    jobid: 70
+    reason: Missing output files: data/HP35/results/js/sankey.png
+    wildcards: system=HP35, lumping=js, plot=sankey
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p sankey -o data/HP35/results/js/sankey.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:37 2025]
+Finished jobid: 76 (Rule: plot_png)
+17 of 72 steps (24%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Thu Aug 14 15:02:37 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/contacts.pdf
+    jobid: 55
+    reason: Missing output files: data/HP35/results/gpcca/contacts.pdf
+    wildcards: system=HP35, lumping=gpcca, plot=contacts
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p contacts -o data/HP35/results/gpcca/contacts.pdf
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:37 2025]
+Finished jobid: 32 (Rule: plot_png)
+18 of 72 steps (25%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:37 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/timescales.png
+    jobid: 40
+    reason: Missing output files: data/HP35/results/js/timescales.png
+    wildcards: system=HP35, lumping=js, plot=timescales
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p timescales -o data/HP35/results/js/timescales.png
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:37 2025]
+Finished jobid: 62 (Rule: plot)
+19 of 72 steps (26%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:37 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/macrotraj.pdf
+    jobid: 23
+    reason: Missing output files: data/HP35/results/gpcca/macrotraj.pdf
+    wildcards: system=HP35, lumping=gpcca, plot=macrotraj
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p macrotraj -o data/HP35/results/gpcca/macrotraj.pdf
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:37 2025]
+Finished jobid: 66 (Rule: plot)
+20 of 72 steps (28%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:37 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/contacts.pdf
+    jobid: 0
+    reason: Missing output files: data/HP35/results/kl/contacts.pdf
+    wildcards: system=HP35, lumping=kl, plot=contacts
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p contacts -o data/HP35/results/kl/contacts.pdf
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:38 2025]
+Finished jobid: 12 (Rule: plot_png)
+21 of 72 steps (29%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:38 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/sankey.png
+    jobid: 24
+    reason: Missing output files: data/HP35/results/t/sankey.png
+    wildcards: system=HP35, lumping=t, plot=sankey
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy -p sankey -o data/HP35/results/t/sankey.png
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:38 2025]
+Finished jobid: 30 (Rule: plot)
+22 of 72 steps (31%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:38 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/contacts.pdf
+    jobid: 41
+    reason: Missing output files: data/HP35/results/kl_js/contacts.pdf
+    wildcards: system=HP35, lumping=kl_js, plot=contacts
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p contacts -o data/HP35/results/kl_js/contacts.pdf
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:39 2025]
+Finished jobid: 50 (Rule: plot)
+23 of 72 steps (32%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:39 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/sankey.pdf
+    jobid: 52
+    reason: Missing output files: data/HP35/results/kl/sankey.pdf
+    wildcards: system=HP35, lumping=kl, plot=sankey
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p sankey -o data/HP35/results/kl/sankey.pdf
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:39 2025]
+Finished jobid: 14 (Rule: plot_png)
+24 of 72 steps (33%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:39 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/timescales.png
+    jobid: 71
+    reason: Missing output files: data/HP35/results/kl/timescales.png
+    wildcards: system=HP35, lumping=kl, plot=timescales
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p timescales -o data/HP35/results/kl/timescales.png
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:39 2025]
+Finished jobid: 63 (Rule: plot)
+25 of 72 steps (35%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:39 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/macrotraj.png
+    jobid: 56
+    reason: Missing output files: data/HP35/results/t/macrotraj.png
+    wildcards: system=HP35, lumping=t, plot=macrotraj
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy -p macrotraj -o data/HP35/results/t/macrotraj.png
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:41 2025]
+Finished jobid: 15 (Rule: plot_png)
+26 of 72 steps (36%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:41 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/sankey.pdf
+    jobid: 57
+    reason: Missing output files: data/HP35/results/t_js/sankey.pdf
+    wildcards: system=HP35, lumping=t_js, plot=sankey
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p sankey -o data/HP35/results/t_js/sankey.pdf
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:41 2025]
+Finished jobid: 22 (Rule: plot)
+27 of 72 steps (38%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:41 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/ck_test.pdf
+    jobid: 9
+    reason: Missing output files: data/HP35/results/t/ck_test.pdf
+    wildcards: system=HP35, lumping=t, plot=ck_test
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy -p ck_test -o data/HP35/results/t/ck_test.pdf
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:50 2025]
+Finished jobid: 46 (Rule: plot)
+28 of 72 steps (39%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:51 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/sankey.pdf
+    jobid: 7
+    reason: Missing output files: data/HP35/results/js/sankey.pdf
+    wildcards: system=HP35, lumping=js, plot=sankey
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p sankey -o data/HP35/results/js/sankey.pdf
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:56 2025]
+Finished jobid: 24 (Rule: plot_png)
+29 of 72 steps (40%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:56 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/contacts.png
+    jobid: 28
+    reason: Missing output files: data/HP35/results/js/contacts.png
+    wildcards: system=HP35, lumping=js, plot=contacts
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p contacts -o data/HP35/results/js/contacts.png
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:56 2025]
+Finished jobid: 74 (Rule: plot)
+30 of 72 steps (42%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:57 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/timescales.pdf
+    jobid: 36
+    reason: Missing output files: data/HP35/results/kl_js/timescales.pdf
+    wildcards: system=HP35, lumping=kl_js, plot=timescales
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p timescales -o data/HP35/results/kl_js/timescales.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:57 2025]
+Finished jobid: 71 (Rule: plot_png)
+31 of 72 steps (43%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Thu Aug 14 15:02:57 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/macrotraj.pdf
+    jobid: 59
+    reason: Missing output files: data/HP35/results/kl_js/macrotraj.pdf
+    wildcards: system=HP35, lumping=kl_js, plot=macrotraj
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p macrotraj -o data/HP35/results/kl_js/macrotraj.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:02:57 2025]
+Finished jobid: 52 (Rule: plot)
+32 of 72 steps (44%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Thu Aug 14 15:02:57 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/ck_test.pdf
+    jobid: 29
+    reason: Missing output files: data/HP35/results/js/ck_test.pdf
+    wildcards: system=HP35, lumping=js, plot=ck_test
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p ck_test -o data/HP35/results/js/ck_test.pdf
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:58 2025]
+Finished jobid: 11 (Rule: plot_png)
+33 of 72 steps (46%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:58 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/macrotraj.pdf
+    jobid: 42
+    reason: Missing output files: data/HP35/results/t_js/macrotraj.pdf
+    wildcards: system=HP35, lumping=t_js, plot=macrotraj
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p macrotraj -o data/HP35/results/t_js/macrotraj.pdf
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:59 2025]
+Finished jobid: 23 (Rule: plot)
+34 of 72 steps (47%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:59 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/contacts.png
+    jobid: 4
+    reason: Missing output files: data/HP35/results/t_js/contacts.png
+    wildcards: system=HP35, lumping=t_js, plot=contacts
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p contacts -o data/HP35/results/t_js/contacts.png
+Activating conda environment: mpp
+[Thu Aug 14 15:02:59 2025]
+Finished jobid: 9 (Rule: plot)
+35 of 72 steps (49%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Thu Aug 14 15:02:59 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/timescales.pdf
+    jobid: 72
+    reason: Missing output files: data/HP35/results/gpcca/timescales.pdf
+    wildcards: system=HP35, lumping=gpcca, plot=timescales
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p timescales -o data/HP35/results/gpcca/timescales.pdf
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:02:59 2025]
+Finished jobid: 53 (Rule: plot_png)
+36 of 72 steps (50%) done
+Execute 1 jobs...
+[Thu Aug 14 15:02:59 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/dendrogram.pdf
+    jobid: 6
+    reason: Missing output files: data/HP35/results/kl/dendrogram.pdf
+    wildcards: system=HP35, lumping=kl, plot=dendrogram
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p dendrogram -o data/HP35/results/kl/dendrogram.pdf
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:03:00 2025]
+Finished jobid: 37 (Rule: plot)
+37 of 72 steps (51%) done
+Execute 1 jobs...
+[Thu Aug 14 15:03:00 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/timescales.png
+    jobid: 16
+    reason: Missing output files: data/HP35/results/t_js/timescales.png
+    wildcards: system=HP35, lumping=t_js, plot=timescales
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p timescales -o data/HP35/results/t_js/timescales.png
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:03:00 2025]
+Finished jobid: 55 (Rule: plot)
+38 of 72 steps (53%) done
+Execute 1 jobs...
+[Thu Aug 14 15:03:00 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/ck_test.pdf
+    jobid: 2
+    reason: Missing output files: data/HP35/results/gpcca/ck_test.pdf
+    wildcards: system=HP35, lumping=gpcca, plot=ck_test
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p ck_test -o data/HP35/results/gpcca/ck_test.pdf
+Activating conda environment: mpp
+[Thu Aug 14 15:03:00 2025]
+Finished jobid: 0 (Rule: plot)
+39 of 72 steps (54%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Thu Aug 14 15:03:00 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/dendrogram.pdf
+    jobid: 17
+    reason: Missing output files: data/HP35/results/t_js/dendrogram.pdf
+    wildcards: system=HP35, lumping=t_js, plot=dendrogram
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p dendrogram -o data/HP35/results/t_js/dendrogram.pdf
+Activating conda environment: mpp
+Select jobs to execute...
+[Thu Aug 14 15:03:01 2025]
+Finished jobid: 40 (Rule: plot_png)
+40 of 72 steps (56%) done
+Execute 1 jobs...
+[Thu Aug 14 15:03:01 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/dendrogram.png
+    jobid: 25
+    reason: Missing output files: data/HP35/results/t_js/dendrogram.png
+    wildcards: system=HP35, lumping=t_js, plot=dendrogram
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p dendrogram -o data/HP35/results/t_js/dendrogram.png
+Activating conda environment: mpp
+[Thu Aug 14 15:03:01 2025]
+Finished jobid: 68 (Rule: plot_png)
+41 of 72 steps (57%) done
+[Thu Aug 14 15:03:01 2025]
+Finished jobid: 33 (Rule: plot_png)
+42 of 72 steps (58%) done
+[Thu Aug 14 15:03:02 2025]
+Finished jobid: 70 (Rule: plot_png)
+43 of 72 steps (60%) done
+[Thu Aug 14 15:03:02 2025]
+Finished jobid: 26 (Rule: plot)
+44 of 72 steps (61%) done
+[Thu Aug 14 15:03:02 2025]
+Finished jobid: 57 (Rule: plot)
+45 of 72 steps (62%) done
+[Thu Aug 14 15:03:03 2025]
+Finished jobid: 39 (Rule: plot_png)
+46 of 72 steps (64%) done
+[Thu Aug 14 15:03:03 2025]
+Finished jobid: 58 (Rule: plot)
+47 of 72 steps (65%) done
+[Thu Aug 14 15:03:03 2025]
+Finished jobid: 69 (Rule: plot_png)
+48 of 72 steps (67%) done
+[Thu Aug 14 15:03:03 2025]
+Finished jobid: 41 (Rule: plot)
+49 of 72 steps (68%) done
+[Thu Aug 14 15:03:04 2025]
+Finished jobid: 67 (Rule: plot)
+50 of 72 steps (69%) done
+[Thu Aug 14 15:03:05 2025]
+Finished jobid: 43 (Rule: plot_png)
+51 of 72 steps (71%) done
+[Thu Aug 14 15:03:07 2025]
+Finished jobid: 56 (Rule: plot_png)
+52 of 72 steps (72%) done
+[Thu Aug 14 15:03:07 2025]
+Finished jobid: 61 (Rule: plot_png)
+53 of 72 steps (74%) done
+[Thu Aug 14 15:03:07 2025]
+Finished jobid: 60 (Rule: plot)
+54 of 72 steps (75%) done
+[Thu Aug 14 15:03:10 2025]
+Finished jobid: 72 (Rule: plot)
+55 of 72 steps (76%) done
+[Thu Aug 14 15:03:10 2025]
+Finished jobid: 20 (Rule: plot_png)
+56 of 72 steps (78%) done
+[Thu Aug 14 15:03:11 2025]
+Finished jobid: 7 (Rule: plot)
+57 of 72 steps (79%) done
+[Thu Aug 14 15:03:11 2025]
+Finished jobid: 16 (Rule: plot_png)
+58 of 72 steps (81%) done
+[Thu Aug 14 15:03:11 2025]
+Finished jobid: 36 (Rule: plot)
+59 of 72 steps (82%) done
+[Thu Aug 14 15:03:12 2025]
+Finished jobid: 2 (Rule: plot)
+60 of 72 steps (83%) done
+[Thu Aug 14 15:03:12 2025]
+Finished jobid: 4 (Rule: plot_png)
+61 of 72 steps (85%) done
+[Thu Aug 14 15:03:13 2025]
+Finished jobid: 73 (Rule: plot_png)
+62 of 72 steps (86%) done
+[Thu Aug 14 15:03:13 2025]
+Finished jobid: 44 (Rule: plot_png)
+63 of 72 steps (88%) done
+[Thu Aug 14 15:03:13 2025]
+Finished jobid: 28 (Rule: plot_png)
+64 of 72 steps (89%) done
+[Thu Aug 14 15:03:13 2025]
+Finished jobid: 47 (Rule: plot_png)
+65 of 72 steps (90%) done
+[Thu Aug 14 15:03:13 2025]
+Finished jobid: 34 (Rule: plot)
+66 of 72 steps (92%) done
+[Thu Aug 14 15:03:14 2025]
+Finished jobid: 29 (Rule: plot)
+67 of 72 steps (93%) done
+[Thu Aug 14 15:03:15 2025]
+Finished jobid: 6 (Rule: plot)
+68 of 72 steps (94%) done
+[Thu Aug 14 15:03:18 2025]
+Finished jobid: 42 (Rule: plot)
+69 of 72 steps (96%) done
+[Thu Aug 14 15:03:20 2025]
+Finished jobid: 59 (Rule: plot)
+70 of 72 steps (97%) done
+[Thu Aug 14 15:03:21 2025]
+Finished jobid: 17 (Rule: plot)
+71 of 72 steps (99%) done
+[Thu Aug 14 15:03:22 2025]
+Finished jobid: 25 (Rule: plot_png)
+72 of 72 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-14T150210.541199.snakemake.log

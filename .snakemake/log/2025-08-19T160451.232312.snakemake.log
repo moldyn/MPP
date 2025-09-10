@@ -1,0 +1,65 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job                    count
+-------------------  -------
+gen_Z                      1
+get_mean_frames_pdb        1
+rmsd                       1
+total                      3
+
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 19 16:04:51 2025]
+localrule gen_Z:
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/t/Z.npy
+    jobid: 2
+    reason: Missing output files: data/aSyn/results/t/Z.npy
+    wildcards: system=aSyn, lumping=t
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml T none -Z data/aSyn/results/t/Z.npy
+Activating conda environment: mpp
+Moving output file data/aSyn/results/t/Z.npy to cache.
+Symlinking output file data/aSyn/results/t/Z.npy from cache.
+[Tue Aug 19 16:05:04 2025]
+Finished jobid: 2 (Rule: gen_Z)
+1 of 3 steps (33%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 19 16:05:04 2025]
+localrule rmsd:
+    input: data/aSyn/input/config.yml, data/aSyn/results/t/Z.npy
+    output: data/aSyn/results/t/rmsd.npy, data/aSyn/results/t/rmsd_mean_frames.ndx
+    jobid: 1
+    reason: Missing output files: data/aSyn/results/t/rmsd_mean_frames.ndx; Input files updated by another job: data/aSyn/results/t/Z.npy
+    wildcards: system=aSyn, lumping=t
+    resources: tmpdir=/tmp, mem_mb=72271, mem_mib=68923
+Shell command: python -m MPP.run data/aSyn/input/config.yml T none -Z data/aSyn/results/t/Z.npy --rmsd data/aSyn/results/t/rmsd.npy
+Activating conda environment: mpp
+[Tue Aug 19 16:22:13 2025]
+Finished jobid: 1 (Rule: rmsd)
+2 of 3 steps (67%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 19 16:22:13 2025]
+localrule get_mean_frames_pdb:
+    input: data/aSyn/results/t/rmsd_mean_frames.ndx
+    output: data/aSyn/results/t/mean_frames.pdb
+    jobid: 0
+    reason: Missing output files: data/aSyn/results/t/mean_frames.pdb; Input files updated by another job: data/aSyn/results/t/rmsd_mean_frames.ndx
+    wildcards: system=aSyn, lumping=t
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/t/mean_frames.pdb -fr data/aSyn/results/t/rmsd_mean_frames.ndx <<eof
+0
+eof
+[Tue Aug 19 16:33:06 2025]
+Finished jobid: 0 (Rule: get_mean_frames_pdb)
+3 of 3 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-19T160451.232312.snakemake.log

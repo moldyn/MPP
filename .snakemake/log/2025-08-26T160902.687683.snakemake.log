@@ -1,0 +1,86 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job                       count
+----------------------  -------
+draw_cluster_in_states        5
+total                         5
+
+Select jobs to execute...
+Execute 5 jobs...
+[Tue Aug 26 16:09:03 2025]
+localcheckpoint draw_cluster_in_states:
+    input: data/aSyn/input/config.yml, data/aSyn/results/kl/mean_frames_feature.pdb
+    output: data/aSyn/results/kl/mean_frames_feature_2,6,7
+    jobid: 8
+    reason: Missing output files: data/aSyn/results/kl/mean_frames_feature_2,6,7
+    wildcards: system=aSyn, lumping=kl, rmsd_feature=feature, clusters=2,6,7
+    resources: tmpdir=/tmp
+Shell command: workflow/create_cluster_pml.py data/aSyn/results/kl/mean_frames_feature_2,6,7 data/aSyn/input/config.yml data/aSyn/results/kl/mean_frames_feature.pdb 2,6,7
+DAG of jobs will be updated after completion.
+Activating conda environment: pymol
+[Tue Aug 26 16:09:04 2025]
+localcheckpoint draw_cluster_in_states:
+    input: data/aSyn/input/config.yml, data/aSyn/results/t/mean_frames_feature.pdb
+    output: data/aSyn/results/t/mean_frames_feature_2,6,7
+    jobid: 16
+    reason: Missing output files: data/aSyn/results/t/mean_frames_feature_2,6,7
+    wildcards: system=aSyn, lumping=t, rmsd_feature=feature, clusters=2,6,7
+    resources: tmpdir=/tmp
+Shell command: workflow/create_cluster_pml.py data/aSyn/results/t/mean_frames_feature_2,6,7 data/aSyn/input/config.yml data/aSyn/results/t/mean_frames_feature.pdb 2,6,7
+DAG of jobs will be updated after completion.
+Activating conda environment: pymol
+[Tue Aug 26 16:09:04 2025]
+localcheckpoint draw_cluster_in_states:
+    input: data/aSyn/input/config.yml, data/aSyn/results/gpcca/mean_frames_feature.pdb
+    output: data/aSyn/results/gpcca/mean_frames_feature_2,6,7
+    jobid: 4
+    reason: Missing output files: data/aSyn/results/gpcca/mean_frames_feature_2,6,7
+    wildcards: system=aSyn, lumping=gpcca, rmsd_feature=feature, clusters=2,6,7
+    resources: tmpdir=/tmp
+Shell command: workflow/create_cluster_pml.py data/aSyn/results/gpcca/mean_frames_feature_2,6,7 data/aSyn/input/config.yml data/aSyn/results/gpcca/mean_frames_feature.pdb 2,6,7
+DAG of jobs will be updated after completion.
+Activating conda environment: pymol
+[Tue Aug 26 16:09:04 2025]
+localcheckpoint draw_cluster_in_states:
+    input: data/aSyn/input/config.yml, data/aSyn/results/kl_js/mean_frames_feature.pdb
+    output: data/aSyn/results/kl_js/mean_frames_feature_2,6,7
+    jobid: 0
+    reason: Missing output files: data/aSyn/results/kl_js/mean_frames_feature_2,6,7
+    wildcards: system=aSyn, lumping=kl_js, rmsd_feature=feature, clusters=2,6,7
+    resources: tmpdir=/tmp
+Shell command: workflow/create_cluster_pml.py data/aSyn/results/kl_js/mean_frames_feature_2,6,7 data/aSyn/input/config.yml data/aSyn/results/kl_js/mean_frames_feature.pdb 2,6,7
+DAG of jobs will be updated after completion.
+Activating conda environment: pymol
+[Tue Aug 26 16:09:04 2025]
+localcheckpoint draw_cluster_in_states:
+    input: data/aSyn/input/config.yml, data/aSyn/results/t_js/mean_frames_feature.pdb
+    output: data/aSyn/results/t_js/mean_frames_feature_2,6,7
+    jobid: 12
+    reason: Missing output files: data/aSyn/results/t_js/mean_frames_feature_2,6,7
+    wildcards: system=aSyn, lumping=t_js, rmsd_feature=feature, clusters=2,6,7
+    resources: tmpdir=/tmp
+Shell command: workflow/create_cluster_pml.py data/aSyn/results/t_js/mean_frames_feature_2,6,7 data/aSyn/input/config.yml data/aSyn/results/t_js/mean_frames_feature.pdb 2,6,7
+DAG of jobs will be updated after completion.
+Activating conda environment: pymol
+[Tue Aug 26 16:09:32 2025]
+Finished jobid: 4 (Rule: draw_cluster_in_states)
+1 of 5 steps (20%) done
+[Tue Aug 26 16:09:32 2025]
+Finished jobid: 16 (Rule: draw_cluster_in_states)
+2 of 5 steps (40%) done
+[Tue Aug 26 16:09:41 2025]
+Finished jobid: 8 (Rule: draw_cluster_in_states)
+3 of 5 steps (60%) done
+[Tue Aug 26 16:09:56 2025]
+Finished jobid: 12 (Rule: draw_cluster_in_states)
+4 of 5 steps (80%) done
+[Tue Aug 26 16:10:04 2025]
+Finished jobid: 0 (Rule: draw_cluster_in_states)
+5 of 5 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-26T160902.687683.snakemake.log

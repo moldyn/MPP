@@ -1,0 +1,69 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job                            count
+---------------------------  -------
+draw_cluster_in_states             5
+gen_Z                              5
+get_mean_frames_pdb_feature        5
+rmsd_feature                       5
+total                             20
+
+Select jobs to execute...
+Execute 5 jobs...
+[Tue Aug 26 16:05:16 2025]
+localrule gen_Z:
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/kl_js/Z.npy
+    jobid: 11
+    reason: Updated input files: data/aSyn/input/config.yml
+    wildcards: system=aSyn, lumping=kl_js
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml KL JS -Z data/aSyn/results/kl_js/Z.npy
+[Tue Aug 26 16:05:17 2025]
+localrule gen_Z:
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/t_js/Z.npy
+    jobid: 19
+    reason: Updated input files: data/aSyn/input/config.yml
+    wildcards: system=aSyn, lumping=t_js
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml T JS -Z data/aSyn/results/t_js/Z.npy
+[Tue Aug 26 16:05:17 2025]
+localrule gen_Z:
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/kl/Z.npy
+    jobid: 7
+    reason: Updated input files: data/aSyn/input/config.yml
+    wildcards: system=aSyn, lumping=kl
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml KL none -Z data/aSyn/results/kl/Z.npy
+[Tue Aug 26 16:05:17 2025]
+localrule gen_Z:
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/gpcca/Z.npy
+    jobid: 15
+    reason: Updated input files: data/aSyn/input/config.yml
+    wildcards: system=aSyn, lumping=gpcca
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml gpcca ref -Z data/aSyn/results/gpcca/Z.npy
+[Tue Aug 26 16:05:17 2025]
+localrule gen_Z:
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/t/Z.npy
+    jobid: 3
+    reason: Updated input files: data/aSyn/input/config.yml
+    wildcards: system=aSyn, lumping=t
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml T none -Z data/aSyn/results/t/Z.npy
+Activating conda environment: mpp
+Activating conda environment: mpp
+Activating conda environment: mpp
+Activating conda environment: mpp
+Activating conda environment: mpp
+Terminating processes on user request, this might take some time.

@@ -1,0 +1,31 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job                    count
+-------------------  -------
+get_mean_frames_pdb        1
+total                      1
+
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 19 16:02:11 2025]
+localrule get_mean_frames_pdb:
+    input: data/HP35/results/t/rmsd_mean_frames.ndx
+    output: data/HP35/results/t/mean_frames.pdb
+    jobid: 0
+    reason: Forced execution
+    wildcards: system=HP35, lumping=t
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/t/mean_frames.pdb -fr data/HP35/results/t/rmsd_mean_frames.ndx <<eof
+0
+eof
+[Tue Aug 19 16:02:27 2025]
+Finished jobid: 0 (Rule: get_mean_frames_pdb)
+1 of 1 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-19T160211.323379.snakemake.log

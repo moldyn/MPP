@@ -1,0 +1,94 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job      count
+-----  -------
+gen_Z        6
+total        6
+
+Select jobs to execute...
+Execute 6 jobs...
+[Thu Aug 14 14:46:07 2025]
+localrule gen_Z:
+    input: data/HP35/input/config.yml
+    output: data/HP35/results/t_js/Z.npy
+    jobid: 3
+    reason: Missing output files: data/HP35/results/t_js/Z.npy
+    wildcards: system=HP35, lumping=t_js
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy
+Activating conda environment: mpp
+[Thu Aug 14 14:46:09 2025]
+localrule gen_Z:
+    input: data/HP35/input/config.yml
+    output: data/HP35/results/gpcca/Z.npy
+    jobid: 2
+    reason: Missing output files: data/HP35/results/gpcca/Z.npy
+    wildcards: system=HP35, lumping=gpcca
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy
+Activating conda environment: mpp
+[Thu Aug 14 14:46:09 2025]
+localrule gen_Z:
+    input: data/HP35/input/config.yml
+    output: data/HP35/results/kl/Z.npy
+    jobid: 0
+    reason: Missing output files: data/HP35/results/kl/Z.npy
+    wildcards: system=HP35, lumping=kl
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy
+Activating conda environment: mpp
+[Thu Aug 14 14:46:09 2025]
+localrule gen_Z:
+    input: data/HP35/input/config.yml
+    output: data/HP35/results/kl_js/Z.npy
+    jobid: 1
+    reason: Missing output files: data/HP35/results/kl_js/Z.npy
+    wildcards: system=HP35, lumping=kl_js
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy
+Activating conda environment: mpp
+[Thu Aug 14 14:46:09 2025]
+localrule gen_Z:
+    input: data/HP35/input/config.yml
+    output: data/HP35/results/t/Z.npy
+    jobid: 5
+    reason: Missing output files: data/HP35/results/t/Z.npy
+    wildcards: system=HP35, lumping=t
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy
+Activating conda environment: mpp
+[Thu Aug 14 14:46:09 2025]
+localrule gen_Z:
+    input: data/HP35/input/config.yml
+    output: data/HP35/results/js/Z.npy
+    jobid: 4
+    reason: Missing output files: data/HP35/results/js/Z.npy
+    wildcards: system=HP35, lumping=js
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy
+Activating conda environment: mpp
+[Thu Aug 14 14:46:48 2025]
+Finished jobid: 5 (Rule: gen_Z)
+1 of 6 steps (17%) done
+[Thu Aug 14 14:46:48 2025]
+Finished jobid: 3 (Rule: gen_Z)
+2 of 6 steps (33%) done
+[Thu Aug 14 14:46:48 2025]
+Finished jobid: 4 (Rule: gen_Z)
+3 of 6 steps (50%) done
+[Thu Aug 14 14:46:48 2025]
+Finished jobid: 0 (Rule: gen_Z)
+4 of 6 steps (67%) done
+[Thu Aug 14 14:46:48 2025]
+Finished jobid: 1 (Rule: gen_Z)
+5 of 6 steps (83%) done
+[Thu Aug 14 14:46:48 2025]
+Finished jobid: 2 (Rule: gen_Z)
+6 of 6 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-14T144607.255885.snakemake.log

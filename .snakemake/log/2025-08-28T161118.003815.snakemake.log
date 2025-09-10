@@ -1,0 +1,47 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job      count
+-----  -------
+gen_Z        1
+plot         1
+total        2
+
+Select jobs to execute...
+Execute 1 jobs...
+[Thu Aug 28 16:11:18 2025]
+localrule gen_Z:
+    input: data/sample_system/input/config.yml
+    output: data/sample_system/results/t/Z.npy
+    jobid: 1
+    reason: Forced execution
+    wildcards: system=sample_system, lumping=t
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/sample_system/input/config.yml T none -Z data/sample_system/results/t/Z.npy
+Activating conda environment: mpp
+Moving output file data/sample_system/results/t/Z.npy to cache.
+Symlinking output file data/sample_system/results/t/Z.npy from cache.
+[Thu Aug 28 16:11:25 2025]
+Finished jobid: 1 (Rule: gen_Z)
+1 of 2 steps (50%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Thu Aug 28 16:11:25 2025]
+localrule plot:
+    input: data/sample_system/input/config.yml, data/sample_system/results/t/Z.npy
+    output: data/sample_system/results/t/dendrogram.pdf
+    jobid: 0
+    reason: Forced execution
+    wildcards: system=sample_system, lumping=t, plot=dendrogram, extension=pdf
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/sample_system/input/config.yml T none -Z data/sample_system/results/t/Z.npy -p dendrogram -o data/sample_system/results/t/dendrogram.pdf
+Activating conda environment: mpp
+[Thu Aug 28 16:11:30 2025]
+Finished jobid: 0 (Rule: plot)
+2 of 2 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-28T161118.003815.snakemake.log

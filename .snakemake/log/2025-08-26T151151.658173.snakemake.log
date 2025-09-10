@@ -1,0 +1,362 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job                            count
+---------------------------  -------
+gen_Z                              5
+get_mean_frames_pdb_CA             5
+get_mean_frames_pdb_feature        5
+rmsd_CA                            5
+rmsd_feature                       5
+total                             25
+
+Select jobs to execute...
+Execute 4 jobs...
+[Tue Aug 26 15:11:52 2025]
+localrule gen_Z:
+    input: data/HP35/input/config.yml
+    output: data/HP35/results/kl/Z.npy
+    jobid: 29
+    reason: Updated input files: data/HP35/input/config.yml
+    wildcards: system=HP35, lumping=kl
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy
+[Tue Aug 26 15:11:52 2025]
+localrule gen_Z:
+    input: data/HP35/input/config.yml
+    output: data/HP35/results/gpcca/Z.npy
+    jobid: 24
+    reason: Updated input files: data/HP35/input/config.yml
+    wildcards: system=HP35, lumping=gpcca
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy
+[Tue Aug 26 15:11:52 2025]
+localrule gen_Z:
+    input: data/HP35/input/config.yml
+    output: data/HP35/results/kl_js/Z.npy
+    jobid: 2
+    reason: Updated input files: data/HP35/input/config.yml
+    wildcards: system=HP35, lumping=kl_js
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy
+[Tue Aug 26 15:11:52 2025]
+localrule gen_Z:
+    input: data/HP35/input/config.yml
+    output: data/HP35/results/t_js/Z.npy
+    jobid: 10
+    reason: Updated input files: data/HP35/input/config.yml
+    wildcards: system=HP35, lumping=t_js
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy
+[Tue Aug 26 15:11:54 2025]
+Finished jobid: 29 (Rule: gen_Z)
+1 of 25 steps (4%) done
+[Tue Aug 26 15:11:54 2025]
+Finished jobid: 24 (Rule: gen_Z)
+2 of 25 steps (8%) done
+[Tue Aug 26 15:11:54 2025]
+Finished jobid: 2 (Rule: gen_Z)
+3 of 25 steps (12%) done
+[Tue Aug 26 15:11:54 2025]
+Finished jobid: 10 (Rule: gen_Z)
+4 of 25 steps (16%) done
+Select jobs to execute...
+Execute 4 jobs...
+[Tue Aug 26 15:11:54 2025]
+localrule rmsd_CA:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/rmsd_CA.npy, data/HP35/results/t_js/rmsd_CA_mean_frames.ndx
+    jobid: 26
+    reason: Input files updated by another job: data/HP35/results/t_js/Z.npy
+    wildcards: system=HP35, lumping=t_js
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy --rmsd data/HP35/results/t_js/rmsd_CA.npy
+[Tue Aug 26 15:11:54 2025]
+localrule rmsd_feature:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/rmsd_feature.npy, data/HP35/results/kl/rmsd_feature_mean_frames.ndx
+    jobid: 34
+    reason: Input files updated by another job: data/HP35/results/kl/Z.npy
+    wildcards: system=HP35, lumping=kl
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy --rmsd data/HP35/results/kl/rmsd_feature.npy --rmsd-feature feature
+[Tue Aug 26 15:11:54 2025]
+localrule rmsd_feature:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/rmsd_feature.npy, data/HP35/results/kl_js/rmsd_feature_mean_frames.ndx
+    jobid: 1
+    reason: Input files updated by another job: data/HP35/results/kl_js/Z.npy
+    wildcards: system=HP35, lumping=kl_js
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy --rmsd data/HP35/results/kl_js/rmsd_feature.npy --rmsd-feature feature
+[Tue Aug 26 15:11:54 2025]
+localrule rmsd_feature:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/rmsd_feature.npy, data/HP35/results/t_js/rmsd_feature_mean_frames.ndx
+    jobid: 9
+    reason: Input files updated by another job: data/HP35/results/t_js/Z.npy
+    wildcards: system=HP35, lumping=t_js
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy --rmsd data/HP35/results/t_js/rmsd_feature.npy --rmsd-feature feature
+[Tue Aug 26 15:11:54 2025]
+Finished jobid: 26 (Rule: rmsd_CA)
+5 of 25 steps (20%) done
+[Tue Aug 26 15:11:55 2025]
+Finished jobid: 34 (Rule: rmsd_feature)
+6 of 25 steps (24%) done
+[Tue Aug 26 15:11:55 2025]
+Finished jobid: 1 (Rule: rmsd_feature)
+7 of 25 steps (28%) done
+[Tue Aug 26 15:11:55 2025]
+Finished jobid: 9 (Rule: rmsd_feature)
+8 of 25 steps (32%) done
+Select jobs to execute...
+Execute 4 jobs...
+[Tue Aug 26 15:11:55 2025]
+localrule get_mean_frames_pdb_CA:
+    input: data/HP35/results/t_js/rmsd_CA_mean_frames.ndx
+    output: data/HP35/results/t_js/mean_frames_CA.pdb
+    jobid: 25
+    reason: Input files updated by another job: data/HP35/results/t_js/rmsd_CA_mean_frames.ndx
+    wildcards: system=HP35, lumping=t_js
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/t_js/mean_frames_CA.pdb -fr data/HP35/results/t_js/rmsd_CA_mean_frames.ndx <<eof
+0
+eof
+[Tue Aug 26 15:11:55 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/HP35/results/kl/rmsd_feature_mean_frames.ndx
+    output: data/HP35/results/kl/mean_frames_feature.pdb
+    jobid: 33
+    reason: Input files updated by another job: data/HP35/results/kl/rmsd_feature_mean_frames.ndx
+    wildcards: system=HP35, lumping=kl
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/kl/mean_frames_feature.pdb -fr data/HP35/results/kl/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Tue Aug 26 15:11:55 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/HP35/results/t_js/rmsd_feature_mean_frames.ndx
+    output: data/HP35/results/t_js/mean_frames_feature.pdb
+    jobid: 8
+    reason: Input files updated by another job: data/HP35/results/t_js/rmsd_feature_mean_frames.ndx
+    wildcards: system=HP35, lumping=t_js
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/t_js/mean_frames_feature.pdb -fr data/HP35/results/t_js/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Tue Aug 26 15:11:55 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/HP35/results/kl_js/rmsd_feature_mean_frames.ndx
+    output: data/HP35/results/kl_js/mean_frames_feature.pdb
+    jobid: 0
+    reason: Input files updated by another job: data/HP35/results/kl_js/rmsd_feature_mean_frames.ndx
+    wildcards: system=HP35, lumping=kl_js
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/kl_js/mean_frames_feature.pdb -fr data/HP35/results/kl_js/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Tue Aug 26 15:11:55 2025]
+Finished jobid: 25 (Rule: get_mean_frames_pdb_CA)
+9 of 25 steps (36%) done
+[Tue Aug 26 15:11:55 2025]
+Finished jobid: 33 (Rule: get_mean_frames_pdb_feature)
+10 of 25 steps (40%) done
+[Tue Aug 26 15:11:55 2025]
+Finished jobid: 8 (Rule: get_mean_frames_pdb_feature)
+11 of 25 steps (44%) done
+[Tue Aug 26 15:11:55 2025]
+Finished jobid: 0 (Rule: get_mean_frames_pdb_feature)
+12 of 25 steps (48%) done
+Select jobs to execute...
+Execute 4 jobs...
+[Tue Aug 26 15:11:55 2025]
+localrule rmsd_CA:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/rmsd_CA.npy, data/HP35/results/kl/rmsd_CA_mean_frames.ndx
+    jobid: 28
+    reason: Input files updated by another job: data/HP35/results/kl/Z.npy
+    wildcards: system=HP35, lumping=kl
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy --rmsd data/HP35/results/kl/rmsd_CA.npy
+[Tue Aug 26 15:11:55 2025]
+localrule rmsd_feature:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/rmsd_feature.npy, data/HP35/results/gpcca/rmsd_feature_mean_frames.ndx
+    jobid: 36
+    reason: Input files updated by another job: data/HP35/results/gpcca/Z.npy
+    wildcards: system=HP35, lumping=gpcca
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy --rmsd data/HP35/results/gpcca/rmsd_feature.npy --rmsd-feature feature
+[Tue Aug 26 15:11:55 2025]
+localrule rmsd_CA:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/rmsd_CA.npy, data/HP35/results/kl_js/rmsd_CA_mean_frames.ndx
+    jobid: 15
+    reason: Input files updated by another job: data/HP35/results/kl_js/Z.npy
+    wildcards: system=HP35, lumping=kl_js
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy --rmsd data/HP35/results/kl_js/rmsd_CA.npy
+[Tue Aug 26 15:11:56 2025]
+localrule gen_Z:
+    input: data/HP35/input/config.yml
+    output: data/HP35/results/t/Z.npy
+    jobid: 39
+    reason: Updated input files: data/HP35/input/config.yml
+    wildcards: system=HP35, lumping=t
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy
+[Tue Aug 26 15:11:56 2025]
+Finished jobid: 28 (Rule: rmsd_CA)
+13 of 25 steps (52%) done
+[Tue Aug 26 15:11:56 2025]
+Finished jobid: 36 (Rule: rmsd_feature)
+14 of 25 steps (56%) done
+[Tue Aug 26 15:11:56 2025]
+Finished jobid: 15 (Rule: rmsd_CA)
+15 of 25 steps (60%) done
+[Tue Aug 26 15:11:56 2025]
+Finished jobid: 39 (Rule: gen_Z)
+16 of 25 steps (64%) done
+Select jobs to execute...
+Execute 4 jobs...
+[Tue Aug 26 15:11:56 2025]
+localrule get_mean_frames_pdb_CA:
+    input: data/HP35/results/kl/rmsd_CA_mean_frames.ndx
+    output: data/HP35/results/kl/mean_frames_CA.pdb
+    jobid: 27
+    reason: Input files updated by another job: data/HP35/results/kl/rmsd_CA_mean_frames.ndx
+    wildcards: system=HP35, lumping=kl
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/kl/mean_frames_CA.pdb -fr data/HP35/results/kl/rmsd_CA_mean_frames.ndx <<eof
+0
+eof
+[Tue Aug 26 15:11:56 2025]
+localrule rmsd_CA:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/rmsd_CA.npy, data/HP35/results/t/rmsd_CA_mean_frames.ndx
+    jobid: 38
+    reason: Input files updated by another job: data/HP35/results/t/Z.npy
+    wildcards: system=HP35, lumping=t
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy --rmsd data/HP35/results/t/rmsd_CA.npy
+[Tue Aug 26 15:11:56 2025]
+localrule get_mean_frames_pdb_CA:
+    input: data/HP35/results/kl_js/rmsd_CA_mean_frames.ndx
+    output: data/HP35/results/kl_js/mean_frames_CA.pdb
+    jobid: 14
+    reason: Input files updated by another job: data/HP35/results/kl_js/rmsd_CA_mean_frames.ndx
+    wildcards: system=HP35, lumping=kl_js
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/kl_js/mean_frames_CA.pdb -fr data/HP35/results/kl_js/rmsd_CA_mean_frames.ndx <<eof
+0
+eof
+[Tue Aug 26 15:11:56 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/HP35/results/gpcca/rmsd_feature_mean_frames.ndx
+    output: data/HP35/results/gpcca/mean_frames_feature.pdb
+    jobid: 35
+    reason: Input files updated by another job: data/HP35/results/gpcca/rmsd_feature_mean_frames.ndx
+    wildcards: system=HP35, lumping=gpcca
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/gpcca/mean_frames_feature.pdb -fr data/HP35/results/gpcca/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Tue Aug 26 15:11:56 2025]
+Finished jobid: 27 (Rule: get_mean_frames_pdb_CA)
+17 of 25 steps (68%) done
+[Tue Aug 26 15:11:56 2025]
+Finished jobid: 38 (Rule: rmsd_CA)
+18 of 25 steps (72%) done
+[Tue Aug 26 15:11:56 2025]
+Finished jobid: 14 (Rule: get_mean_frames_pdb_CA)
+19 of 25 steps (76%) done
+[Tue Aug 26 15:11:56 2025]
+Finished jobid: 35 (Rule: get_mean_frames_pdb_feature)
+20 of 25 steps (80%) done
+Select jobs to execute...
+Execute 3 jobs...
+[Tue Aug 26 15:11:56 2025]
+localrule rmsd_feature:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/rmsd_feature.npy, data/HP35/results/t/rmsd_feature_mean_frames.ndx
+    jobid: 49
+    reason: Input files updated by another job: data/HP35/results/t/Z.npy
+    wildcards: system=HP35, lumping=t
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy --rmsd data/HP35/results/t/rmsd_feature.npy --rmsd-feature feature
+[Tue Aug 26 15:11:56 2025]
+localrule get_mean_frames_pdb_CA:
+    input: data/HP35/results/t/rmsd_CA_mean_frames.ndx
+    output: data/HP35/results/t/mean_frames_CA.pdb
+    jobid: 37
+    reason: Input files updated by another job: data/HP35/results/t/rmsd_CA_mean_frames.ndx
+    wildcards: system=HP35, lumping=t
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/t/mean_frames_CA.pdb -fr data/HP35/results/t/rmsd_CA_mean_frames.ndx <<eof
+0
+eof
+[Tue Aug 26 15:11:57 2025]
+localrule rmsd_CA:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/rmsd_CA.npy, data/HP35/results/gpcca/rmsd_CA_mean_frames.ndx
+    jobid: 23
+    reason: Input files updated by another job: data/HP35/results/gpcca/Z.npy
+    wildcards: system=HP35, lumping=gpcca
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy --rmsd data/HP35/results/gpcca/rmsd_CA.npy
+[Tue Aug 26 15:11:57 2025]
+Finished jobid: 49 (Rule: rmsd_feature)
+21 of 25 steps (84%) done
+[Tue Aug 26 15:11:57 2025]
+Finished jobid: 37 (Rule: get_mean_frames_pdb_CA)
+22 of 25 steps (88%) done
+[Tue Aug 26 15:11:57 2025]
+Finished jobid: 23 (Rule: rmsd_CA)
+23 of 25 steps (92%) done
+Select jobs to execute...
+Execute 2 jobs...
+[Tue Aug 26 15:11:57 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/HP35/results/t/rmsd_feature_mean_frames.ndx
+    output: data/HP35/results/t/mean_frames_feature.pdb
+    jobid: 48
+    reason: Input files updated by another job: data/HP35/results/t/rmsd_feature_mean_frames.ndx
+    wildcards: system=HP35, lumping=t
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/t/mean_frames_feature.pdb -fr data/HP35/results/t/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Tue Aug 26 15:11:57 2025]
+localrule get_mean_frames_pdb_CA:
+    input: data/HP35/results/gpcca/rmsd_CA_mean_frames.ndx
+    output: data/HP35/results/gpcca/mean_frames_CA.pdb
+    jobid: 22
+    reason: Input files updated by another job: data/HP35/results/gpcca/rmsd_CA_mean_frames.ndx
+    wildcards: system=HP35, lumping=gpcca
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/gpcca/mean_frames_CA.pdb -fr data/HP35/results/gpcca/rmsd_CA_mean_frames.ndx <<eof
+0
+eof
+[Tue Aug 26 15:11:57 2025]
+Finished jobid: 48 (Rule: get_mean_frames_pdb_feature)
+24 of 25 steps (96%) done
+[Tue Aug 26 15:11:57 2025]
+Finished jobid: 22 (Rule: get_mean_frames_pdb_CA)
+25 of 25 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-26T151151.658173.snakemake.log

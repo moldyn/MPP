@@ -1,0 +1,34 @@
+.
+├── environment.yml
+├── MPP
+│   ├── core.py
+│   ├── graph
+│   │   ├── curved_edges.py
+│   │   ├── __init__.py
+│   │   └── kinetic_network.py
+│   ├── __init__.py
+│   ├── kernel.py
+│   ├── MPP.py
+│   ├── plot.py
+│   ├── random_to_png.py
+│   ├── run.py
+│   ├── sample_run.py
+│   ├── sankey_gap.py
+│   └── utils.py
+├── pyproject.toml
+├── README.md
+├── requirements.txt
+├── setup.py
+└── tests
+    ├── data
+
+[...]
+
+    ├── __init__.py
+    ├── test_plots.py
+    ├── test_properties.py
+    ├── test_rmsd.py
+    ├── test_run.py
+    └── test_utils.py
+
+40 directories, 455 files

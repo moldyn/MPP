@@ -1,0 +1,6 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+CyclicGraphException in rule plot in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 69:
+Cyclic dependency on rule plot.

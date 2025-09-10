@@ -1,0 +1,55 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job                    count
+-------------------  -------
+gen_Z                      1
+get_mean_frames_pdb        1
+rmsd                       1
+total                      3
+
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Aug 19 16:03:19 2025]
+localrule gen_Z:
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/t/Z.npy
+    jobid: 2
+    reason: Missing output files: data/aSyn/results/t/Z.npy
+    wildcards: system=aSyn, lumping=t
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml T none -Z data/aSyn/results/t/Z.npy
+Activating conda environment: mpp
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 43:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/aSyn/input/config.yml T none -Z data/aSyn/results/t/Z.npy' returned non-zero exit status 1.
+[Tue Aug 19 16:03:26 2025]
+Error in rule gen_Z:
+    message: None
+    jobid: 2
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/t/Z.npy
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/aSyn/input/config.yml T none -Z data/aSyn/results/t/Z.npy
+        (command exited with non-zero exit code)
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look below for error messages
+[Tue Aug 19 16:03:26 2025]
+Error in rule gen_Z:
+    message: None
+    jobid: 2
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/t/Z.npy
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/aSyn/input/config.yml T none -Z data/aSyn/results/t/Z.npy
+        (command exited with non-zero exit code)
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-19T160319.271812.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.

@@ -1,0 +1,55 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job      count
+-----  -------
+rmsd         1
+total        1
+
+Select jobs to execute...
+Execute 1 jobs...
+[Mon Aug 18 13:59:24 2025]
+localrule rmsd:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/rmsd.npy, data/HP35/results/t/rmsd_mean_frames.pdb
+    jobid: 0
+    reason: Missing output files: data/HP35/results/t/rmsd_mean_frames.pdb
+    wildcards: system=HP35, lumping=t
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy --rmsd data/HP35/results/t/rmsd.npy
+Activating conda environment: mpp
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 112:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy --rmsd data/HP35/results/t/rmsd.npy' returned non-zero exit status 1.
+[Mon Aug 18 14:03:35 2025]
+Error in rule rmsd:
+    message: None
+    jobid: 0
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/rmsd.npy, data/HP35/results/t/rmsd_mean_frames.pdb
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy --rmsd data/HP35/results/t/rmsd.npy
+        (command exited with non-zero exit code)
+Removing output files of failed job rmsd since they might be corrupted:
+data/HP35/results/t/rmsd.npy
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look below for error messages
+[Mon Aug 18 14:03:37 2025]
+Error in rule rmsd:
+    message: None
+    jobid: 0
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/rmsd.npy, data/HP35/results/t/rmsd_mean_frames.pdb
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy --rmsd data/HP35/results/t/rmsd.npy
+        (command exited with non-zero exit code)
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-18T135924.426901.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.

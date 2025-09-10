@@ -1,0 +1,30 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job                       count
+----------------------  -------
+draw_cluster_in_states        1
+total                         1
+
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Aug 27 11:37:39 2025]
+localcheckpoint draw_cluster_in_states:
+    input: data/aSyn/input/config.yml, data/aSyn/results/t/mean_frames_feature.pdb
+    output: data/aSyn/results/t/mean_frames_feature_2,6,7
+    jobid: 0
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=t, rmsd_feature=feature, clusters=2,6,7
+    resources: tmpdir=/tmp
+Shell command: workflow/create_cluster_pml.py data/aSyn/results/t/mean_frames_feature_2,6,7 data/aSyn/input/config.yml data/aSyn/results/t/mean_frames_feature.pdb 2,6,7
+DAG of jobs will be updated after completion.
+Activating conda environment: pymol
+[Wed Aug 27 11:37:57 2025]
+Finished jobid: 0 (Rule: draw_cluster_in_states)
+1 of 1 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-27T113738.383714.snakemake.log

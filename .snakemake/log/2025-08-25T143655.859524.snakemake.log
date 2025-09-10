@@ -1,0 +1,21 @@
+Building DAG of jobs...
+Deleting data/HP35/results/t/rmsd.npy
+Deleting data/HP35/results/t/rmsd_mean_frames.ndx
+Deleting data/HP35/results/t/Z.npy
+Deleting data/HP35/results/gpcca/rmsd.npy
+Deleting data/HP35/results/gpcca/rmsd_mean_frames.ndx
+Deleting data/HP35/results/gpcca/Z.npy
+Deleting data/aSyn/results/t/rmsd.npy
+Deleting data/aSyn/results/t/rmsd_mean_frames.ndx
+Deleting data/aSyn/results/t/Z.npy
+Deleting data/HP35/results/kl/rmsd.npy
+Deleting data/HP35/results/kl/rmsd_mean_frames.ndx
+Deleting data/HP35/results/kl/Z.npy
+Deleting data/aSyn/results/gpcca/rmsd.npy
+Deleting data/aSyn/results/gpcca/rmsd_mean_frames.ndx
+Deleting data/aSyn/results/gpcca/Z.npy
+Deleting data/HP35/results/t_js/Z.npy
+Deleting data/aSyn/results/kl/rmsd.npy
+Deleting data/aSyn/results/kl/rmsd_mean_frames.ndx
+Deleting data/aSyn/results/kl/Z.npy
+Deleting data/HP35/results/kl_js/Z.npy

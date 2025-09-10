@@ -1,0 +1,29 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job      count
+-----  -------
+plot         1
+total        1
+
+Select jobs to execute...
+Execute 1 jobs...
+[Thu Aug 28 13:33:30 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/macrostate_trajectory.txt
+    jobid: 0
+    reason: Missing output files: data/HP35/results/t/macrostate_trajectory.txt
+    wildcards: system=HP35, lumping=t, plot=macrostate_trajectory, extension=txt
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy -p macrostate_trajectory -o data/HP35/results/t/macrostate_trajectory.txt
+Activating conda environment: mpp
+[Thu Aug 28 13:33:42 2025]
+Finished jobid: 0 (Rule: plot)
+1 of 1 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-28T133329.867697.snakemake.log

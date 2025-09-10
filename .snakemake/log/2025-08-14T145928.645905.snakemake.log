@@ -1,0 +1,205 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmd13
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Job stats:
+job         count
+--------  -------
+plot           36
+plot_png       36
+total          72
+
+Select jobs to execute...
+Execute 8 jobs...
+[Thu Aug 14 14:59:29 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/ck_test.png
+    jobid: 21
+    reason: Missing output files: data/HP35/results/js/ck_test.png
+    wildcards: system=HP35, lumping=js, plot=ck_test
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p ck_test -o data/HP35/results/js/ck_test.png
+Activating conda environment: mpp
+[Thu Aug 14 14:59:31 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/sankey.png
+    jobid: 77
+    reason: Missing output files: data/HP35/results/kl_js/sankey.png
+    wildcards: system=HP35, lumping=kl_js, plot=sankey
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p sankey -o data/HP35/results/kl_js/sankey.png
+Activating conda environment: mpp
+[Thu Aug 14 14:59:31 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/timescales.pdf
+    jobid: 47
+    reason: Missing output files: data/HP35/results/t_js/timescales.pdf
+    wildcards: system=HP35, lumping=t_js, plot=timescales
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p timescales -o data/HP35/results/t_js/timescales.pdf
+Activating conda environment: mpp
+[Thu Aug 14 14:59:31 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/contacts.png
+    jobid: 62
+    reason: Missing output files: data/HP35/results/t_js/contacts.png
+    wildcards: system=HP35, lumping=t_js, plot=contacts
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p contacts -o data/HP35/results/t_js/contacts.png
+Activating conda environment: mpp
+[Thu Aug 14 14:59:31 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/sankey.png
+    jobid: 32
+    reason: Missing output files: data/HP35/results/t_js/sankey.png
+    wildcards: system=HP35, lumping=t_js, plot=sankey
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p sankey -o data/HP35/results/t_js/sankey.png
+Activating conda environment: mpp
+[Thu Aug 14 14:59:31 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/contacts.png
+    jobid: 15
+    reason: Missing output files: data/HP35/results/kl_js/contacts.png
+    wildcards: system=HP35, lumping=kl_js, plot=contacts
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p contacts -o data/HP35/results/kl_js/contacts.png
+Activating conda environment: mpp
+[Thu Aug 14 14:59:31 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/timescales.pdf
+    jobid: 66
+    reason: Missing output files: data/HP35/results/kl_js/timescales.pdf
+    wildcards: system=HP35, lumping=kl_js, plot=timescales
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p timescales -o data/HP35/results/kl_js/timescales.pdf
+Activating conda environment: mpp
+[Thu Aug 14 14:59:31 2025]
+localrule plot_png:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/dendrogram.png
+    jobid: 63
+    reason: Missing output files: data/HP35/results/gpcca/dendrogram.png
+    wildcards: system=HP35, lumping=gpcca, plot=dendrogram
+    resources: tmpdir=/tmp, mem_mb=4041, mem_mib=3854
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p dendrogram -o data/HP35/results/gpcca/dendrogram.png
+Activating conda environment: mpp
+Select jobs to execute...
+Terminating processes on user request, this might take some time.
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 70:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p dendrogram -o data/HP35/results/gpcca/dendrogram.png' died with <Signals.SIGINT: 2>.
+[Thu Aug 14 15:01:10 2025]
+Error in rule plot_png:
+    message: None
+    jobid: 63
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/dendrogram.png
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p dendrogram -o data/HP35/results/gpcca/dendrogram.png
+        (command exited with non-zero exit code)
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 70:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p ck_test -o data/HP35/results/js/ck_test.png' died with <Signals.SIGINT: 2>.
+[Thu Aug 14 15:01:14 2025]
+Error in rule plot_png:
+    message: None
+    jobid: 21
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/ck_test.png
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p ck_test -o data/HP35/results/js/ck_test.png
+        (command exited with non-zero exit code)
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 70:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p contacts -o data/HP35/results/t_js/contacts.png' died with <Signals.SIGINT: 2>.
+[Thu Aug 14 15:01:14 2025]
+Error in rule plot_png:
+    message: None
+    jobid: 62
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/contacts.png
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p contacts -o data/HP35/results/t_js/contacts.png
+        (command exited with non-zero exit code)
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 70:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p contacts -o data/HP35/results/kl_js/contacts.png' died with <Signals.SIGINT: 2>.
+[Thu Aug 14 15:01:15 2025]
+Error in rule plot_png:
+    message: None
+    jobid: 15
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/contacts.png
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p contacts -o data/HP35/results/kl_js/contacts.png
+        (command exited with non-zero exit code)
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 70:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p sankey -o data/HP35/results/kl_js/sankey.png' died with <Signals.SIGINT: 2>.
+[Thu Aug 14 15:01:17 2025]
+Error in rule plot_png:
+    message: None
+    jobid: 77
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/sankey.png
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p sankey -o data/HP35/results/kl_js/sankey.png
+        (command exited with non-zero exit code)
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 94:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p timescales -o data/HP35/results/t_js/timescales.pdf' died with <Signals.SIGINT: 2>.
+[Thu Aug 14 15:01:17 2025]
+Error in rule plot:
+    message: None
+    jobid: 47
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/timescales.pdf
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p timescales -o data/HP35/results/t_js/timescales.pdf
+        (command exited with non-zero exit code)
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 94:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p timescales -o data/HP35/results/kl_js/timescales.pdf' died with <Signals.SIGINT: 2>.
+[Thu Aug 14 15:01:17 2025]
+Error in rule plot:
+    message: None
+    jobid: 66
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/timescales.pdf
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p timescales -o data/HP35/results/kl_js/timescales.pdf
+        (command exited with non-zero exit code)
+RuleException:
+CalledProcessError in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 70:
+Command 'source /home/fg1085/miniconda3/bin/activate 'mpp'; set -euo pipefail;  python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p sankey -o data/HP35/results/t_js/sankey.png' died with <Signals.SIGINT: 2>.
+[Thu Aug 14 15:01:17 2025]
+Error in rule plot_png:
+    message: None
+    jobid: 32
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/sankey.png
+    conda-env: mpp
+    shell:
+        python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p sankey -o data/HP35/results/t_js/sankey.png
+        (command exited with non-zero exit code)
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-14T145928.645905.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.

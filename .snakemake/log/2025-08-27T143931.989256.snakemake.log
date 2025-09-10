@@ -1,0 +1,42 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job      count
+-----  -------
+plot         2
+total        2
+
+Select jobs to execute...
+Execute 2 jobs...
+[Wed Aug 27 14:39:32 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t/Z.npy
+    output: data/HP35/results/t/timescales.png
+    jobid: 2
+    reason: Forced execution
+    wildcards: system=HP35, lumping=t, plot=timescales, extension=png
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T none -Z data/HP35/results/t/Z.npy -p timescales -o data/HP35/results/t/timescales.png
+Activating conda environment: mpp
+[Wed Aug 27 14:39:32 2025]
+localrule plot:
+    input: data/aSyn/input/config.yml, data/aSyn/results/t/Z.npy
+    output: data/aSyn/results/t/timescales.png
+    jobid: 0
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=t, plot=timescales, extension=png
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml T none -Z data/aSyn/results/t/Z.npy -p timescales -o data/aSyn/results/t/timescales.png
+Activating conda environment: mpp
+[Wed Aug 27 14:39:42 2025]
+Finished jobid: 0 (Rule: plot)
+1 of 2 steps (50%) done
+[Wed Aug 27 14:39:43 2025]
+Finished jobid: 2 (Rule: plot)
+2 of 2 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-27T143931.989256.snakemake.log

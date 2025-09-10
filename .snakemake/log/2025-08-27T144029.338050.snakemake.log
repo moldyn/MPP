@@ -1,0 +1,311 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job      count
+-----  -------
+gen_Z        2
+plot        20
+total       22
+
+Select jobs to execute...
+Execute 18 jobs...
+[Wed Aug 27 14:40:29 2025]
+localrule plot:
+    input: data/aSyn/input/config.yml, data/aSyn/results/kl_js/Z.npy
+    output: data/aSyn/results/kl_js/timescales.pdf
+    jobid: 25
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=kl_js, plot=timescales, extension=pdf
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml KL JS -Z data/aSyn/results/kl_js/Z.npy -p timescales -o data/aSyn/results/kl_js/timescales.pdf
+Activating conda environment: mpp
+[Wed Aug 27 14:40:29 2025]
+localrule plot:
+    input: data/aSyn/input/config.yml, data/aSyn/results/t_js/Z.npy
+    output: data/aSyn/results/t_js/timescales.pdf
+    jobid: 8
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=t_js, plot=timescales, extension=pdf
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml T JS -Z data/aSyn/results/t_js/Z.npy -p timescales -o data/aSyn/results/t_js/timescales.pdf
+Activating conda environment: mpp
+[Wed Aug 27 14:40:29 2025]
+localrule plot:
+    input: data/aSyn/input/config.yml, data/aSyn/results/gpcca/Z.npy
+    output: data/aSyn/results/gpcca/timescales.pdf
+    jobid: 15
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=gpcca, plot=timescales, extension=pdf
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml gpcca ref -Z data/aSyn/results/gpcca/Z.npy -p timescales -o data/aSyn/results/gpcca/timescales.pdf
+Activating conda environment: mpp
+[Wed Aug 27 14:40:29 2025]
+localrule gen_Z:
+    input: data/aSyn/input/config.yml
+    output: data/aSyn/results/js/Z.npy
+    jobid: 13
+    reason: Missing output files: data/aSyn/results/js/Z.npy
+    wildcards: system=aSyn, lumping=js
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml none JS -Z data/aSyn/results/js/Z.npy
+[Wed Aug 27 14:40:29 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/timescales.pdf
+    jobid: 29
+    reason: Forced execution
+    wildcards: system=HP35, lumping=kl, plot=timescales, extension=pdf
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p timescales -o data/HP35/results/kl/timescales.pdf
+Activating conda environment: mpp
+[Wed Aug 27 14:40:29 2025]
+localrule plot:
+    input: data/aSyn/input/config.yml, data/aSyn/results/kl/Z.npy
+    output: data/aSyn/results/kl/timescales.png
+    jobid: 28
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=kl, plot=timescales, extension=png
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml KL none -Z data/aSyn/results/kl/Z.npy -p timescales -o data/aSyn/results/kl/timescales.png
+Activating conda environment: mpp
+[Wed Aug 27 14:40:29 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/timescales.png
+    jobid: 26
+    reason: Forced execution
+    wildcards: system=HP35, lumping=kl_js, plot=timescales, extension=png
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p timescales -o data/HP35/results/kl_js/timescales.png
+Activating conda environment: mpp
+[Wed Aug 27 14:40:30 2025]
+localrule plot:
+    input: data/aSyn/input/config.yml, data/aSyn/results/kl/Z.npy
+    output: data/aSyn/results/kl/timescales.pdf
+    jobid: 2
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=kl, plot=timescales, extension=pdf
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml KL none -Z data/aSyn/results/kl/Z.npy -p timescales -o data/aSyn/results/kl/timescales.pdf
+Activating conda environment: mpp
+[Wed Aug 27 14:40:30 2025]
+localrule plot:
+    input: data/aSyn/input/config.yml, data/aSyn/results/t_js/Z.npy
+    output: data/aSyn/results/t_js/timescales.png
+    jobid: 20
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=t_js, plot=timescales, extension=png
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml T JS -Z data/aSyn/results/t_js/Z.npy -p timescales -o data/aSyn/results/t_js/timescales.png
+Activating conda environment: mpp
+[Wed Aug 27 14:40:30 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/timescales.png
+    jobid: 22
+    reason: Forced execution
+    wildcards: system=HP35, lumping=kl, plot=timescales, extension=png
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p timescales -o data/HP35/results/kl/timescales.png
+Activating conda environment: mpp
+[Wed Aug 27 14:40:30 2025]
+localrule plot:
+    input: data/aSyn/input/config.yml, data/aSyn/results/gpcca/Z.npy
+    output: data/aSyn/results/gpcca/timescales.png
+    jobid: 17
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=gpcca, plot=timescales, extension=png
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml gpcca ref -Z data/aSyn/results/gpcca/Z.npy -p timescales -o data/aSyn/results/gpcca/timescales.png
+Activating conda environment: mpp
+[Wed Aug 27 14:40:30 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/timescales.pdf
+    jobid: 0
+    reason: Forced execution
+    wildcards: system=HP35, lumping=t_js, plot=timescales, extension=pdf
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p timescales -o data/HP35/results/t_js/timescales.pdf
+Activating conda environment: mpp
+[Wed Aug 27 14:40:30 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/timescales.pdf
+    jobid: 4
+    reason: Forced execution
+    wildcards: system=HP35, lumping=gpcca, plot=timescales, extension=pdf
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p timescales -o data/HP35/results/gpcca/timescales.pdf
+Activating conda environment: mpp
+[Wed Aug 27 14:40:30 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/timescales.pdf
+    jobid: 6
+    reason: Forced execution
+    wildcards: system=HP35, lumping=kl_js, plot=timescales, extension=pdf
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p timescales -o data/HP35/results/kl_js/timescales.pdf
+Activating conda environment: mpp
+[Wed Aug 27 14:40:30 2025]
+localrule plot:
+    input: data/aSyn/input/config.yml, data/aSyn/results/kl_js/Z.npy
+    output: data/aSyn/results/kl_js/timescales.png
+    jobid: 18
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=kl_js, plot=timescales, extension=png
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml KL JS -Z data/aSyn/results/kl_js/Z.npy -p timescales -o data/aSyn/results/kl_js/timescales.png
+Activating conda environment: mpp
+[Wed Aug 27 14:40:30 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/gpcca/Z.npy
+    output: data/HP35/results/gpcca/timescales.png
+    jobid: 24
+    reason: Forced execution
+    wildcards: system=HP35, lumping=gpcca, plot=timescales, extension=png
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml gpcca ref -Z data/HP35/results/gpcca/Z.npy -p timescales -o data/HP35/results/gpcca/timescales.png
+Activating conda environment: mpp
+[Wed Aug 27 14:40:30 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/timescales.png
+    jobid: 14
+    reason: Forced execution
+    wildcards: system=HP35, lumping=t_js, plot=timescales, extension=png
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p timescales -o data/HP35/results/t_js/timescales.png
+Activating conda environment: mpp
+[Wed Aug 27 14:40:30 2025]
+localrule gen_Z:
+    input: data/HP35/input/config.yml
+    output: data/HP35/results/js/Z.npy
+    jobid: 11
+    reason: Updated input files: data/HP35/input/config.yml
+    wildcards: system=HP35, lumping=js
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy
+Activating conda environment: mpp
+Activating conda environment: mpp
+[Wed Aug 27 14:40:37 2025]
+Finished jobid: 2 (Rule: plot)
+1 of 22 steps (5%) done
+[Wed Aug 27 14:40:37 2025]
+Finished jobid: 17 (Rule: plot)
+2 of 22 steps (9%) done
+[Wed Aug 27 14:40:37 2025]
+Finished jobid: 15 (Rule: plot)
+3 of 22 steps (14%) done
+[Wed Aug 27 14:40:38 2025]
+Finished jobid: 28 (Rule: plot)
+4 of 22 steps (18%) done
+[Wed Aug 27 14:40:38 2025]
+Finished jobid: 25 (Rule: plot)
+5 of 22 steps (23%) done
+[Wed Aug 27 14:40:38 2025]
+Finished jobid: 29 (Rule: plot)
+6 of 22 steps (27%) done
+[Wed Aug 27 14:40:38 2025]
+Finished jobid: 24 (Rule: plot)
+7 of 22 steps (32%) done
+[Wed Aug 27 14:40:38 2025]
+Finished jobid: 8 (Rule: plot)
+8 of 22 steps (36%) done
+[Wed Aug 27 14:40:38 2025]
+Finished jobid: 22 (Rule: plot)
+9 of 22 steps (41%) done
+[Wed Aug 27 14:40:38 2025]
+Finished jobid: 20 (Rule: plot)
+10 of 22 steps (45%) done
+Moving output file data/aSyn/results/js/Z.npy to cache.
+Symlinking output file data/aSyn/results/js/Z.npy from cache.
+[Wed Aug 27 14:40:39 2025]
+Finished jobid: 13 (Rule: gen_Z)
+11 of 22 steps (50%) done
+Select jobs to execute...
+Execute 2 jobs...
+[Wed Aug 27 14:40:39 2025]
+localrule plot:
+    input: data/aSyn/input/config.yml, data/aSyn/results/js/Z.npy
+    output: data/aSyn/results/js/timescales.pdf
+    jobid: 27
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=js, plot=timescales, extension=pdf
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml none JS -Z data/aSyn/results/js/Z.npy -p timescales -o data/aSyn/results/js/timescales.pdf
+Activating conda environment: mpp
+[Wed Aug 27 14:40:39 2025]
+localrule plot:
+    input: data/aSyn/input/config.yml, data/aSyn/results/js/Z.npy
+    output: data/aSyn/results/js/timescales.png
+    jobid: 12
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=js, plot=timescales, extension=png
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml none JS -Z data/aSyn/results/js/Z.npy -p timescales -o data/aSyn/results/js/timescales.png
+Activating conda environment: mpp
+[Wed Aug 27 14:40:39 2025]
+Finished jobid: 18 (Rule: plot)
+12 of 22 steps (55%) done
+[Wed Aug 27 14:40:39 2025]
+Finished jobid: 4 (Rule: plot)
+13 of 22 steps (59%) done
+[Wed Aug 27 14:40:40 2025]
+Finished jobid: 6 (Rule: plot)
+14 of 22 steps (64%) done
+[Wed Aug 27 14:40:40 2025]
+Finished jobid: 26 (Rule: plot)
+15 of 22 steps (68%) done
+Moving output file data/HP35/results/js/Z.npy to cache.
+Symlinking output file data/HP35/results/js/Z.npy from cache.
+[Wed Aug 27 14:40:40 2025]
+Finished jobid: 11 (Rule: gen_Z)
+16 of 22 steps (73%) done
+Select jobs to execute...
+Execute 2 jobs...
+[Wed Aug 27 14:40:40 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/timescales.pdf
+    jobid: 10
+    reason: Input files updated by another job: data/HP35/results/js/Z.npy
+    wildcards: system=HP35, lumping=js, plot=timescales, extension=pdf
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p timescales -o data/HP35/results/js/timescales.pdf
+Activating conda environment: mpp
+[Wed Aug 27 14:40:40 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/js/Z.npy
+    output: data/HP35/results/js/timescales.png
+    jobid: 21
+    reason: Input files updated by another job: data/HP35/results/js/Z.npy
+    wildcards: system=HP35, lumping=js, plot=timescales, extension=png
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml none JS -Z data/HP35/results/js/Z.npy -p timescales -o data/HP35/results/js/timescales.png
+Activating conda environment: mpp
+[Wed Aug 27 14:40:40 2025]
+Finished jobid: 14 (Rule: plot)
+17 of 22 steps (77%) done
+[Wed Aug 27 14:40:41 2025]
+Finished jobid: 0 (Rule: plot)
+18 of 22 steps (82%) done
+[Wed Aug 27 14:40:46 2025]
+Finished jobid: 12 (Rule: plot)
+19 of 22 steps (86%) done
+[Wed Aug 27 14:40:46 2025]
+Finished jobid: 27 (Rule: plot)
+20 of 22 steps (91%) done
+[Wed Aug 27 14:40:48 2025]
+Finished jobid: 10 (Rule: plot)
+21 of 22 steps (95%) done
+[Wed Aug 27 14:40:48 2025]
+Finished jobid: 21 (Rule: plot)
+22 of 22 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-27T144029.338050.snakemake.log

@@ -1,0 +1,29 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job      count
+-----  -------
+plot         1
+total        1
+
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Aug 27 13:51:20 2025]
+localrule plot:
+    input: data/aSyn/input/config.yml, data/aSyn/results/t/Z.npy
+    output: data/aSyn/results/t/timescales.pdf
+    jobid: 0
+    reason: Forced execution
+    wildcards: system=aSyn, lumping=t, plot=timescales
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/aSyn/input/config.yml T none -Z data/aSyn/results/t/Z.npy -p timescales -o data/aSyn/results/t/timescales.pdf
+Activating conda environment: mpp
+[Wed Aug 27 13:51:30 2025]
+Finished jobid: 0 (Rule: plot)
+1 of 1 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-27T135120.086762.snakemake.log

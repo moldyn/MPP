@@ -1,0 +1,55 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job      count
+-----  -------
+plot         3
+total        3
+
+Select jobs to execute...
+Execute 3 jobs...
+[Thu Aug 28 13:55:25 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl_js/Z.npy
+    output: data/HP35/results/kl_js/macrostate_trajectory.txt
+    jobid: 2
+    reason: Missing output files: data/HP35/results/kl_js/macrostate_trajectory.txt
+    wildcards: system=HP35, lumping=kl_js, plot=macrostate_trajectory, extension=txt
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL JS -Z data/HP35/results/kl_js/Z.npy -p macrostate_trajectory -o data/HP35/results/kl_js/macrostate_trajectory.txt
+Activating conda environment: mpp
+[Thu Aug 28 13:55:26 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/t_js/Z.npy
+    output: data/HP35/results/t_js/macrostate_trajectory.txt
+    jobid: 6
+    reason: Missing output files: data/HP35/results/t_js/macrostate_trajectory.txt
+    wildcards: system=HP35, lumping=t_js, plot=macrostate_trajectory, extension=txt
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml T JS -Z data/HP35/results/t_js/Z.npy -p macrostate_trajectory -o data/HP35/results/t_js/macrostate_trajectory.txt
+Activating conda environment: mpp
+[Thu Aug 28 13:55:26 2025]
+localrule plot:
+    input: data/HP35/input/config.yml, data/HP35/results/kl/Z.npy
+    output: data/HP35/results/kl/macrostate_trajectory.txt
+    jobid: 0
+    reason: Missing output files: data/HP35/results/kl/macrostate_trajectory.txt
+    wildcards: system=HP35, lumping=kl, plot=macrostate_trajectory, extension=txt
+    resources: tmpdir=/tmp
+Shell command: python -m MPP.run data/HP35/input/config.yml KL none -Z data/HP35/results/kl/Z.npy -p macrostate_trajectory -o data/HP35/results/kl/macrostate_trajectory.txt
+Activating conda environment: mpp
+[Thu Aug 28 13:55:36 2025]
+Finished jobid: 0 (Rule: plot)
+1 of 3 steps (33%) done
+[Thu Aug 28 13:55:36 2025]
+Finished jobid: 2 (Rule: plot)
+2 of 3 steps (67%) done
+[Thu Aug 28 13:55:36 2025]
+Finished jobid: 6 (Rule: plot)
+3 of 3 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-28T135524.796536.snakemake.log

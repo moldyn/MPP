@@ -1,0 +1,166 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: bmdiota
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 32
+Rules claiming more threads will be scaled down.
+Job stats:
+job                            count
+---------------------------  -------
+get_mean_frames_pdb_feature       10
+total                             10
+
+Select jobs to execute...
+Execute 10 jobs...
+[Mon Aug 25 15:17:30 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/HP35/results/kl_js/rmsd_feature_mean_frames.ndx
+    output: data/HP35/results/kl_js/mean_frames_feature.pdb
+    jobid: 3
+    reason: Missing output files: data/HP35/results/kl_js/mean_frames_feature.pdb
+    wildcards: system=HP35, lumping=kl_js
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/kl_js/mean_frames_feature.pdb -fr data/HP35/results/kl_js/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Mon Aug 25 15:17:31 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/HP35/results/t/rmsd_feature_mean_frames.ndx
+    output: data/HP35/results/t/mean_frames_feature.pdb
+    jobid: 15
+    reason: Missing output files: data/HP35/results/t/mean_frames_feature.pdb
+    wildcards: system=HP35, lumping=t
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/t/mean_frames_feature.pdb -fr data/HP35/results/t/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Mon Aug 25 15:17:31 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/HP35/results/kl/rmsd_feature_mean_frames.ndx
+    output: data/HP35/results/kl/mean_frames_feature.pdb
+    jobid: 0
+    reason: Missing output files: data/HP35/results/kl/mean_frames_feature.pdb
+    wildcards: system=HP35, lumping=kl
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/kl/mean_frames_feature.pdb -fr data/HP35/results/kl/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Mon Aug 25 15:17:31 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/aSyn/results/t_js/rmsd_feature_mean_frames.ndx
+    output: data/aSyn/results/t_js/mean_frames_feature.pdb
+    jobid: 27
+    reason: Missing output files: data/aSyn/results/t_js/mean_frames_feature.pdb
+    wildcards: system=aSyn, lumping=t_js
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/t_js/mean_frames_feature.pdb -fr data/aSyn/results/t_js/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Mon Aug 25 15:17:31 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/aSyn/results/t/rmsd_feature_mean_frames.ndx
+    output: data/aSyn/results/t/mean_frames_feature.pdb
+    jobid: 6
+    reason: Missing output files: data/aSyn/results/t/mean_frames_feature.pdb
+    wildcards: system=aSyn, lumping=t
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/t/mean_frames_feature.pdb -fr data/aSyn/results/t/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Mon Aug 25 15:17:31 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/HP35/results/gpcca/rmsd_feature_mean_frames.ndx
+    output: data/HP35/results/gpcca/mean_frames_feature.pdb
+    jobid: 18
+    reason: Missing output files: data/HP35/results/gpcca/mean_frames_feature.pdb
+    wildcards: system=HP35, lumping=gpcca
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/gpcca/mean_frames_feature.pdb -fr data/HP35/results/gpcca/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Mon Aug 25 15:17:31 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/aSyn/results/kl_js/rmsd_feature_mean_frames.ndx
+    output: data/aSyn/results/kl_js/mean_frames_feature.pdb
+    jobid: 9
+    reason: Missing output files: data/aSyn/results/kl_js/mean_frames_feature.pdb
+    wildcards: system=aSyn, lumping=kl_js
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/kl_js/mean_frames_feature.pdb -fr data/aSyn/results/kl_js/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Mon Aug 25 15:17:31 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/aSyn/results/kl/rmsd_feature_mean_frames.ndx
+    output: data/aSyn/results/kl/mean_frames_feature.pdb
+    jobid: 21
+    reason: Missing output files: data/aSyn/results/kl/mean_frames_feature.pdb
+    wildcards: system=aSyn, lumping=kl
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/kl/mean_frames_feature.pdb -fr data/aSyn/results/kl/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Mon Aug 25 15:17:31 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/aSyn/results/gpcca/rmsd_feature_mean_frames.ndx
+    output: data/aSyn/results/gpcca/mean_frames_feature.pdb
+    jobid: 24
+    reason: Missing output files: data/aSyn/results/gpcca/mean_frames_feature.pdb
+    wildcards: system=aSyn, lumping=gpcca
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/aSyn/input/topology.pdb -f data/aSyn/input/trajectory.xtc -o data/aSyn/results/gpcca/mean_frames_feature.pdb -fr data/aSyn/results/gpcca/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Mon Aug 25 15:17:31 2025]
+localrule get_mean_frames_pdb_feature:
+    input: data/HP35/results/t_js/rmsd_feature_mean_frames.ndx
+    output: data/HP35/results/t_js/mean_frames_feature.pdb
+    jobid: 12
+    reason: Missing output files: data/HP35/results/t_js/mean_frames_feature.pdb
+    wildcards: system=HP35, lumping=t_js
+    resources: tmpdir=/tmp
+Shell command: mkdir -p random_pdbs
+gmx trjconv -s data/HP35/input/structure.pdb -f data/HP35/input/trajectory.xtc -o data/HP35/results/t_js/mean_frames_feature.pdb -fr data/HP35/results/t_js/rmsd_feature_mean_frames.ndx <<eof
+0
+eof
+[Mon Aug 25 15:18:12 2025]
+Finished jobid: 15 (Rule: get_mean_frames_pdb_feature)
+1 of 10 steps (10%) done
+[Mon Aug 25 15:18:12 2025]
+Finished jobid: 3 (Rule: get_mean_frames_pdb_feature)
+2 of 10 steps (20%) done
+[Mon Aug 25 15:18:12 2025]
+Finished jobid: 0 (Rule: get_mean_frames_pdb_feature)
+3 of 10 steps (30%) done
+[Mon Aug 25 15:18:12 2025]
+Finished jobid: 18 (Rule: get_mean_frames_pdb_feature)
+4 of 10 steps (40%) done
+[Mon Aug 25 15:18:12 2025]
+Finished jobid: 12 (Rule: get_mean_frames_pdb_feature)
+5 of 10 steps (50%) done
+[Mon Aug 25 15:30:46 2025]
+Finished jobid: 9 (Rule: get_mean_frames_pdb_feature)
+6 of 10 steps (60%) done
+[Mon Aug 25 15:30:46 2025]
+Finished jobid: 6 (Rule: get_mean_frames_pdb_feature)
+7 of 10 steps (70%) done
+[Mon Aug 25 15:30:46 2025]
+Finished jobid: 24 (Rule: get_mean_frames_pdb_feature)
+8 of 10 steps (80%) done
+[Mon Aug 25 15:30:46 2025]
+Finished jobid: 27 (Rule: get_mean_frames_pdb_feature)
+9 of 10 steps (90%) done
+[Mon Aug 25 15:30:46 2025]
+Finished jobid: 21 (Rule: get_mean_frames_pdb_feature)
+10 of 10 steps (100%) done
+Complete log(s): /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/.snakemake/log/2025-08-25T151730.222089.snakemake.log

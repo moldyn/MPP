@@ -1,0 +1,7 @@
+Building DAG of jobs...
+MissingInputException in rule get_mean_frames_pdb in file "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile", line 162:
+Missing input files for rule get_mean_frames_pdb:
+    output: data/aSyn/results/gpcca/mean_frames.pdb
+    wildcards: system=aSyn, lumping=gpcca
+    affected files:
+        data/aSyn/results/gpcca/rmsd_mean_frames.ndx
