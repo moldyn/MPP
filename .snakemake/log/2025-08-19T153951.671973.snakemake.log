@@ -1,3 +1,0 @@
-Building DAG of jobs...
-MissingRuleException:
-No rule to produce data/HP35/results/t/rmsd_mean_frames.pdb (if you use input functions make sure that they don't raise unexpected exceptions).
