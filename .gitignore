@@ -1,3 +1,5 @@
 .coverage*
 data
 .snakemake
+__pycache__/
+*.py[cod]
