@@ -1,17 +1,24 @@
-# Documentation of the MPP package
-This package implements the most probable path (MPP) algorithm, which is used to reduce the number of discrete states of a Markov process. Based on a microstate trajectory, a Markov state model is estimated utilising [msmhelper](https://github.com/moldyn/msmhelper), and then, the number of states is reduced so that the new macrostates exhibit a given minimum population and metastability.
+# The Most Probable Path Algorithm
+This package implements the most probable path (MPP) algorithm, which is used to coarse-grain the number of discrete states of a Markov process. Based on a microstate trajectory, a Markov state model is estimated utilising [msmhelper](https://github.com/moldyn/msmhelper). Based on the transition probabilities and optional other descriptors, states are combined so that the final macrostates exhibit a given minimum population and metastability.
 
 ## Features
 - Perform the most probable path (MPP) algorithm on a given microstate trajectory.
 - Multi trajectory support
-- High-level CLI
+- Three levels of user interface
 - Extensions to the basic algorithm
   - Similarity by Kullback-Leibler divergence of transition probabilities
   - Incorporation Jenson-Shannon divergence of a feature (e.g. contact distances)
   - Stochastic lumping
 - Variety of analysis plots
+- Easy adaptable to your needs
 
-# Snakemake Workflow
+# Usage
+Dependent on your skills and needs, this module can be used in at three different levels:
+- In a [Snakemake](https://snakemake.github.io/) workflow where you only need to provide the configuration of your system and you're ready to go.
+- Use the high-level Python interface (MPP.run) via the command line or in your own scripts.
+- Integrate the central MPP.Lumping object in your Python pipeline.
+
+## The Snakemake Workflow
 Snakemake is a workflow organization tool and used here to provide a high level user interface. In general, you only need to tell snakemake which file you would like to have, e.g.
 
 ```bash
@@ -56,6 +63,8 @@ data/
 │
 ├── System2
 ```
+
+
 
 # Old file descriptions
 ## core.py
