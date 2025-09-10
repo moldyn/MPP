@@ -53,25 +53,6 @@ rule gen_Z:
   shell:
     "python -m MPP.run {input} {params.d} {params.g} -Z {output}"
 
-# rule plot_png:
-#   input:
-#     config="data/{system}/input/config.yml",
-#     z="data/{system}/results/{lumping}/Z.npy"
-#   output:
-#     "data/{system}/results/{lumping}/{plot}.png"
-#   params:
-#     d=get_d,
-#     g=get_g
-#   resources:
-#     mem_mb=get_mem_mb
-#   conda:
-#     "mpp"
-#     # "mpp.yml"
-#   shell:
-#     "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -p {wildcards.plot} -o {output}"
-
-# TODO:
-# Extension problem here
 rule plot:
   input:
     config="data/{system}/input/config.yml",
@@ -242,7 +223,6 @@ rule render_pdb_files:
   params:
     ndx_file=get_contact_index_file,
   shell:
-    # "mkdir -p random_pngs; pymol -cq workflow/scripts/render_random_structures.py -- {input.pdb} {output} {input.ndx}"
     "pymol -cq workflow/render_random_structures.py -- {input.pdb} {output} {input.ndx}"
 
 
