@@ -479,10 +479,12 @@ def opt_num_batches(n):
 
 def _calc_rmsd_generic(
     lumping: "MPP.Lumping",
-    get_traj: Callable["MPP.Lumping"],
-    find_mean: Callable[npt.NDArray, Callable[npt.NDArray]],
-    calc_var_fn: Callable[npt.NDArray, npt.NDArray],
-    estimator: Callable[npt.NDArray] = np.argmin,
+    get_traj: Callable[["MPP.Lumping"], md.Trajectory | npt.NDArray],
+    find_mean: Callable[
+        [npt.NDArray, Callable[[npt.NDArray], float]], (npt.NDArray, npt.NDArray)
+    ],
+    calc_var_fn: Callable[[npt.NDArray, npt.NDArray], npt.NDArray],
+    estimator: Callable[[npt.NDArray], float] = np.argmin,
     quiet: bool = False,
 ):
     """Calculate the RMSD for different coordinates
@@ -507,7 +509,12 @@ def _calc_rmsd_generic(
     t = get_traj(lumping)
     mean_frames = []
     mean_frames_idx = []
-    rmsd = np.empty([lumping.n_macrostates[lumping.n_i], t.shape[1]])
+    if isinstance(t, np.ndarray):
+        n_features = t.shape[1]
+    elif isinstance(t, md.Trajectory):
+        n_features = t.n_atoms
+
+    rmsd = np.empty([lumping.n_macrostates[lumping.n_i], n_features])
 
     for j in range(lumping.n_macrostates[lumping.n_i]):
         if not quiet:
