@@ -1,6 +1,9 @@
 import os
 
-configfile: "workflow/lumpings.yml"
+# Relative path to the directory where you store the data of this workflow.
+data_root = "data"
+
+configfile: os.path.join("workflow", "lumpings.yml")
 
 # TODO:
 # - source in config file required? Probably yes, because of all the file that are loaded within python.
@@ -13,36 +16,36 @@ def get_g(wildcards):
   return config[wildcards.lumping]["feature kernel"]
 
 def get_top_file(wildcards):
-  configfile: "data/" + wildcards.system + "/input/config.yml"
-  return config["source"] + config["topology file"]
+  configfile: os.path.join(data_root, wildcards.system, "input", "config.yml")
+  return os.path.join(config["source"], config["topology file"])
 
 def get_xtc_file(wildcards):
-  configfile: "data/" + wildcards.system + "/input/config.yml"
-  return config["source"] + config["xtc file"]
+  configfile: os.path.join(data_root, wildcards.system, "input", "config.yml")
+  return os.path.join(config["source"], config["xtc file"])
 
 def get_contact_index_file(wildcards):
-  configfile: "data/" + wildcards.system + "/input/config.yml"
+  configfile: os.path.join(data_root, wildcards.system, "input", "config.yml")
   if "contact index file" in config:
     return os.path.join(config["source"], config["contact index file"])
   else:
     return "none"
 
 def get_xtc_stride(wildcards):
-  configfile: "data/" + wildcards.system + "/input/config.yml"
+  configfile: os.path.join(data_root, wildcards.system, "input", "config.yml")
   if "xtc stride" in config:
     return int(config["xtc stride"])
   else:
     return 1
 
 def get_mem_mb(wildcards):
-  configfile: "data/" + wildcards.system + "/input/config.yml"
+  configfile: os.path.join(data_root, wildcards.system, "input", "config.yml")
   return os.path.getsize(os.path.join(config["source"], config["xtc file"])) / 1e6 + 500
 
 rule gen_Z:
   input:
-    "data/{system}/input/config.yml",
+    os.path.join("data", "{system}", "input", "config.yml"),
   output:
-    "data/{system}/results/{lumping}/Z.npy"
+    os.path.join("data", "{system}", "results", "{lumping}", "Z.npy")
   params:
     d=get_d,
     g=get_g
@@ -54,10 +57,10 @@ rule gen_Z:
 
 rule plot:
   input:
-    config="data/{system}/input/config.yml",
-    z="data/{system}/results/{lumping}/Z.npy"
+    config=os.path.join(data_root, "{system}", "input", "config.yml"),
+    z=os.path.join("data", "{system}", "results", "{lumping}", "Z.npy"),
   output:
-    "data/{system}/results/{lumping}/{plot}.{ext}"
+    os.path.join("data", "{system}", "results", "{lumping}", "{plot}.{ext}"),
   wildcard_constraints:
     ext="pdf|png|txt"
   params:
@@ -70,11 +73,11 @@ rule plot:
 
 rule rmsd_CA:
   input:
-    config="data/{system}/input/config.yml",
-    z="data/{system}/results/{lumping}/Z.npy"
+    config=os.path.join("data", "{system}", "input", "config.yml"),
+    z=os.path.join("data", "{system}", "results", "{lumping}", "Z.npy"),
   output:
-    npy="data/{system}/results/{lumping}/rmsd_CA.npy",
-    ndx="data/{system}/results/{lumping}/rmsd_CA_mean_frames.ndx"
+    npy=os.path.join("data", "{system}", "results", "{lumping}", "rmsd_CA.npy"),
+    ndx=os.path.join("data", "{system}", "results", "{lumping}", "rmsd_CA_mean_frames.ndx")
   params:
     d=get_d,
     g=get_g
@@ -87,11 +90,11 @@ rule rmsd_CA:
 
 rule rmsd_feature:
   input:
-    config="data/{system}/input/config.yml",
-    z="data/{system}/results/{lumping}/Z.npy"
+    config=os.path.join("data", "{system}", "input", "config.yml"),
+    z=os.path.join("data", "{system}", "results", "{lumping}", "Z.npy")
   output:
-    npy="data/{system}/results/{lumping}/rmsd_feature.npy",
-    ndx="data/{system}/results/{lumping}/rmsd_feature_mean_frames.ndx"
+    npy=os.path.join("data", "{system}", "results", "{lumping}", "rmsd_feature.npy"),
+    ndx=os.path.join("data", "{system}", "results", "{lumping}", "rmsd_feature_mean_frames.ndx")
   params:
     d=get_d,
     g=get_g
@@ -105,10 +108,10 @@ rule rmsd_feature:
 
 checkpoint draw_random:
   input:
-    config="data/{system}/input/config.yml",
-    z="data/{system}/results/{lumping}/Z.npy"
+    config=os.path.join("data", "{system}", "input", "config.yml"),
+    z=os.path.join("data", "{system}", "results", "{lumping}", "Z.npy")
   output:
-    macrostates=directory("data/{system}/results/{lumping}/random_frames/")
+    macrostates=directory(os.path.join("data", "{system}", "results", "{lumping}", "random_frames"))
   params:
     d=get_d,
     g=get_g,
@@ -121,14 +124,14 @@ checkpoint draw_random:
 
 def aggregate_input(wildcards):
     checkpoint_output = checkpoints.draw_random.get(**wildcards).output[0]
-    return expand("data/{system}/results/{lumping}/random_pngs/{macrostate}.png",
+    return expand(os.path.join("data", "{system}", "results", "{lumping}", "random_pngs", "{macrostate}.png"),
            system=wildcards.system,
            lumping=wildcards.lumping,
            macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.ndx")).macrostate)
 
 def aggregate_input_pdb(wildcards):
     checkpoint_output = checkpoints.draw_random.get(**wildcards).output[0]
-    return expand("data/{system}/results/{lumping}/random_pdbs/{macrostate}.pdb",
+    return expand(os.path.join("data", "{system}", "results", "{lumping}", "random_pdbs", "{macrostate}.pdb"),
            system=wildcards.system,
            lumping=wildcards.lumping,
            macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.ndx")).macrostate)
@@ -137,7 +140,7 @@ rule aggregate:
   input:
     aggregate_input
   output:
-    "data/{system}/results/{lumping}/macrostates.txt"
+    os.path.join("data", "{system}", "results", "{lumping}", "macrostates.txt")
   shell:
     "echo {input} > {output}"
 
@@ -145,17 +148,17 @@ rule aggregate_pdb:
   input:
     aggregate_input_pdb
   output:
-    "data/{system}/results/{lumping}/macrostates_pdb.txt"
+    os.path.join("data", "{system}", "results", "{lumping}", "macrostates_pdb.txt")
   shell:
     "echo {input} > {output}"
 
 
 rule get_least_moving_residues:
   input:
-    config="data/{system}/input/config.yml",
-    z="data/{system}/results/{lumping}/Z.npy"
+    config=os.path.join("data", "{system}", "input", "config.yml"),
+    z=os.path.join("data", "{system}", "results", "{lumping}", "Z.npy")
   output:
-    "data/{system}/results/{lumping}/least_moving_residues.ndx"
+    os.path.join("data", "{system}", "results", "{lumping}", "least_moving_residues.ndx")
   params:
     d=get_d,
     g=get_g,
@@ -169,9 +172,9 @@ rule get_least_moving_residues:
 # Mind the xtc stride / --skip not working; rewrite of .ndx required
 rule get_random_pdb_frames:
   input:
-    "data/{system}/results/{lumping}/random_frames/{macrostate}.ndx"
+    os.path.join("data", "{system}", "results", "{lumping}", "random_frames", "{macrostate}.ndx")
   output:
-    "data/{system}/results/{lumping}/random_pdbs/{macrostate}.pdb"
+    os.path.join("data", "{system}", "results", "{lumping}", "random_pdbs", "{macrostate}.pdb")
   params:
     top=get_top_file,
     xtc=get_xtc_file,
@@ -183,9 +186,9 @@ eof"""
 
 rule get_mean_frames_pdb_CA:
   input:
-    "data/{system}/results/{lumping}/rmsd_CA_mean_frames.ndx"
+    os.path.join("data", "{system}", "results", "{lumping}", "rmsd_CA_mean_frames.ndx")
   output:
-    "data/{system}/results/{lumping}/mean_frames_CA.pdb"
+    os.path.join("data", "{system}", "results", "{lumping}", "mean_frames_CA.pdb")
   params:
     top=get_top_file,
     xtc=get_xtc_file,
@@ -197,9 +200,9 @@ eof"""
 
 rule get_mean_frames_pdb_feature:
   input:
-    "data/{system}/results/{lumping}/rmsd_feature_mean_frames.ndx"
+    os.path.join("data", "{system}", "results", "{lumping}", "rmsd_feature_mean_frames.ndx")
   output:
-    "data/{system}/results/{lumping}/mean_frames_feature.pdb"
+    os.path.join("data", "{system}", "results", "{lumping}", "mean_frames_feature.pdb")
   params:
     top=get_top_file,
     xtc=get_xtc_file,
@@ -211,32 +214,32 @@ eof"""
 
 rule render_pdb_files:
   input:
-    pdb="data/{system}/results/{lumping}/random_pdbs/{macrostate}.pdb",
-    ndx="data/{system}/results/{lumping}/least_moving_residues.ndx",
+    pdb=os.path.join("data", "{system}", "results", "{lumping}", "random_pdbs", "{macrostate}.pdb"),
+    ndx=os.path.join("data", "{system}", "results", "{lumping}", "least_moving_residues.ndx")
   output:
-    "data/{system}/results/{lumping}/random_pngs/{macrostate}.png"
+    os.path.join("data", "{system}", "results", "{lumping}", "random_pngs", "{macrostate}.png")
   conda:
     "pymol"
   params:
     ndx_file=get_contact_index_file,
   shell:
-    "pymol -cq workflow/render_random_structures.py -- {input.pdb} {output} {input.ndx}"
+    "pymol -cq " + os.path.join("workflow", "render_random_structures.py") + " -- {input.pdb} {output} {input.ndx}"
 
 
 checkpoint draw_cluster_in_states:
   input:
-    config="data/{system}/input/config.yml",
-    frames="data/{system}/results/{lumping}/mean_frames_{rmsd_feature}.pdb"
+    config=os.path.join("data", "{system}", "input", "config.yml"),
+    frames=os.path.join("data", "{system}", "results", "{lumping}", "mean_frames_{rmsd_feature}.pdb")
   output:
-    directory("data/{system}/results/{lumping}/mean_frames_{rmsd_feature}_{clusters}/")
+    directory(os.path.join("data", "{system}", "results", "{lumping}", "mean_frames_{rmsd_feature}_{clusters}"))
   conda:
     "pymol"
   shell:
-    "workflow/create_cluster_pml.py {output} {input.config} {input.frames} {wildcards.clusters}"
+    os.path.join("workflow", "create_cluster_pml.py") + " {output} {input.config} {input.frames} {wildcards.clusters}"
 
 def aggregate_input_draw_cluster(wildcards):
     checkpoint_output = checkpoints.draw_cluster_in_states.get(**wildcards).output[0]
-    return expand("data/{system}/results/{lumping}/mean_frames_{rmsd_feature}/{macrostate}.png",
+    return expand(os.path.join("data", "{system}", "results", "{lumping}", "mean_frames_{rmsd_feature}", "{macrostate}.png"),
            system=wildcards.system,
            lumping=wildcards.lumping,
            macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.png")).macrostate)
@@ -245,39 +248,30 @@ rule aggregate_draw_cluster:
   input:
     aggregate_input_draw_cluster
   output:
-    "data/{system}/results/{lumping}/rmsd_mean_{rmsd_feature}_{clusters}.txt"
+    os.path.join("data", "{system}", "results", "{lumping}", "rmsd_mean_{rmsd_feature}_{clusters}.txt")
   shell:
     "echo {input} > {output}"
 
 
-
-rule report:
+rule plot_all:
   input:
-    "data/{system}/results/{lumping}/sankey.pdf",
-    "data/{system}/results/{lumping}/dendrogram.pdf",
-    "data/{system}/results/{lumping}/ck_test.pdf",
-    "data/{system}/results/{lumping}/timescales.pdf",
-    "data/{system}/results/{lumping}/contacts.pdf",
-    "data/{system}/results/{lumping}/macrotraj.pdf",
+    os.path.join("data", "{system}", "results", "{lumping}", "sankey.pdf"),
+    os.path.join("data", "{system}", "results", "{lumping}", "dendrogram.pdf"),
+    os.path.join("data", "{system}", "results", "{lumping}", "ck_test.pdf"),
+    os.path.join("data", "{system}", "results", "{lumping}", "timescales.pdf"),
+    os.path.join("data", "{system}", "results", "{lumping}", "contacts.pdf"),
+    os.path.join("data", "{system}", "results", "{lumping}", "macrotraj.pdf"),
+    os.path.join("data", "{system}", "results", "{lumping}", "rmsd.pdf"),
+    os.path.join("data", "{system}", "results", "{lumping}", "delta_rmsd.pdf"),
+    os.path.join("data", "{system}", "results", "{lumping}", "sankey.png"),
+    os.path.join("data", "{system}", "results", "{lumping}", "dendrogram.png"),
+    os.path.join("data", "{system}", "results", "{lumping}", "ck_test.png"),
+    os.path.join("data", "{system}", "results", "{lumping}", "timescales.png"),
+    os.path.join("data", "{system}", "results", "{lumping}", "contacts.png"),
+    os.path.join("data", "{system}", "results", "{lumping}", "macrotraj.png"),
+    os.path.join("data", "{system}", "results", "{lumping}", "rmsd.png"),
+    os.path.join("data", "{system}", "results", "{lumping}", "delta_rmsd.png"),
   output:
-    "data/{system}/results/{lumping}/report.tex",
-  conda:
-    "mpp"
+    os.path.join("data", "{system}", "results", "{lumping}", "plotted"),
   shell:
-    "python workflow/report.py {wildcards.system} {wildcards.lumping}"
-
-rule report_rmsd:
-  input:
-    "data/{system}/results/{lumping}/sankey.pdf",
-    "data/{system}/results/{lumping}/dendrogram.pdf",
-    "data/{system}/results/{lumping}/ck_test.pdf",
-    "data/{system}/results/{lumping}/timescales.pdf",
-    "data/{system}/results/{lumping}/contacts.pdf",
-    "data/{system}/results/{lumping}/macrotraj.pdf",
-    "data/{system}/results/{lumping}/rmsd.pdf",
-  output:
-    "data/{system}/results/{lumping}/report_rmsd.tex",
-  conda:
-    "mpp"
-  shell:
-    "python workflow/report.py {wildcards.system} {wildcards.lumping} -r"
+    "date > {output}"
