@@ -10,6 +10,12 @@ import numpy.typing as npt
 import mdtraj as md
 from tqdm import tqdm
 
+from collections.abc import Callable
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import MPP
+
 
 def translate_trajectory(
     trajectory: npt.NDArray[np.int_], map: npt.NDArray[np.int_]
@@ -472,14 +478,38 @@ def opt_num_batches(n):
 
 
 def _calc_rmsd_generic(
-    lumping, get_traj, find_mean, calc_var_fn, estimator=np.argmin, quiet=False
+    lumping: "MPP.Lumping",
+    get_traj: Callable["MPP.Lumping"],
+    find_mean: Callable[npt.NDArray, Callable[npt.NDArray]],
+    calc_var_fn: Callable[npt.NDArray, npt.NDArray],
+    estimator: Callable[npt.NDArray] = np.argmin,
+    quiet: bool = False,
 ):
+    """Calculate the RMSD for different coordinates
+
+    Parameters
+    ----------
+    lumping : MPP.Lumping
+        The lumping to calculate the RMSD for
+    get_traj : Callable[MPP.Lumping]
+        Loader for the trajectory
+    find_mean : Callable[npt.NDArray, Callable[npt.NDArray]]
+        A function that determines some mean frame
+    calc_var_fn : Callable[npt.NDArray, npt.NDArray]
+        A function that calculates the RMSD of a reference to a
+        trajectory
+    estimator : Callable[npt.NDArray]
+        The estimator of the mean frame. Determines a representative
+        frame for the given trajectory.
+    quiet : bool
+        If False: Print the macrostate which is being processed
+    """
     t = get_traj(lumping)
     mean_frames = []
     mean_frames_idx = []
     rmsd = np.empty([lumping.n_macrostates[lumping.n_i], t.shape[1]])
 
-    for j in range(lumping.n_macrostates[lumping.n_i]):
+    for j in range(1, lumping.n_macrostates[lumping.n_i] + 1):
         if not quiet:
             print(f"Process macrostate {j}")
         traj_mask = lumping.macrostate_trajectory[lumping.n_i] == j
