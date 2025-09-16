@@ -1,10 +1,9 @@
-configfile: "/data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/lumpings.yml"
+import os
+
+configfile: "workflow/lumpings.yml"
 
 # TODO:
-# - good way to load lumpings.yml
 # - source in config file required? Probably yes, because of all the file that are loaded within python.
-
-import os
 
 
 def get_d(wildcards):
