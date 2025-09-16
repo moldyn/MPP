@@ -61,13 +61,13 @@ class Data:
         self.xtc = None
         self.helices = None
         for file, param in [
-            ("cluster file", self.cluster),
-            ("topology file", self.top),
-            ("xtc file", self.xtc),
-            ("helices", self.helices),
+            ("cluster file", "cluster"),
+            ("topology file", "top"),
+            ("xtc file", "xtc"),
+            ("helices", "helices"),
         ]:
             if self.d[file] is not None:
-                param = os.path.join(self.source, self.d[file])
+                setattr(self, param, os.path.join(self.source, self.d[file]))
 
         self.frame_length = self.d["frame length"]
         self.lagtime = self.d["lagtime"]
