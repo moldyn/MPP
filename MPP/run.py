@@ -69,6 +69,9 @@ class Data:
             if self.d[file] is not None:
                 setattr(self, param, os.path.join(self.source, self.d[file]))
 
+        if self.helices is not None:
+            self.helices = np.loadtxt(self.helices, dtype=int)
+
         self.frame_length = self.d["frame length"]
         self.lagtime = self.d["lagtime"]
         self.pop_thr = self.d["pop_thr"]
