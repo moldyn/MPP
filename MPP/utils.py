@@ -287,6 +287,7 @@ def load_mean_frames(topfile, trajectoryfile, mean_frames, dt=0.1):
 
 
 def find_mean_frame(trajectory, estimator=np.argmin):
+    trajectory = md.join(trajectory)
     mean_rmsd = np.array([estimate_rmsd(frame, trajectory) for frame in trajectory])
     index_mean_frame = estimator(mean_rmsd)
     mean_frame = trajectory[index_mean_frame]
@@ -303,6 +304,7 @@ def estimate_rmsd(frame, trajectory):
 
 
 def find_mean_frame_feature(trajectory, estimator=np.argmin):
+    trajectory = np.array(trajectory)
     mean_rmsd = np.array(
         [estimate_rmsd_feature(frame, trajectory) for frame in trajectory]
     )
@@ -532,7 +534,7 @@ def _calc_rmsd_generic(
             m_frames_idx.append(idx)
 
         # Best frame from all batches
-        mean_frame, idx_batch = find_mean(np.array(m_frames), estimator)
+        mean_frame, idx_batch = find_mean(m_frames, estimator)
         mean_frames.append(mean_frame)
 
         # Convert back to full trajectory index
