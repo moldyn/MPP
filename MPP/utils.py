@@ -509,9 +509,9 @@ def _calc_rmsd_generic(
     mean_frames_idx = []
     rmsd = np.empty([lumping.n_macrostates[lumping.n_i], t.shape[1]])
 
-    for j in range(1, lumping.n_macrostates[lumping.n_i] + 1):
+    for j in range(lumping.n_macrostates[lumping.n_i]):
         if not quiet:
-            print(f"Process macrostate {j}")
+            print(f"Process macrostate {j + 1}")
         traj_mask = lumping.macrostate_trajectory[lumping.n_i] == j
         tm = t[traj_mask]
         m_frames = []
