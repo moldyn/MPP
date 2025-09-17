@@ -2,34 +2,18 @@ name: mpp
 channels:
   - defaults
 dependencies:
-  - networkx
-  - numpy < 2.3
-  - python >=3.10, <3.13
-  - tqdm
+  - python == 3.12.11
+  - tqdm == 4.67.1
+  - numpy == 2.2.5
+  - seaborn == 0.13.2
+  - networkx == 3.5
+  - conda-forge::mdtraj == 1.11.0
+  - conda-forge::scikit-learn == 1.7.2
+  - conda-forge::pygpcca == 1.0.4
+  - conda-forge::anytree == 2.12.1
+  - conda-forge::fa2_modified == 0.3.10
   - pip
   - pip:
-      - anytree
-      - bezier
-      - fa2-modified
-      - matplotlib
-      # - mdanalysis
-      - mdtraj
-      # - mosaic-clustering
+      - msmhelper == 1.1.1
+      - bezier == 2024.6.20
       - -e /data/evaluation/MPP/stochastic_MPP_Felix/MPP/
-      - msmhelper
-      - numba
-      - pandas
-      # - pip
-      # - pipdeptree
-      # - pipreqs
-      - prettypyplot
-      - pyyaml
-      - pygpcca
-      - mpi4py
-      - petsc 
-      - slepc
-      - petsc4py 
-      - slepc4py
-      - scikit-learn
-      - scipy
-      - seaborn
