@@ -15,7 +15,7 @@ dependencies:
       - mdanalysis
       - mdtraj
       - mosaic-clustering
-      - -e /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/
+      - -e /data/evaluation/MPP/stochastic_MPP_Felix/MPP/
       - msmhelper
       - numba
       - pandas
