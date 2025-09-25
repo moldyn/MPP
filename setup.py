@@ -7,6 +7,7 @@ setup(
     version=__version__,
     packages=find_packages(),  # Automatically find and include all packages
     install_requires=[  # List of dependencies for your module
+        "pyyaml>=6.0.2",
         "tqdm>=4.67.1",
         "numpy>=2.2.5",
         "seaborn>=0.13.2",
