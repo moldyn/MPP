@@ -30,6 +30,31 @@ Dependent on your skills and needs, the module can be used at three different en
 - In a [Snakemake](https://snakemake.github.io/) workflow where you only need to provide the configuration of your system and you're ready to go.
 
 ### Config File
+Config files (YAML files) are used to pass the information of where the files are located and some lumping parameters. Below you see a reference config file with all possible parameters. Please refer to the wiki for a detailed description of the parameters (tbd).
+
+```yaml
+source: data/HP35/input/
+
+microstate trajectory: microstate_trajectory # the microstate trajectory
+multi feature trajectory: contact_distances_trajectory # the feature trajectory, each line contains the feature values of the respective feature
+cluster file: clusters # Defines the contact clusters, each row contains the contact indices of a contact cluster
+contact index file: contacts.ndx # residue indices for contacts.
+limits: null # contains the lengths of each trajectory when multiple trajectories are concatenated
+
+topology file: structure.pdb # topology file used with the xtc trajectory
+xtc file: trajectory.xtc # the xtc trajectory file
+helices: helices # definition of secondary structure elements
+
+frame length: 0.2 # in ns / frame
+lagtime: 50 # in frames
+pop_thr: 0.005 # population threshold for macrostates
+q_min: 0.5 # minimum metastability of macrostates
+
+# PyMol rendering
+view: view # contains the view information for PyMol
+width: 500 # width of the image in px
+height: 500 # height of the image in px
+```
 
 ### Python Module
 
