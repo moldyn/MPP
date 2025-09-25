@@ -30,10 +30,10 @@ Dependent on your skills and needs, the module can be used at three different en
 - In a [Snakemake](https://snakemake.github.io/) workflow where you only need to provide the configuration of your system and you're ready to go.
 
 ### Config File
-Config files (YAML files) are used to pass the information of where the files are located and some lumping parameters. Below you see a reference config file with all possible parameters. Please refer to the wiki for a detailed description of the parameters (tbd).
+Config files (YAML files) are used to pass the information of where the files are located and some lumping parameters. Below you see a reference config file with all possible parameters. Note that only the following fields are mandatory: `source`, `microstate trajectory`, `multi feature trajectory`, `frame length`, `lagtime`, `pop_thr`, `q_min`. Please refer to the wiki for a detailed description of the parameters (tbd).
 
 ```yaml
-source: data/HP35/input/
+source: data/HP35/input/ # root directory of the other files
 
 microstate trajectory: microstate_trajectory # the microstate trajectory
 multi feature trajectory: contact_distances_trajectory # the feature trajectory, each line contains the feature values of the respective feature
@@ -45,10 +45,19 @@ topology file: structure.pdb # topology file used with the xtc trajectory
 xtc file: trajectory.xtc # the xtc trajectory file
 helices: helices # definition of secondary structure elements
 
+contact threshold: null # Threshold for in the feature space below which e.g. a contact is considered to be formed.
 frame length: 0.2 # in ns / frame
 lagtime: 50 # in frames
 pop_thr: 0.005 # population threshold for macrostates
 q_min: 0.5 # minimum metastability of macrostates
+
+n timescales: 3 # number of timescales to plot in the implied timescales plot. 3 is the default.
+
+# For stochastic lumping
+stochastic:
+  method: n
+  param: 2
+  n: 10
 
 # PyMol rendering
 view: view # contains the view information for PyMol
