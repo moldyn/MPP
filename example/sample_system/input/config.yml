@@ -1,4 +1,4 @@
-source: sample_system
+source: example/sample_system/input
 
 microstate trajectory: traj
 multi feature trajectory: feature_traj
