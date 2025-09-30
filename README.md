@@ -104,6 +104,12 @@ options:
                         Write least moving residues for each macrostate to a file
 ```
 
+Your can try the example in the GitHub repository by downloading the `example` directory, navigate into it and try a command like
+
+```bash
+python -m MPP.run sample_system/config.yml T none -Z sample_system/results/t/Z.npy -p dendrogram -o sample_system/results/t/dendrogram.pdf
+```
+
 ### The Snakemake Workflow
 Snakemake is a workflow organization tool and used here to provide a high level user interface. In general, you only need to tell snakemake which file you would like to have, e.g.
 
