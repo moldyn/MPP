@@ -110,6 +110,8 @@ Your can try the example in the GitHub repository by downloading the `example` d
 python -m MPP.run sample_system/config.yml T none -Z sample_system/results/t/Z.npy -p dendrogram -o sample_system/results/t/dendrogram.pdf
 ```
 
+Please note that not all functions of the package work here because the sample system is only a mock up.
+
 ### The Snakemake Workflow
 Snakemake is a workflow organization tool and used here to provide a high level user interface. In general, you only need to tell snakemake which file you would like to have, e.g.
 
