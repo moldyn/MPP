@@ -1,0 +1,22 @@
+source: sample_system
+
+microstate trajectory: traj
+multi feature trajectory: feature_traj
+contact threshold: null
+# cluster file: clusters
+# contact index file: contacts.ndx
+# limits: null
+#
+# topology file: structure.pdb
+# xtc file: trajectory.xtc
+# helices: helices
+
+# frame length: 0.2 # in ns / frame
+lagtime: 20 # in frames
+pop_thr: 0.15
+q_min: 0.5
+
+# PyMol rendering
+# view: view
+# width: 500
+# height: 500
