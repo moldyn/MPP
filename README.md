@@ -23,6 +23,9 @@ The package is available in the Python Package Index (PyPI) and can be installed
 python -m pip install mpp-lumping
 ```
 
+### Caveat:
+At the moment of the development, the bezier package didn't support python 3.13, which is why the package was only tested with Python 3.12.11.
+
 ## Usage
 Dependent on your skills and needs, the module can be used at three different entry points:
 - Integrate the central `MPP.Lumping` or `MPP.run.Data` object in your Python pipeline.
@@ -113,7 +116,16 @@ python -m MPP.run sample_system/input/config.yml T none -Z sample_system/results
 Make sure that the `source` is properly set according to your working directory (you need to remove `example` when you are inside the directory). Please note that not all functions of the package work here because the sample system is only a mock up.
 
 ### The Snakemake Workflow
-Snakemake is a workflow organization tool and used here to provide a high level user interface. In order to use it, copy the `workflow` directory to the same location as your data directory:
+Snakemake is a workflow organization tool and used here to provide a high level user interface. In order to use it, prepare a conda environment with Snakemake installed:
+
+```bash
+~$ conda create -c conda-forge -c bioconda -c nodefaults -n snakemake snakemake
+```
+
+Make sure that GROMACS is callable (`gmx` command) and your ready to go (no need to install MPP manually).
+
+Then copy the `workflow` directory to the same location as your data directory:
+
 ```bash
 ├── data/
 │   ├── system1/
@@ -130,7 +142,7 @@ Snakemake is a workflow organization tool and used here to provide a high level 
 
 ```
 
-This Snakemake workflow requires this directory structure but the name of the `data` directory can be freely chosen. Only make sure to set it correctly in the `Snakefile` (`data_root = "your_data_directory"`) and the config file of each system (`source` is the whole path to input directory). To create files with Snakemake, you only need to tell which file(s) you would like to create, e.g.
+The Snakemake workflow requires this directory structure but the name of the `data` directory can be freely chosen. Only make sure to set it correctly in the `Snakefile` (`data_root = "your_data_directory"`) and the config file of each system (`source` is the whole path to input directory). To create files with Snakemake, you only need to tell which file(s) you would like to create, e.g.
 
 ```bash
 snakemake --cores 'all' --sdm conda -p example/sample_system/results/{t,t_js,kl,kl_js}/dendrogram.p{df,ng} --cache
@@ -149,4 +161,4 @@ Explanation of some flags:
 
 More information can be found here: [Snakemake Documentation](https://snakemake.readthedocs.io/en/stable/executing/cli.html)
 
-Note that bash parameter expansion (the use of `{` and `}`) is possible to create e.g. several diagrams at once for multiple systems and/or setups.
+Bash parameter expansion (the use of `{` and `}`) is possible to create e.g. several diagrams at once for multiple systems and/or setups.
