@@ -102,7 +102,6 @@ rule rmsd_feature:
     mem_mb=get_mem_mb
   conda:
     "mpp.yml"
-    # "mpp.yml"
   shell:
     "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} --rmsd {output.npy} --rmsd-feature feature"
 

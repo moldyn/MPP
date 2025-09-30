@@ -107,53 +107,46 @@ options:
 Your can try the example in the GitHub repository by downloading the `example` directory, navigate into it and try a command like
 
 ```bash
-python -m MPP.run sample_system/config.yml T none -Z sample_system/results/t/Z.npy -p dendrogram -o sample_system/results/t/dendrogram.pdf
+python -m MPP.run sample_system/input/config.yml T none -Z sample_system/results/t/Z.npy -p dendrogram -o sample_system/results/t/dendrogram.pdf
 ```
 
-Please note that not all functions of the package work here because the sample system is only a mock up.
+Make sure that the `source` is properly set according to your working directory (you need to remove `example` when you are inside the directory). Please note that not all functions of the package work here because the sample system is only a mock up.
 
 ### The Snakemake Workflow
-Snakemake is a workflow organization tool and used here to provide a high level user interface. In general, you only need to tell snakemake which file you would like to have, e.g.
+Snakemake is a workflow organization tool and used here to provide a high level user interface. In order to use it, copy the `workflow` directory to the same location as your data directory:
+```bash
+├── data/
+│   ├── system1/
+│   │   ├── input/
+│   │   └── results/
+│   ├── system2/
+│   │   ├── input/
+│   │   └── results/
+│   └── ...
+└── workflow/
+    ├── mpp.yml
+    ├── Snakefile
+    └── ...
+
+```
+
+This Snakemake workflow requires this directory structure but the name of the `data` directory can be freely chosen. Only make sure to set it correctly in the `Snakefile` (`data_root = "your_data_directory"`) and the config file of each system (`source` is the whole path to input directory). To create files with Snakemake, you only need to tell which file(s) you would like to create, e.g.
 
 ```bash
-snakemake --cores 'all' --sdm conda -p data/HP35/results/{t,t_js,kl,kl_js}/dendrogram.pdf --cache
+snakemake --cores 'all' --sdm conda -p example/sample_system/results/{t,t_js,kl,kl_js}/dendrogram.p{df,ng} --cache
 ```
+
+creates dendrograms for four different lumpings as `.pdf` and `.png` files.
 
 Explanation of some flags:
 
 - `--cores` Number of cores to utilize. 'all' for all cores.
 - `--software-deployment-method, --sdm` Use conda to deploy software environment.
-- `--snakefile, -s` Use a non-local snakefile. Use e.g. `-s /data/evaluation/MPP/stochastic_MPP_Felix/tools/MPP/workflow/Snakefile`
-- `--dry-run, --dryrun, n` Do not execute anything, just print out the jobs that would be run.
+- `--dry-run, --dryrun, -n` Do not execute anything, just print out the jobs that would be run.
 - `--cache` So rules may be eligible for caching. Enable it with this option.
 - `--force, -f` Force recreation of the given file(s).
-- `--printshellcmds, -p` Print out the shell commands that will be executed.
+- `--printshellcmds, -p` Print out the shell commands that are executed.
 
 More information can be found here: [Snakemake Documentation](https://snakemake.readthedocs.io/en/stable/executing/cli.html)
 
 Note that bash parameter expansion (the use of `{` and `}`) is possible to create e.g. several diagrams at once for multiple systems and/or setups.
-
-## Data Directory Structure
-
-```bash
-data/
-├── System1
-│   ├── input
-│   │   ├── clusters
-│   │   ├── config.yml
-│   │   ├── contact_distances_trajectory
-│   │   ├── contacts.ndx
-│   │   ├── microstate_trajectory
-│   │   ├── README.md
-│   │   ├── topology.pdb
-│   │   ├── trajectory.xtc
-│   │   └── view
-│   └── results
-│       ├── t
-│       │   ├── output_file1
-│       │   ├── output_file2
-│       │   └── ...
-│       ├── kl
-│
-├── System2
-```
