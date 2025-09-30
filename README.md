@@ -66,6 +66,43 @@ height: 500 # height of the image in px
 ```
 
 ### Python Module
+Running the package requires a configuration file as described above as a first parameter. The following two positional arguments define the similarity between two states. First comes the dynamic similarity (`T`, `KL`, `none`), second the geometric similarity (`JS`, `none`). For reference, G-PCCA can be performed by issuing `gpcca` first and then the number of macrostates to create. Pass `ref` in order to take the number of macrostates from the `T none` lumping (the similarity between states corresponds to the transition probability between them).
+
+Provide the target file (where to store the plot) with the option `-o`. The lumping tree (the result of the first, potentially intense step) is defined by a Z matrix, which can be stored and loaded by the `-Z` option. If the provided path exists, this file is loaded as Z matrix.
+
+```bash
+~$ python -m MPP.run --help
+usage: Perform MPP on MD simulation data [-h] [-o OUT] [-Z Z] [--rmsd RMSD]
+                                         [--rmsd-feature RMSD_FEATURE] [--xtc-stride XTC_STRIDE] [-r N]
+                                         [-p PLOT]
+                                         [--get-least-moving-residues GET_LEAST_MOVING_RESIDUES]
+                                         data_specification d g
+
+This program allows for the analysis of MD data utilizing the most probable path algorithm. It allows
+for easy plotting of different quality measures.
+
+positional arguments:
+  data_specification    yaml file containing specification of files and parameters of the simulation
+  d                     dij to be used.
+  g                     gij to be used.
+
+options:
+  -h, --help            show this help message and exit
+  -o OUT, --out OUT     Where to store the plot
+  -Z Z                  Perform MPP and write the Z matrix
+  --rmsd RMSD           Generate and write RMSD to file
+  --rmsd-feature RMSD_FEATURE
+                        'CA' for C-alpha RMSD or 'feature' for feature RMSD (default: CA)
+  -r N, --draw-random N
+                        Draw N random frames for each macrostate
+  -p PLOT, --plot PLOT  Generate listed plots. Possible arguments include dendrogram, timescales,
+                        sankey, contacts, macrotraj, ck_test, rmsd, delta_rmsd, state_network,
+                        macro_feature, stochastic_state_similarity, relative_implied_timescales,
+                        transition_matrix, transition_time and macrostate_trajectory. The latter writes
+                        the macrostate trajectory to a txt file.
+  --get-least-moving-residues GET_LEAST_MOVING_RESIDUES
+                        Write least moving residues for each macrostate to a file
+```
 
 ### The Snakemake Workflow
 Snakemake is a workflow organization tool and used here to provide a high level user interface. In general, you only need to tell snakemake which file you would like to have, e.g.

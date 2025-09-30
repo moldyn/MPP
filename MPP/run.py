@@ -262,24 +262,20 @@ def parse_args():
     parser.add_argument(
         "-o",
         "--out",
-        help=("Override output directory set by config file"),
+        help=("Where to store the plot"),
     )
     parser.add_argument(
         "-Z",
-        help="Perform MPP and write the Z matrix.",
+        help="Perform MPP and write the Z matrix",
     )
     parser.add_argument(
         "--rmsd",
-        help="Generate and write RMSD to file.",
+        help="Generate and write RMSD to file",
     )
     parser.add_argument(
         "--rmsd-feature",
-        help="'CA' for C-alpha RMSD or 'feature' for features. (default: CA)",
+        help="'CA' for C-alpha RMSD or 'feature' for feature RMSD (default: CA)",
         default="CA",
-    )
-    parser.add_argument(
-        "--xtc-stride",
-        help="Read every nth frame.",
     )
     parser.add_argument(
         "-r",
@@ -291,11 +287,19 @@ def parse_args():
     parser.add_argument(
         "-p",
         "--plot",
-        help="Generate listed plots. Possible arguments include dendrogram, contacts, sankey, rmsd, macrostate_trajectory, timescales and more. (not yet implemented)",
+        help=(
+            "Generate listed plots. Possible arguments include "
+            "dendrogram, timescales, sankey, contacts, macrotraj, "
+            "ck_test, rmsd, delta_rmsd, state_network, macro_feature, "
+            "stochastic_state_similarity, relative_implied_timescales, "
+            "transition_matrix, transition_time and "
+            "macrostate_trajectory. The latter writes the macrostate "
+            "trajectory to a txt file."
+        ),
     )
     parser.add_argument(
         "--get-least-moving-residues",
-        help="Write least moving residues for each macrostate to a file.",
+        help="Write least moving residues for each macrostate to a file",
     )
     return parser.parse_args()
 
