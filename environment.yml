@@ -1,4 +1,4 @@
-name: mpp2
+name: mpp
 channels:
   - defaults
 dependencies:
