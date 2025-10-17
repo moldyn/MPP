@@ -7,7 +7,7 @@ import itertools
 
 
 # config_dir = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/sm/config/"
-root = "/data/evaluation/MPP/stochastic_MPP_Felix/MPP/data/"
+root = "/data/evaluation/MPP/stochastic_MPP_Felix/data/"
 workflow = "/data/evaluation/MPP/stochastic_MPP_Felix/MPP/workflow/"
 # rmsd_dir = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/sm/results/"
 systems = [
