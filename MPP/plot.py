@@ -29,7 +29,8 @@ from . import utils
 from .sankey_gap import sankey
 from .graph import draw_knetwork
 
-plt.rcParams["font.family"] = "sans-serif"
+plt.rcParams["font.family"] = ["Latin Modern Roman"]
+pplt.use_style(true_black=True)
 
 ### DENDROGRAM ###############################################################
 
@@ -42,7 +43,6 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
 
     # setup matplotlib
     pplt.use_style(figsize=3.2 * scale, figratio="golden", true_black=True)
-    plt.rcParams["font.family"] = "sans-serif"
 
     fig, (ax, ax_mat) = plt.subplots(
         2,
