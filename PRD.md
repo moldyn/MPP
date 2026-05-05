@@ -43,11 +43,15 @@ want quantitative quality metrics for those macrostates.
 - RMSD per macrostate (C-alpha or feature space).
 - Delta-RMSD between macrostates.
 - Davies-Bouldin score for cluster quality.
-- Silhouette Coefficient for cluster quality.
-- Calinski–Harabasz index for cluster quality.
 - Sankey diagram of microstate flows between the macrostates of two different lumpings.
 - Transition matrix visualisation.
 - Transition times.
+
+### Planned Quality Metrics (Not Yet Implemented)
+- Silhouette Coefficient
+- Calinski–Harabasz index
+
+> These metrics are planned but not currently available in the codebase.
 
 ### Plots (`MPP.plot`)
 All plots are generated via the `plot` module and invocable through all three
