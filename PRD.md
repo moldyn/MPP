@@ -43,7 +43,9 @@ want quantitative quality metrics for those macrostates.
 - RMSD per macrostate (C-alpha or feature space).
 - Delta-RMSD between macrostates.
 - Davies-Bouldin score for cluster quality.
-- Sankey diagram of microstate-to-macrostate flows.
+- Silhouette Coefficient for cluster quality.
+- Calinski–Harabasz index for cluster quality.
+- Sankey diagram of microstate flows between the macrostates of two different lumpings.
 - Transition matrix visualisation.
 - Transition times.
 
