@@ -5,7 +5,7 @@
 MPP (Most Probable Path) is a Python package that coarse-grains the number of
 discrete states of a Markov process derived from molecular dynamics (MD)
 simulations. Given a microstate trajectory, it estimates a Markov state model
-(MSM), then iteratively merges the least stable microstate with its most
+(MSM), then iteratively merges the least metastable microstate with its most
 similar neighbour to build a lumping tree. The tree is parsed in reverse order
 to identify macrostates that satisfy a user-defined minimum population and
 minimum metastability criterion.

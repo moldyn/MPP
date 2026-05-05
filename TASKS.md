@@ -1,6 +1,6 @@
 # Task List — MPP
 
-Prioritised, atomic tasks for agentic development. Each task is independently
+Prioritized, atomic tasks for agentic development. Each task is independently
 executable. Complete tasks in phase order unless stated otherwise.
 
 ---
