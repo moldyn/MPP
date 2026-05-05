@@ -43,6 +43,56 @@ Goal: make the test suite runnable and identify every broken area.
 
 ---
 
+## Phase 1.5 — Scientific Baseline Definition
+
+Goal: define what "correct behaviour" means before refactoring.
+
+### TASK-1.7 — Capture reference outputs
+- Run full pipeline on example datasets
+- Store:
+  - Z matrices
+  - macrostate assignments
+- Save under `tests/data/*/baseline/`
+
+### TASK-1.8 — Add regression tests
+- Add tests that compare current outputs against baseline
+- Use tolerances where necessary (floating point)
+
+---
+
+## Phase 1.6 — Code Hygiene & Formatting
+
+Goal: clean the codebase without changing behaviour.
+
+### TASK-1.9 — Remove commented-out code
+- Scan all files in `MPP/`, `workflow/`, and `tests/`
+- Remove:
+  - commented-out functions
+  - commented-out code blocks
+- Keep only meaningful explanatory comments
+
+### TASK-1.10 — Remove dead code
+- Identify unused:
+  - functions
+  - imports
+  - variables
+- Remove them after verifying they are not used anywhere
+
+### TASK-1.11 — Enforce line length and formatting
+- Wrap lines > 100 characters:
+  - code
+  - docstrings
+- Ensure consistent indentation and spacing
+
+### TASK-1.12 — Standardise docstring formatting
+- Convert all docstrings to NumPy style
+- Ensure:
+  - Parameters section exists where needed
+  - No overly long lines
+  - Consistent formatting across modules
+
+---
+
 ## Phase 2 — Naming Refactor
 
 Goal: establish consistent naming conventions and apply them project-wide.
@@ -107,6 +157,23 @@ Goal: make every public symbol self-documenting.
 
 ---
 
+## Phase 3.5 — Documentation Sanitisation
+
+Goal: ensure documentation is accurate and consistent.
+
+### TASK-3.6 — Remove outdated or incorrect docstrings
+- Identify docstrings that contradict actual behaviour
+- Fix or remove them
+
+### TASK-3.7 — Align terminology with PRD
+- Ensure consistent use of:
+  - microstate
+  - macrostate
+  - kernel
+  - lumping
+
+---
+
 ## Phase 4 — Interface Consistency
 
 Goal: CLI, API, and Snakemake must expose the same capabilities with the same
@@ -132,6 +199,26 @@ parameter names.
 - The `plot()` function in `run.py` and the `Lumping.plot` namespace must
   support exactly the same set of kind strings.
 - Add a test that calls `plot()` with an unknown kind and asserts `ValueError`.
+
+---
+
+## Phase 4.5 — New Metrics Implementation
+
+Goal: implement planned quality metrics.
+
+### TASK-4.5.1 — Implement Silhouette Coefficient
+- Use `sklearn.metrics.silhouette_score`
+- Ensure compatibility with macrostate assignments
+
+### TASK-4.5.2 — Implement Calinski–Harabasz index
+- Use `sklearn.metrics.calinski_harabasz_score`
+
+### TASK-4.5.3 — Add tests for both metrics
+- Validate against known small datasets
+
+### TASK-4.5.4 — Expose metrics in CLI/API/Snakemake
+- Add CLI flags
+- Add API accessors
 
 ---
 
