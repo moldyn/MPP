@@ -134,6 +134,9 @@ Guidelines for AI agents (e.g. GitHub Copilot) working on this repository.
     - Wrap lines at the same limit as code.
     - No overly long paragraphs without structure.
 
+22. **Do not introduce automated formatters (black, ruff, etc.) without explicit task.**
+    Formatting must follow TASKS.md and be applied incrementally.
+
 ---
 
 ## Scientific Integrity Rules
