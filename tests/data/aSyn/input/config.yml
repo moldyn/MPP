@@ -1,0 +1,23 @@
+source: tests/data/aSyn/input/
+
+microstate trajectory: microstate_trajectory
+multi feature trajectory: contact_distances_trajectory
+cluster file: clusters_s
+contact index file: contacts_s.ndx
+limits: null
+
+topology file: topology.pdb
+xtc file: trajectory.xtc
+xtc stride: 1000
+
+frame length: 200 # in ns / frame
+lagtime: 1 # in frames
+pop_thr: 0.01
+q_min: 0.5
+
+n timescales: 3
+
+# PyMol rendering
+view: view
+width: 1000
+height: 1000
