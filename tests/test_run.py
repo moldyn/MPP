@@ -75,6 +75,7 @@ class TestRunScript(unittest.TestCase):
         config_file = (
             self.base_data_dir
             / dataset
+            / "input"
             / f"config{'_stochastic' if stochastic else ''}.yml"
         )
         key = self._get_key(d, g)
@@ -176,7 +177,7 @@ class TestRunScript(unittest.TestCase):
     def _run_random_frames_indices(self, dataset, d, g, r=20):
         key = self._get_key(d, g)
         z_file = self.base_data_dir / dataset / "expected_output" / key / "Z.npy"
-        config_file = self.base_data_dir / dataset / "config.yml"
+        config_file = self.base_data_dir / dataset / "input" / "config.yml"
         with self.subTest(dataset=dataset, d=d, g=g, r=r):
             with tempfile.TemporaryDirectory() as tmpdir:
                 output_dir = Path(tmpdir)

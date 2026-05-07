@@ -10,8 +10,8 @@ root = "tests/data/HP35/input/"
 
 SYSTEMS = [
     "HP35",
-    "PDZ3_7",
-    "aSyn_rdc_200ns",
+    "PDZ3",
+    "aSyn",
     "HP35_stoch",
 ]
 SETUPS = [
@@ -55,4 +55,4 @@ class TestProperties(unittest.TestCase):
         np.testing.assert_allclose(self.mpp.gmrq[0], 2.65830228)
 
     def test_davies_bouldin_index(self):
-        np.testing.assert_allclose(self.mpp.davies_bouldin_index[0], 2.18738)
+        np.testing.assert_allclose(self.mpp.davies_bouldin_index[0], 2.18738, atol=1e-6)

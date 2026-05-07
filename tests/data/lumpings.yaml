@@ -1,24 +1,18 @@
-fnc/:
-  feature kernel: fnc
-  kernel similarity: F
-js/:
+js:
   feature kernel: JS
-  kernel similarity: F
-kl/:
-  feature kernel: null
+  kernel similarity: none
+kl:
+  feature kernel: none
   kernel similarity: KL
-kl_fnc/:
-  feature kernel: fnc
-  kernel similarity: KL
-kl_js/:
+kl_js:
   feature kernel: JS
   kernel similarity: KL
-ref/:
-  feature kernel: null
-  kernel similarity: P
-ref_fnc/:
-  feature kernel: fnc
-  kernel similarity: P
-ref_js/:
+t:
+  feature kernel: none
+  kernel similarity: T
+t_js:
   feature kernel: JS
-  kernel similarity: P
+  kernel similarity: T
+gpcca:
+  feature kernel: ref
+  kernel similarity: gpcca
