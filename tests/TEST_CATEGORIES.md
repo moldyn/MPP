@@ -10,25 +10,25 @@ Based on `python -m pytest tests/ --collect-only -q` (39 tests collected).
 
 ## Per-test classification
 
-### `/home/runner/work/MPP/MPP/tests/test_properties.py`
+### `tests/test_properties.py`
 
 | Test case | Category | Rationale |
 |---|---|---|
-| `TestProperties::test_shannon_entropy` | CORE | Deterministic lumping quality metric on core HP35 T workflow. |
-| `TestProperties::test_gmrq` | CORE | Deterministic lumping quality metric in core pipeline. |
-| `TestProperties::test_davies_bouldin_index` | CORE | Deterministic macrostate quality metric tied to core reproducibility. |
+| `test_properties.TestProperties::test_shannon_entropy` | CORE | Deterministic lumping quality metric on core HP35 T workflow. |
+| `test_properties.TestProperties::test_gmrq` | CORE | Deterministic lumping quality metric in core pipeline. |
+| `test_properties.TestProperties::test_davies_bouldin_index` | CORE | Deterministic macrostate quality metric tied to core reproducibility. |
 
-### `/home/runner/work/MPP/MPP/tests/test_utils.py`
+### `tests/test_utils.py`
 
 | Test case | Category | Rationale |
 |---|---|---|
-| `TestProperties::test_Z_to_linkage` | CORE | Validates deterministic Z-matrix to linkage conversion. |
-| `TestProperties::test_linkage_to_Z` | CORE | Validates deterministic macrostate assignment reconstruction from linkage. |
-| `TestProperties::test_calc_full_tmat` | CORE | Validates deterministic transition matrix/population reconstruction. |
-| `TestProperties::test_Z_to_mask` | CORE | Validates deterministic macrostate mask generation from Z. |
-| `TestFullFeature::test_full_feature_from_Z` | CORE | Validates deterministic feature-kernel transformation from Z. |
+| `test_utils.TestProperties::test_Z_to_linkage` | CORE | Validates deterministic Z-matrix to linkage conversion. |
+| `test_utils.TestProperties::test_linkage_to_Z` | CORE | Validates deterministic macrostate assignment reconstruction from linkage. |
+| `test_utils.TestProperties::test_calc_full_tmat` | CORE | Validates deterministic transition matrix/population reconstruction. |
+| `test_utils.TestProperties::test_Z_to_mask` | CORE | Validates deterministic macrostate mask generation from Z. |
+| `test_utils.TestFullFeature::test_full_feature_from_Z` | CORE | Validates deterministic feature-kernel transformation from Z. |
 
-### `/home/runner/work/MPP/MPP/tests/test_run.py`
+### `tests/test_run.py`
 
 | Test case | Category | Rationale |
 |---|---|---|
@@ -38,13 +38,13 @@ Based on `python -m pytest tests/ --collect-only -q` (39 tests collected).
 | `TestRunScript::test_HP35_t_js` | CORE | CLI/API deterministic lumping run (T + JS kernels). |
 | `TestRunScript::test_HP35_js` | CORE | CLI/API deterministic lumping run (JS feature-kernel path). |
 | `TestRunScript::test_HP35_gpcca` | DEFERRED | GPCCA output path is explicitly lower priority. |
-| `TestRunScript::test_PDZ3_kl` | CORE | Deterministic KL run on second dataset; reproducibility-critical. |
-| `TestRunScript::test_aSyn_t` | CORE | Deterministic T run on second dataset; reproducibility-critical. |
+| `TestRunScript::test_PDZ3_kl` | CORE | Deterministic KL run on PDZ3 dataset; reproducibility-critical. |
+| `TestRunScript::test_aSyn_t` | CORE | Deterministic T run on aSyn dataset; reproducibility-critical. |
 | `TestRunScript::test_aSyn_kl_js` | CORE | Deterministic mixed-kernel run in core pipeline. |
 | `TestRunScript::test_aSyn_t_stoch` | DEFERRED | Stochastic lumping workflow. |
 | `TestRunScript::test_random_frames_indices_aSyn_t_ref` | DEFERRED | Random frame generation is explicitly lower priority. |
 
-### `/home/runner/work/MPP/MPP/tests/test_rmsd.py`
+### `tests/test_rmsd.py`
 
 | Test case | Category | Rationale |
 |---|---|---|
@@ -54,7 +54,7 @@ Based on `python -m pytest tests/ --collect-only -q` (39 tests collected).
 | `TestRMSD_PDZ3::test_rmsd_property` | OPTIONAL | RMSD tooling is lower priority but still relevant optional coverage. |
 | `TestRMSD_PDZ3::test_rmsd_sharpness` | OPTIONAL | RMSD metric behavior is lower-priority optional scope. |
 
-### `/home/runner/work/MPP/MPP/tests/test_plots.py`
+### `tests/test_plots.py`
 
 | Test case | Category | Rationale |
 |---|---|---|
@@ -87,27 +87,27 @@ Based on `python -m pytest tests/ --collect-only -q` (39 tests collected).
 ### Stale dataset aliases
 
 - `PDZ3_7` referenced in:
-  - `/home/runner/work/MPP/MPP/tests/test_properties.py`
-  - `/home/runner/work/MPP/MPP/tests/test_utils.py`
-  - `/home/runner/work/MPP/MPP/tests/test_rmsd.py`
+  - `tests/test_properties.py`
+  - `tests/test_utils.py`
+  - `tests/test_rmsd.py`
 - `aSyn_rdc_200ns` referenced in:
-  - `/home/runner/work/MPP/MPP/tests/test_properties.py`
-  - `/home/runner/work/MPP/MPP/tests/test_utils.py`
-  - `/home/runner/work/MPP/MPP/tests/test_rmsd.py`
+  - `tests/test_properties.py`
+  - `tests/test_utils.py`
+  - `tests/test_rmsd.py`
 - `HP35_stoch` appears in `SYSTEMS` lists in:
-  - `/home/runner/work/MPP/MPP/tests/test_properties.py`
-  - `/home/runner/work/MPP/MPP/tests/test_utils.py`
-  - `/home/runner/work/MPP/MPP/tests/test_rmsd.py`
+  - `tests/test_properties.py`
+  - `tests/test_utils.py`
+  - `tests/test_rmsd.py`
 
 ### Obsolete/missing dataset paths currently referenced by tests
 
 - `tests/data/PDZ3_7/input/config.yml`
 - `tests/data/aSyn_rdc_200ns/input/config.yml`
 - `tests/data/HP35_stoch/input/config.yml`
-- `tests/data/<dataset>/config.yml` root-level config references in `test_run.py` (manifest indicates only `input/config.yml` exists for HP35/PDZ3/aSyn).
+- `tests/data/<dataset>/config.yml` root-level config references in `test_run.py` (`tests/data/MANIFEST.txt` indicates only `input/config.yml` exists for HP35/PDZ3/aSyn).
 
 ### Deprecated name/path indicators already captured in manifest
 
-- `/home/runner/work/MPP/MPP/tests/data/MANIFEST.txt` documents these stale aliases and missing paths under:
+- `tests/data/MANIFEST.txt` documents these stale aliases and missing paths under:
   - "Additional dataset names referenced by tests"
   - "REQUIRED (missing)" entries per dataset.
