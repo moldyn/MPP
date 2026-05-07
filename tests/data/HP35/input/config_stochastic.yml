@@ -1,4 +1,4 @@
-source: data/input/HP35/
+source: tests/data/HP35/input/
 
 microstate trajectory: microstate_trajectory
 multi feature trajectory: contact_distances_trajectory
