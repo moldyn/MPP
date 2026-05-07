@@ -19,7 +19,7 @@ Dataset: HP35
     - expected_output/js/Z.npy
   REQUIRED (missing)
     - config.yml (tests/test_run.py, tests/test_plots.py reference tests/data/HP35/config.yml)
-    - expected_output/ref/Z.npy (gpcca case in tests/test_run.py)
+    - expected_output/ref/Z.npy (GPCCA case in tests/test_run.py)
   OPTIONAL/STOCHASTIC
     - input/config_stochastic.yml (present)
     - input/contacts.ndx (present)
@@ -61,7 +61,7 @@ Dataset: aSyn
     - expected_output/kl_js/Z.npy
   REQUIRED (missing)
     - config.yml (tests/test_run.py, tests/test_plots.py reference tests/data/aSyn/config.yml)
-    - expected_output/t_stochastic/Z_stochastic.npy (stochastic T case in tests/test_run.py)
+    - expected_output/t_stochastic/Z_stochastic.npy (stochastic run with kernel similarity='T' in tests/test_run.py)
     - expected_output/t/random_frames/ (missing directory; tests/test_run.py validates generated *.ndx files in this folder)
   OPTIONAL/STOCHASTIC
     - input/config_stochastic.yml (present)
