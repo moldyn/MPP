@@ -22,6 +22,13 @@ Goal: make the test suite runnable and identify every broken area.
 - Create a plain-text manifest (`tests/data/MANIFEST.txt`) listing every
   required file per dataset.
 
+### TASK-1.2.5 — Classify tests before fixing failures
+- Classify the full test suite into three groups:
+  - CORE
+  - OPTIONAL
+  - DEFERRED
+- Record the classification before starting any failure-fixing tasks.
+
 ### TASK-1.3 — Fix broken test collection
 - Run `python -m pytest tests/ --collect-only` and resolve any import errors
   or missing fixtures so that all test cases are collected without error.
