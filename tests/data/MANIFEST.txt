@@ -30,7 +30,7 @@ Dataset: HP35
     - expected_output/t_stochastic/macro_feature.pdf (present)
     - expected_output/t_stochastic/stochastic_state_similarity.pdf (present)
     - expected_output/t_stochastic/relative_implied_timescales.pdf (present)
-    - expected_output/t/pdbs/ (missing directory; tests/test_rmsd.py validates all *.pdb files in this folder)
+    - expected_output/t/pdbs/ (missing directory; tests/test_rmsd.py validate all *.pdb files in this folder)
     - expected_output/kl/sankey.pdf (missing; referenced by tests/test_plots.py)
 
 Dataset: PDZ3
@@ -62,7 +62,7 @@ Dataset: aSyn
   REQUIRED (missing)
     - config.yml (tests/test_run.py, tests/test_plots.py reference tests/data/aSyn/config.yml)
     - expected_output/t_stochastic/Z_stochastic.npy (stochastic run with kernel similarity='T' in tests/test_run.py)
-    - expected_output/t/random_frames/ (missing directory; tests/test_run.py validates generated *.ndx files in this folder)
+    - expected_output/t/random_frames/ (missing directory; tests/test_run.py validate generated *.ndx files in this folder)
   OPTIONAL/STOCHASTIC
     - input/config_stochastic.yml (present)
     - input/contacts_s.ndx (present)
