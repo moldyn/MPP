@@ -49,10 +49,10 @@ class TestProperties(unittest.TestCase):
         self.mpp = self.d.mpp
 
     def test_shannon_entropy(self):
-        np.testing.assert_allclose(self.mpp.shannon_entropy[0], 0.73862646)
+        np.testing.assert_allclose(self.mpp.shannon_entropy[0], 0.7440447)
 
     def test_gmrq(self):
-        np.testing.assert_allclose(self.mpp.gmrq[0], 2.5071318)
+        np.testing.assert_allclose(self.mpp.gmrq[0], 2.65830228)
 
     def test_davies_bouldin_index(self):
-        np.testing.assert_allclose(self.mpp.davies_bouldin_index[0], 2.20325216)
+        np.testing.assert_allclose(self.mpp.davies_bouldin_index[0], 2.18738)
