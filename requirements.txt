@@ -10,3 +10,4 @@ fa2_modified == 0.3.10
 msmhelper == 1.1.1
 bezier == 2024.6.20
 pyyaml == 6.0.2
+pytest == 8.3.5

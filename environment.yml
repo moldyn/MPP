@@ -13,6 +13,7 @@ dependencies:
   - conda-forge::pygpcca == 1.0.4
   - conda-forge::anytree == 2.12.1
   - conda-forge::fa2_modified == 0.3.10
+  - pytest == 8.3.5
   - pip
   - pip:
       - msmhelper == 1.1.1
