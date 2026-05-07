@@ -1,0 +1,24 @@
+fnc/:
+  feature kernel: fnc
+  kernel similarity: F
+js/:
+  feature kernel: JS
+  kernel similarity: F
+kl/:
+  feature kernel: null
+  kernel similarity: KL
+kl_fnc/:
+  feature kernel: fnc
+  kernel similarity: KL
+kl_js/:
+  feature kernel: JS
+  kernel similarity: KL
+ref/:
+  feature kernel: null
+  kernel similarity: P
+ref_fnc/:
+  feature kernel: fnc
+  kernel similarity: P
+ref_js/:
+  feature kernel: JS
+  kernel similarity: P
