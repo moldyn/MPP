@@ -85,7 +85,7 @@ class TestPlotting(unittest.TestCase):
         config = (
             self.data_root
             / dataset
-            / f"config{'_stochastic' if stochastic else ''}.yaml"
+            / f"config{'_stochastic' if stochastic else ''}.yml"
         )
         key = self._get_key(d, g)
         expected_file = (

@@ -1,0 +1,15 @@
+source: tests/data/PDZ3/input/
+
+microstate trajectory: microstate_trajectory
+multi feature trajectory: contact_distances_trajectory
+cluster file: clusters
+limits: limits
+
+topology file: structure.pdb
+xtc file: trajectory.xtc
+helices: helices
+
+frame length: 10 # in ns / frame
+lagtime: 1
+pop_thr: 0.05
+q_min: 0.8

@@ -5,8 +5,8 @@ import numpy as np
 import MPP.run as run_module
 
 
-config_dir = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/sm/config/"
-root = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/sm/results/"
+config_dir = "tests/data/"
+root = "tests/data/HP35/input/"
 
 SYSTEMS = [
     "HP35",
@@ -28,7 +28,7 @@ with open(f"{config_dir}lumpings.yaml") as f:
 
 def get_d(system, setup, rmsd=False):
     d = run_module.Data(
-        f"/data/evaluation/MPP/stochastic_MPP_Felix/data_production/sm/config/{system}.yaml"
+        f"tests/data/{system}/input/config.yml"
     )
     d.setup_mpp(
         lumpings[setup]["kernel similarity"],
@@ -49,10 +49,10 @@ class TestProperties(unittest.TestCase):
         self.mpp = self.d.mpp
 
     def test_shannon_entropy(self):
-        np.testing.assert_allclose(self.mpp.shannon_entropy[0], 0.73862646)
+        np.testing.assert_allclose(self.mpp.shannon_entropy[0], 0.7440447)
 
     def test_gmrq(self):
-        np.testing.assert_allclose(self.mpp.gmrq[0], 2.5071318)
+        np.testing.assert_allclose(self.mpp.gmrq[0], 2.65830228)
 
     def test_davies_bouldin_index(self):
-        np.testing.assert_allclose(self.mpp.davies_bouldin_index[0], 2.20325216)
+        np.testing.assert_allclose(self.mpp.davies_bouldin_index[0], 2.18738)
