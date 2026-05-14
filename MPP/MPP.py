@@ -272,9 +272,9 @@ class Lumping(object):
         self.mean_feature_trajectory = self.multi_feature_trajectory_bool.mean(axis=1)
         self.mean_feature = np.zeros(self.n_states)
         for i in range(self.n_states):
-            self.mean_feature[i] = self.mean_feature_trajectory[
-                self.trajectory == i
-            ].mean()
+            state_mask = self.trajectory == i
+            if np.any(state_mask):
+                self.mean_feature[i] = self.mean_feature_trajectory[state_mask].mean()
 
     def run_mpp(
         self,

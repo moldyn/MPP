@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 import yaml
 import hashlib
+from matplotlib import pyplot as plt
 import MPP.run as run_module
 
 
@@ -30,6 +31,7 @@ def _run_main_with_args(args_list):
     saved_argv = sys.argv
     sys.argv = ["run.py"] + args_list
     stdout, stderr = StringIO(), StringIO()
+    plt.close("all")
     try:
         with redirect_stdout(stdout), redirect_stderr(stderr):
             run_module.main()
@@ -37,6 +39,7 @@ def _run_main_with_args(args_list):
     except SystemExit as e:
         return e.code, stdout.getvalue(), stderr.getvalue()
     finally:
+        plt.close("all")
         sys.argv = saved_argv
 
 
@@ -51,7 +54,7 @@ class TestPlotting(unittest.TestCase):
         with open(MAPPING_FILE, "r") as f:
             self.param_map = yaml.safe_load(f)
 
-    def _run_plot(self, config, d, g, kind, output_file, stochastic=False):
+    def _run_plot(self, dataset, config, d, g, kind, output_file, stochastic=False):
         key = self._get_key(d, g)
         args = [
             str(config),
@@ -65,7 +68,7 @@ class TestPlotting(unittest.TestCase):
             str(
                 Path(__file__).parent
                 / "data"
-                / config.parent.name
+                / dataset
                 / "expected_output"
                 / key
                 / f"Z{'_stochastic' if stochastic else ''}.npy"
@@ -85,6 +88,7 @@ class TestPlotting(unittest.TestCase):
         config = (
             self.data_root
             / dataset
+            / "input"
             / f"config{'_stochastic' if stochastic else ''}.yml"
         )
         key = self._get_key(d, g)
@@ -103,11 +107,12 @@ class TestPlotting(unittest.TestCase):
                     / expected_file.name
                 )
                 plot_path.unlink(missing_ok=True)
+                plot_path.parent.mkdir(parents=True, exist_ok=True)
             else:
                 plot_path = tmpdir / expected_file.name
 
             exit_code, stdout, stderr = self._run_plot(
-                config, d, g, kind, plot_path, stochastic=stochastic
+                dataset, config, d, g, kind, plot_path, stochastic=stochastic
             )
             self.assertEqual(exit_code, 0, f"Plot command failed: {stderr}")
             if manual_inspection:
@@ -156,7 +161,7 @@ class TestPlotting(unittest.TestCase):
 
     def test_manual_macrotraj_PDZ3(self):
         dataset = "PDZ3"
-        d, g = "T", "none"
+        d, g = "KL", "none"
         kind = "macrotraj"
         self.run_single_plot_test(dataset, kind, d, g, manual_inspection=True)
 

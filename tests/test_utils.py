@@ -13,8 +13,8 @@ root = "tests/data/HP35/input/"
 
 SYSTEMS = [
     "HP35",
-    "PDZ3_7",
-    "aSyn_rdc_200ns",
+    "PDZ3",
+    "aSyn",
     "HP35_stoch",
 ]
 SETUPS = [
