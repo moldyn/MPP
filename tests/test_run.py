@@ -15,8 +15,6 @@ import MPP.run as run_module
 # - MultiFeatureKernel.full_feature_from_Z
 
 
-# DATASETS = ["HP35", "PDZ3", "aSyn"]
-# DATASETS = ["HP35", "PDZ3"]
 DATASETS = ["HP35"]
 MAPPING_FILE = Path(__file__).parent / "data" / "lumpings.yaml"
 
@@ -37,11 +35,6 @@ def _run_main_with_args(args_list):
 
 
 class TestRunScript(unittest.TestCase):
-    # @classmethod
-    # def setUpClass(cls):
-    #     with open(MAPPING_FILE, "r") as f:
-    #         cls.param_map = yaml.safe_load(f)
-
     def setUp(self):
         self.base_data_dir = Path(__file__).parent / "data"
         with open(MAPPING_FILE, "r") as f:

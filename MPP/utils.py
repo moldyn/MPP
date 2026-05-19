@@ -233,7 +233,6 @@ def shannon_entropy(p):
 def weighting_function(dq):
     if dq.shape[0] == 1:
         return np.exp(-dq)
-    # sigma = np.sqrt(np.var(dq))
     sigma2 = np.var(dq)
     return np.exp(-(dq**2) / (2 * sigma2))
 
@@ -314,7 +313,6 @@ def find_mean_frame_feature(trajectory, estimator=np.argmin):
 
 
 def estimate_rmsd_feature(frame, trajectory):
-    # return np.sqrt(((trajectory - frame) ** 2).mean())
     return np.sqrt(((trajectory - frame) ** 2).sum() / (len(trajectory) - 1))
 
 
@@ -391,10 +389,7 @@ def calc_var(
     ndarray of float, shape (M,)
     """
     aligned_trajectory = align_trajectory_to_reference(trajectory, ref)
-    # d = ((aligned_trajectory - ref) ** 2).sum(axis=2)
-    # Calculate the distance
     d_square = ((aligned_trajectory - ref) ** 2).sum(axis=2)
-    # return d.mean(axis=0)
     return np.sqrt(d_square.mean(axis=0))
 
 
@@ -406,77 +401,6 @@ def calc_var_feature(
 
 def opt_num_batches(n):
     return int(np.cbrt(n**2 / 2))
-
-
-# def calc_rmsd(lumping, quiet=False):
-#     t = load_trajectory(
-#         lumping.topology_file,
-#         lumping.xtc_trajectory_file,
-#         atom_selection="name CA",
-#         stride=lumping.xtc_stride,
-#     )
-#     mean_frames = []
-#     mean_frames_idx = []
-#     rmsd = np.empty([lumping.n_macrostates[lumping.n_i], t.n_atoms])
-#     for j in range(lumping.n_macrostates[lumping.n_i]):
-#         if not quiet:
-#             print(f"Process macrostate {j}")
-#         traj_mask = lumping.macrostate_trajectory[lumping.n_i] == j
-#         tm = t[traj_mask]
-#         m_frames = []
-#         m_frames_idx = []
-#
-#         # Batched run for speed
-#         n_batches = opt_num_batches(lumping.macrostate_population[lumping.n_i][j])
-#         for i in tqdm(range(n_batches)) if not quiet else range(n_batches):
-#             mean_frame, index_mean_frame = find_mean_frame(tm[i::n_batches])
-#             m_frames.append(mean_frame)
-#             m_frames_idx.append(index_mean_frame)
-#
-#         # Calculate best frame from all batches
-#         mean_frame, index_mean_frame_batch = find_mean_frame(md.join(m_frames))
-#         mean_frames.append(mean_frame)
-#
-#         # Transform index_mean_frame_batch to index in entire trajectory (t)
-#         index_mean_frame_macrostate = (
-#             m_frames_idx[index_mean_frame_batch] * n_batches + index_mean_frame_batch
-#         )
-#         index_mean_frame = np.where(traj_mask)[0][index_mean_frame_macrostate]
-#         mean_frames_idx.append(index_mean_frame)
-#         rmsd[j] = calc_var(mean_frames[j].xyz, tm.xyz)
-#     return rmsd, np.array(mean_frames_idx)
-#
-#
-# def calc_rmsd_feature(lumping):
-#     t = lumping.multi_feature_trajectory
-#     mean_frames = []
-#     mean_frames_idx = []
-#     rmsd = np.empty([lumping.n_macrostates[lumping.n_i], t.shape[1]])
-#     for j in range(lumping.n_macrostates[lumping.n_i]):
-#         traj_mask = lumping.macrostate_trajectory[lumping.n_i] == j
-#         tm = t[traj_mask]
-#         m_frames = []
-#         m_frames_idx = []
-#
-#         # Batched run for speed
-#         n_batches = opt_num_batches(lumping.macrostate_population[lumping.n_i][j])
-#         for i in range(n_batches):
-#             mean_frame, index_mean_frame = find_mean_frame_feature(tm[i::n_batches])
-#             m_frames.append(mean_frame)
-#             m_frames_idx.append(index_mean_frame)
-#
-#         # Calculate best frame from all batches
-#         mean_frame, index_mean_frame_batch = find_mean_frame_feature(np.array(m_frames))
-#         mean_frames.append(mean_frame)
-#
-#         # Transform index_mean_frame_batch to index in entire trajectory (t)
-#         index_mean_frame_macrostate = (
-#             m_frames_idx[index_mean_frame_batch] * n_batches + index_mean_frame_batch
-#         )
-#         index_mean_frame = np.where(traj_mask)[0][index_mean_frame_macrostate]
-#         mean_frames_idx.append(index_mean_frame)
-#         rmsd[j] = calc_var_feature(mean_frames[j], tm)
-#     return rmsd, np.array(mean_frames_idx)
 
 
 def _calc_rmsd_generic(

@@ -128,13 +128,6 @@ def create_images(output, cfg, structure, clusters, ndx):
     cmd.hide("all")
     set_view(cfg)
     for i, obj in enumerate(objects):
-        # cmd.reinitialize()
-        # setup_pymol()
-        # setup_structures(cfg, structure)
-        # cmd.color("0xdddfe5", "all")
-        # cmd.hide("all")
-        # set_view(cfg)
-
         cmd.show("cartoon", f"{obj} and polymer")
         for (cluster_idx, cluster), color in zip(clusters, colors):
             setup_cluster(obj, cluster, color, ndx)
@@ -192,12 +185,6 @@ def main():
 
     # Set of selected clusters
     cluster_selection = parse_cluster_selecton(args.clusters)
-
-    # write_distances_script(
-    #     os.path.join(args.output, "draw_distances.pml"),
-    #     [(i, clusters[i - 1]) for i in cluster_selection],
-    #     ndx,
-    # )
 
     create_images(
         args.output,

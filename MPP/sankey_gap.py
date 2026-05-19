@@ -143,9 +143,6 @@ def sankey(
     if len(rightWeight) == 0:
         rightWeight = leftWeight
 
-    # plt.rc("text", usetex=False)
-    # plt.rc("font", family="serif")
-
     # Create Dataframe
     if isinstance(left, pd.Series):
         left = left.reset_index(drop=True)
@@ -322,7 +319,6 @@ def _get_positions_and_total_widths(df, labels, side):
     """Determine positions of label patches and total widths"""
     # add gap
     gap = 50000
-    # print(f'gap : {gap}')
     widths = defaultdict()
     for i, label in enumerate(labels):
         labelWidths = {}

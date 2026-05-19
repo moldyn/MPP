@@ -6,31 +6,18 @@ import yaml
 import itertools
 
 
-# config_dir = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/sm/config/"
 root = "/data/evaluation/MPP/stochastic_MPP_Felix/data/"
 workflow = "/data/evaluation/MPP/stochastic_MPP_Felix/MPP/workflow/"
-# rmsd_dir = "/data/evaluation/MPP/stochastic_MPP_Felix/data_production/sm/results/"
 systems = [
     "HP35",
-    # "PDZ3_7",
     "PDZ3",
-    # "aSyn_kmeans",
-    # "aSyn_kmeans_200ns",
-    # "aSyn_kmeans_400ns",
-    # "aSyn_kmeans_800ns",
-    # "aSyn_rdc",
     "aSyn",
-    # "aSyn_rdc_400ns",
-    # "aSyn_rdc_800ns",
-    # "HP35_stoch",
 ]
 setups = [
     "t",
     "kl",
     "t_js",
     "kl_js",
-    # "gpcca",
-    # "js",
 ]
 
 
@@ -39,13 +26,8 @@ interesting_lumpings = {
         "name": "HP35",
         "setups": ["t", "kl", "t_js", "kl_js", "gpcca"],
     },
-    # "PDZ3": {
-    #     "name": "PDZ3_7",
-    #     "setups": ["t", "gpcca", "kl"],
-    # },
     "aSyn": {
         "name": "aSyn_rdc_200ns",
-        # "setups": ["t", "gpcca", "kl"],
         "setups": ["t", "kl", "t_js", "kl_js", "gpcca"],
     },
 }
@@ -59,13 +41,11 @@ il2 = {
 
 
 with open(f"{workflow}lumpings.yml") as f:
-    # with open(f"{config_dir}lumpings.yaml") as f:
     lumpings = yaml.safe_load(f)
 
 
 def get_d(system, setup):
     d = r.Data(f"{root}{system}/input/config.yml")
-    # d = r.Data(f"{config_dir}{system}.yaml")
     d.setup_mpp(
         lumpings[setup]["kernel similarity"],
         lumpings[setup]["feature kernel"],
@@ -73,11 +53,10 @@ def get_d(system, setup):
     if setup == "gpcca":
         d.perform_gpcca(
             "ref",
-            f"{root}{system}/results/{setup}/Z.npy",  # , overwrite=True
+            f"{root}{system}/results/{setup}/Z.npy",
         )
     else:
-        d.perform_mpp(f"{root}{system}/results/{setup}/Z.npy")  # , overwrite=True)
-    # d.mpp.load_rmsd(f"{root}{system}/{setup}/rmsd.npy")
+        d.perform_mpp(f"{root}{system}/results/{setup}/Z.npy")
     return d
 
 
@@ -176,7 +155,6 @@ def rmsd(d):
 def rmsd_sum(d):
     """Intra"""
     return [(rmsd(d)).sum() / d.mpp.n_macrostates[0]]
-    # return [(population(d) * rmsd(d)).sum()]
 
 
 def rmsd_inv(d):
@@ -250,56 +228,19 @@ def mean_square_distance(A: np.ndarray, B: np.ndarray) -> float:
 
 def msd(state_traj, feature_traj):
     states, counts = np.unique(state_traj, return_counts=True)
-    # counts = counts / counts.sum()
     n_states = len(states)
     masks = [np.where(state_traj == i)[0] for i in states]
-    # features = [feature_traj[masks[i]] for i in states]
     msd_abs = []
-    # for a, b in itertools.combinations(features, 2):
     for i, j in itertools.combinations(states, 2):
         a = feature_traj[masks[i]]
         b = feature_traj[masks[j]]
         msd_abs.append(mean_square_distance(a, b))
-        # msd_abs.append(mean_square_distance(a, b) * counts[i] * counts[j])
     return 2 / (n_states * (n_states - 1)) * sum(msd_abs)
 
 
 def inter(d):
     """Compare all frames for state distance."""
     return [msd(d.mpp.macrostate_trajectory[0], d.mpp.multi_feature_trajectory)]
-
-
-# Non-weighted
-# def inter_median_(d):
-#     """Compare mean states for inter state distance."""
-#     frame_idxs = d.mpp._mean_frames_idx
-#     features = [d.mpp.multi_feature_trajectory[i] for i in frame_idxs]
-#     msd_abs = []
-#     for a, b in itertools.combinations(features, 2):
-#         msd_abs.append(mean_square_distance(np.atleast_2d(a), np.atleast_2d(b)))
-#     return [2 / (d.mpp.n_macrostates[0] * (d.mpp.n_macrostates[0] - 1)) * sum(msd_abs)]
-
-
-# def inter_median(d):
-#     """Compare mean states for inter state distance, weighted."""
-#     state_traj = d.mpp.macrostate_trajectory[0]
-#     states, counts = np.unique(state_traj, return_counts=True)
-#     counts = counts / counts.sum()
-#
-#     frame_idxs = d.mpp._mean_frames_idx
-#     features = [d.mpp.multi_feature_trajectory[i] for i in frame_idxs]
-#
-#     n_states = len(states)
-#     msd_abs = []
-#     for i, j in itertools.combinations(states, 2):
-#         a = features[i]
-#         b = features[j]
-#         msd_abs.append(
-#             mean_square_distance(np.atleast_2d(a), np.atleast_2d(b))
-#             * counts[i]
-#             * counts[j]
-#         )
-#     return [2 / (n_states * (n_states - 1)) * sum(msd_abs)]
 
 
 def Q(d):
@@ -310,13 +251,6 @@ def Q_H(d):
     return [inter(d)[0] / rmsd_sum(d)[0] * shannon_entropy(d)[0]]
 
 
-# def Q_median(d):
-#     return [rmsd_sum(d)[0] / inter_median(d)[0]]
-
-
-# interesting_lumpings = il2
-
-# rmsd_feature = "CA"
 rmsd_feature = "feature"
 d_lum = {}
 for system in interesting_lumpings:
@@ -329,21 +263,7 @@ for system in interesting_lumpings:
 
 dhp = d_lum["HP35"]["t"]
 
-# d_inter = create_dict(d_lum, inter)
-# d_intra_inv = create_dict(d_lum, rmsd_inv)
-# d_Q = create_dict(d_lum, Q)
-# d_H = create_dict(d_lum, shannon_entropy)
-# d_Q_H = create_dict(d_lum, Q_H)
-
 d_gmrq = create_dict(d_lum, gmrq)
 d_gmrq2 = create_dict(d_lum, gmrq2)
 
 d_its = create_dict(d_lum, implied_timescales)
-
-# d_inter = create_dict(d_lum, inter)
-# d_Q = create_dict(d_lum, Q)
-# d_inter_median = create_dict(d_lum, inter_median)
-# d_Q_median = create_dict(d_lum, Q_median)
-
-# d_rmsd = create_dict(d_lum, rmsd)
-# d_rmsd_sum = create_dict(d_lum, rmsd_sum)
