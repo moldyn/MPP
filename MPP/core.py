@@ -99,7 +99,7 @@ class BinaryTreeNode(NodeMixin):
         if self.is_leaf:
             self._population = value
         else:
-            return ValueError("population can only be set for microstates (leaves)")
+            raise ValueError("population can only be set for microstates (leaves)")
 
     @property
     def q(self):
