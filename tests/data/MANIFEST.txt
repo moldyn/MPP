@@ -77,3 +77,22 @@ Additional dataset names referenced by tests
 Shared mapping file
   REQUIRED (present)
     - lumpings.yaml
+
+TASK-1.7 deterministic baseline files
+  HP35
+    - baseline/t/Z.npy
+    - baseline/t/macrostate_assignment.npy
+    - baseline/kl/Z.npy
+    - baseline/kl/macrostate_assignment.npy
+    - baseline/t_js/Z.npy
+    - baseline/t_js/macrostate_assignment.npy
+    - baseline/js/Z.npy
+    - baseline/js/macrostate_assignment.npy
+  PDZ3
+    - baseline/kl/Z.npy
+    - baseline/kl/macrostate_assignment.npy
+  aSyn
+    - baseline/t/Z.npy
+    - baseline/t/macrostate_assignment.npy
+    - baseline/kl_js/Z.npy
+    - baseline/kl_js/macrostate_assignment.npy

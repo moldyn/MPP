@@ -1,0 +1,36 @@
+Deterministic scientific baselines for TASK-1.7
+
+Scope
+  The baseline directories capture deterministic reference outputs for the
+  example dataset/lumping combinations that currently have deterministic
+  expected Z matrices in tests/data/*/expected_output/.
+
+Stored files
+  - Z.npy: deterministic Z matrix for the dataset/lumping combination.
+  - macrostate_assignment.npy: boolean array with shape
+    (n_macrostates, n_microstates). Each column contains exactly one True
+    value assigning that microstate to a macrostate.
+
+Excluded from this deterministic baseline
+  - HP35/t_stochastic: stochastic runs are intentionally excluded.
+  - HP35/gpcca: tests/data/HP35/expected_output/ref/Z.npy is not present in
+    this repository state, so no GPCCA baseline is captured here.
+
+Baseline files
+  HP35
+    - baseline/t/Z.npy
+    - baseline/t/macrostate_assignment.npy
+    - baseline/kl/Z.npy
+    - baseline/kl/macrostate_assignment.npy
+    - baseline/t_js/Z.npy
+    - baseline/t_js/macrostate_assignment.npy
+    - baseline/js/Z.npy
+    - baseline/js/macrostate_assignment.npy
+  PDZ3
+    - baseline/kl/Z.npy
+    - baseline/kl/macrostate_assignment.npy
+  aSyn
+    - baseline/t/Z.npy
+    - baseline/t/macrostate_assignment.npy
+    - baseline/kl_js/Z.npy
+    - baseline/kl_js/macrostate_assignment.npy
