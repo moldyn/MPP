@@ -76,18 +76,24 @@ Provide the target file (where to store the plot) with the option `-o`. The lump
 ```bash
 ~$ python -m MPP.run --help
 usage: Perform MPP on MD simulation data [-h] [-o OUT] [-Z Z] [--rmsd RMSD]
-                                         [--rmsd-feature RMSD_FEATURE] [--xtc-stride XTC_STRIDE] [-r N]
+                                         [--rmsd-feature RMSD_FEATURE] [-r N]
                                          [-p PLOT]
                                          [--get-least-moving-residues GET_LEAST_MOVING_RESIDUES]
                                          data_specification d g
 
-This program allows for the analysis of MD data utilizing the most probable path algorithm. It allows
-for easy plotting of different quality measures.
+This program allows for the analysis of MD data utilizing the most probable
+path algorithm. It allows for easy plotting of different quality measures.
 
 positional arguments:
-  data_specification    yaml file containing specification of files and parameters of the simulation
-  d                     dij to be used.
-  g                     gij to be used.
+  data_specification    yaml file containing specification of files and
+                        parameters of the simulation
+  d                     Dynamic similarity selector (kernel_similarity). One
+                        of: 'T' (transition probability), 'KL' (Kullback-
+                        Leibler divergence), 'none' (feature-only), or
+                        'gpcca'.
+  g                     Geometric/feature similarity selector
+                        (feature_similarity). One of: 'JS' (Jensen-Shannon
+                        divergence) or 'none'.
 
 options:
   -h, --help            show this help message and exit
@@ -95,16 +101,20 @@ options:
   -Z Z                  Perform MPP and write the Z matrix
   --rmsd RMSD           Generate and write RMSD to file
   --rmsd-feature RMSD_FEATURE
-                        'CA' for C-alpha RMSD or 'feature' for feature RMSD (default: CA)
+                        'CA' for C-alpha RMSD or 'feature' for feature RMSD
+                        (default: CA)
   -r N, --draw-random N
                         Draw N random frames for each macrostate
-  -p PLOT, --plot PLOT  Generate listed plots. Possible arguments include dendrogram, timescales,
-                        sankey, contacts, macrotraj, ck_test, rmsd, delta_rmsd, state_network,
-                        macro_feature, stochastic_state_similarity, relative_implied_timescales,
-                        transition_matrix, transition_time and macrostate_trajectory. The latter writes
-                        the macrostate trajectory to a txt file.
+  -p PLOT, --plot PLOT  Generate listed plots. Possible arguments include
+                        dendrogram, timescales, sankey, contacts, macrotraj,
+                        ck_test, rmsd, delta_rmsd, state_network,
+                        macro_feature, stochastic_state_similarity,
+                        relative_implied_timescales, transition_matrix,
+                        transition_time and macrostate_trajectory. The latter
+                        writes the macrostate trajectory to a txt file.
   --get-least-moving-residues GET_LEAST_MOVING_RESIDUES
-                        Write least moving residues for each macrostate to a file
+                        Write least moving residues for each macrostate to a
+                        file
 ```
 
 Your can try the example in the GitHub repository by downloading the `example` directory, navigate into it and try a command like
