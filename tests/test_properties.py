@@ -31,8 +31,8 @@ def get_d(system, setup, rmsd=False):
         f"tests/data/{system}/input/config.yml"
     )
     d.setup_mpp(
-        lumpings[setup]["kernel similarity"],
-        lumpings[setup]["feature kernel"],
+        lumpings[setup]["kernel_similarity"],
+        lumpings[setup]["feature_kernel"],
     )
     if setup == "gpcca":
         d.perform_gpcca("ref", f"{root}{system}/{setup}/Z.npy")

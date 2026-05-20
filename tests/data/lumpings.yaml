@@ -1,18 +1,18 @@
 js:
-  feature kernel: JS
-  kernel similarity: none
+  feature_kernel: JS
+  kernel_similarity: none
 kl:
-  feature kernel: none
-  kernel similarity: KL
+  feature_kernel: none
+  kernel_similarity: KL
 kl_js:
-  feature kernel: JS
-  kernel similarity: KL
+  feature_kernel: JS
+  kernel_similarity: KL
 t:
-  feature kernel: none
-  kernel similarity: T
+  feature_kernel: none
+  kernel_similarity: T
 t_js:
-  feature kernel: JS
-  kernel similarity: T
+  feature_kernel: JS
+  kernel_similarity: T
 gpcca:
-  feature kernel: ref
-  kernel similarity: gpcca
+  feature_kernel: ref
+  kernel_similarity: gpcca

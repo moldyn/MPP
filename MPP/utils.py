@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 def translate_trajectory(
-    trajectory: npt.NDArray[np.int_], map: npt.NDArray[np.int_]
+    trajectory: npt.NDArray[np.int_], state_map: npt.NDArray[np.int_]
 ) -> npt.NDArray[np.int_]:
     """
     Transform trajectory to other state names.
@@ -27,7 +27,7 @@ def translate_trajectory(
     ----------
     trajectory : ndarray of int
         Original state trajectory.
-    map : ndarray of int
+    state_map : ndarray of int
         Index is original state; value at that position is the new state name.
 
     Returns
@@ -35,17 +35,17 @@ def translate_trajectory(
     ndarray of int
         Translated trajectory.
     """
-    macrostates = np.unique(map)
-    if map.max() < 2**8:
+    macrostates = np.unique(state_map)
+    if state_map.max() < 2**8:
         macrostate_trajectory_type = np.uint8
-    elif map.max() < 2**16:
+    elif state_map.max() < 2**16:
         macrostate_trajectory_type = np.uint16
     else:
         macrostate_trajectory_type = np.uint32
 
     macrostate_trajectory = np.zeros(trajectory.shape, dtype=macrostate_trajectory_type)
     for macrostate in macrostates:
-        macrostate_trajectory[np.isin(trajectory, np.where(map == macrostate)[0])] = (
+        macrostate_trajectory[np.isin(trajectory, np.where(state_map == macrostate)[0])] = (
             macrostate
         )
     return macrostate_trajectory
@@ -55,9 +55,9 @@ def macrostate_tmat(tmat, macrostate_assignment, pop):
     """Transform a transition matrix from microstates to macrostates."""
     n_macrostates = macrostate_assignment.shape[0]
     m_tmat = np.zeros((n_macrostates, n_macrostates), dtype=tmat.dtype.type)
-    for i, ms in enumerate(macrostate_assignment):
-        for j, other_ms in enumerate(macrostate_assignment):
-            m_tmat[i, j] = (tmat[ms][:, other_ms] * np.expand_dims(pop[ms], -1)).sum()
+    for i, macrostate_mask in enumerate(macrostate_assignment):
+        for j, other_macrostate_mask in enumerate(macrostate_assignment):
+            m_tmat[i, j] = (tmat[macrostate_mask][:, other_macrostate_mask] * np.expand_dims(pop[macrostate_mask], -1)).sum()
     return m_tmat / m_tmat.sum(axis=0)
 
 
@@ -210,11 +210,11 @@ def similarity(ref, sto):
     # Similarity matrix
     S = np.zeros((3, ref.n_macrostates[0], sto.n_runs))
 
-    for n_i in range(sto.n_runs):
+    for run_index in range(sto.n_runs):
         ref_ma = ref.macrostate_assignment[0].astype(bool)
-        sto_ma = sto.macrostate_assignment[n_i].astype(bool)
+        sto_ma = sto.macrostate_assignment[run_index].astype(bool)
         for i in range(ref.n_macrostates[0]):
-            for j in range(sto.n_macrostates[n_i]):
+            for j in range(sto.n_macrostates[run_index]):
                 intersect = (
                     np.logical_and(ref_ma[i], sto_ma[j])
                     * ref.full_pop[0, : ref.n_states]
@@ -224,15 +224,15 @@ def similarity(ref, sto):
                     * ref.full_pop[0, : ref.n_states]
                 ).sum()
                 # union
-                S[0, i, n_i] = max(S[0, i, n_i], intersect / union)
+                S[0, i, run_index] = max(S[0, i, run_index], intersect / union)
                 # reference
-                S[1, i, n_i] = max(
-                    S[1, i, n_i],
+                S[1, i, run_index] = max(
+                    S[1, i, run_index],
                     intersect / (ref_ma[i] * ref.full_pop[0, : ref.n_states]).sum(),
                 )
                 # lumping
-                S[2, i, n_i] = max(
-                    S[2, i, n_i],
+                S[2, i, run_index] = max(
+                    S[2, i, run_index],
                     intersect / (sto_ma[j] * ref.full_pop[0, : ref.n_states]).sum(),
                 )
     return S
@@ -459,18 +459,18 @@ def _calc_rmsd_generic(
     elif isinstance(t, md.Trajectory):
         n_features = t.n_atoms
 
-    rmsd = np.empty([lumping.n_macrostates[lumping.n_i], n_features])
+    rmsd = np.empty([lumping.n_macrostates[lumping.run_index], n_features])
 
-    for j in range(lumping.n_macrostates[lumping.n_i]):
+    for j in range(lumping.n_macrostates[lumping.run_index]):
         if not quiet:
             print(f"Process macrostate {j + 1}")
-        traj_mask = lumping.macrostate_trajectory[lumping.n_i] == j
+        traj_mask = lumping.macrostate_trajectory[lumping.run_index] == j
         tm = t[traj_mask]
         m_frames = []
         m_frames_idx = []
 
         # Batched run for speed
-        n_batches = opt_num_batches(lumping.macrostate_population[lumping.n_i][j])
+        n_batches = opt_num_batches(lumping.macrostate_population[lumping.run_index][j])
         for i in tqdm(range(n_batches)) if not quiet else range(n_batches):
             mean_frame, idx = find_mean(tm[i::n_batches], estimator)
             m_frames.append(mean_frame)

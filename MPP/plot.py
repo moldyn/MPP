@@ -598,7 +598,7 @@ def macro_feature(micro_feature, out, ref=None, pop=None):
     if ref is not None:
         # for mas, mfs, c, l, w in ref:
         # add_ref(mas, mfs, ax, color=c, label=l, weights=w)
-        add_ref(ref.macrostate_assignment[ref.n_i], ref.macrostate_feature[ref.n_i], ax)
+        add_ref(ref.macrostate_assignment[ref.run_index], ref.macrostate_feature[ref.run_index], ax)
     ax.set_xlabel("Fraction of Contacts")
     ax.set_ylabel("Population")
     ax.set_title(f"Macrostate Features, {micro_feature.shape[1]} clusterings")
@@ -801,20 +801,20 @@ def contact_rep(contacts, cluster_file, state_trajectory, output, grid, scale=1)
 
 def sankey_diagram(cl, ref, out, ax=None, scale=1):
     features = []
-    for macrostate in cl.tree[cl.n_i].macrostates:
+    for macrostate in cl.tree[cl.run_index].macrostates:
         features.append(macrostate.feature)
     ma_order = np.argsort(features)[::-1]
     colorDict = {}
     for i, o in enumerate(ma_order):
-        colorDict[str(i + 1)] = cl.tree[cl.n_i].macrostates[o].color
+        colorDict[str(i + 1)] = cl.tree[cl.run_index].macrostates[o].color
     if ax is None:
         pplt.use_style(figsize=(1.7 * scale, 3.6 * scale), true_black=True)
     sankey(
-        left=(cl.macrostate_map[cl.n_i] + 1).astype(str),
+        left=(cl.macrostate_map[cl.run_index] + 1).astype(str),
         right=(ref.macrostate_map[0] + 1).astype(str),
         leftWeight=ref.pop,
         rightWeight=ref.pop,
-        leftLabels=np.arange(1, cl.n_macrostates[cl.n_i] + 1).astype(str).tolist(),
+        leftLabels=np.arange(1, cl.n_macrostates[cl.run_index] + 1).astype(str).tolist(),
         rightLabels=np.arange(1, ref.n_macrostates[0] + 1).astype(str).tolist(),
         colorDict=colorDict,
         ax=ax,
@@ -1299,7 +1299,7 @@ def chapman_kolmogorov(mpt, out, frame_length=0.2):
     """Chapman-Kolmogorov Test. Frame length in ns"""
     ck = mh.msm.tests.chapman_kolmogorov_test(
         utils.get_multi_state_trajectory(
-            mpt.macrostate_trajectory[mpt.n_i], mpt.limits
+            mpt.macrostate_trajectory[mpt.run_index], mpt.limits
         ),
         [50, 50, 50, 50, 50],
         4000,
@@ -1312,9 +1312,9 @@ def chapman_kolmogorov(mpt, out, frame_length=0.2):
         latex=False,
     )
 
-    nrows, ncols = utils.get_grid_format(mpt.n_macrostates[mpt.n_i])
+    nrows, ncols = utils.get_grid_format(mpt.n_macrostates[mpt.run_index])
     for chunk in mh.plot._ck_test._split_array(
-        np.arange(mpt.n_macrostates[mpt.n_i]), nrows * ncols
+        np.arange(mpt.n_macrostates[mpt.run_index]), nrows * ncols
     ):
         fig = plot_ck_test(
             ck=ck,
@@ -1477,7 +1477,7 @@ def plot_ck_test(
 
 def state_network(lumping, out):
     draw_knetwork(
-        lumping.macrostate_trajectory[lumping.n_i],
+        lumping.macrostate_trajectory[lumping.run_index],
         lumping.lagtime,
         lumping.mean_feature_trajectory,
         out,

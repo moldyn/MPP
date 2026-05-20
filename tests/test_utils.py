@@ -34,8 +34,8 @@ def get_d(system, setup, rmsd=False):
         f"tests/data/{system}/input/config.yml"
     )
     d.setup_mpp(
-        lumpings[setup]["kernel similarity"],
-        lumpings[setup]["feature kernel"],
+        lumpings[setup]["kernel_similarity"],
+        lumpings[setup]["feature_kernel"],
     )
     if setup == "gpcca":
         d.perform_gpcca("ref", f"{root}{system}/{setup}/Z.npy")
@@ -52,7 +52,7 @@ class TestProperties(unittest.TestCase):
         self.mpp = self.d.mpp
 
     def test_Z_to_linkage(self):
-        linkage = MPP.utils.Z_to_linkage(self.mpp.Z[self.mpp.n_i])
+        linkage = MPP.utils.Z_to_linkage(self.mpp.Z[self.mpp.run_index])
         expected_linkage = np.load(
             Path(__file__).parent
             / "data"

@@ -229,7 +229,7 @@ class Lumping(object):
         self._topology_file = None
         self._xtc_trajectory_file = None
         self._rmsd = None
-        self._n_i = None
+        self._run_index = None
         self._macro_micro_feature = None
         # Whether to use CA cartesian coordinates for RMSD calculation
         # of the feature ("feature")
@@ -307,11 +307,11 @@ class Lumping(object):
         self.Z = np.zeros((self.n_runs, self.n_states - 1, 4), dtype=np.float64)
         self.full_pop = np.zeros((self.n_runs, 2 * self.n_states - 1), dtype=np.uint32)
         if self.quiet:
-            iter = range(self.n_runs)
+            run_iter = range(self.n_runs)
         else:
             print("Clustering ...")
-            iter = tqdm(range(self.n_runs))
-        for i in iter:
+            run_iter = tqdm(range(self.n_runs))
+        for i in run_iter:
             self.Z[i], self.full_pop[i] = core.cluster(
                 self.tmat,
                 self.pop,
@@ -333,13 +333,13 @@ class Lumping(object):
         self.n_macrostates = []
 
         if self.quiet:
-            iter = range(self.n_runs)
+            run_iter = range(self.n_runs)
         else:
             print("Assigning macrostates ...")
-            iter = tqdm(range(self.n_runs))
-        for n_i in iter:
+            run_iter = tqdm(range(self.n_runs))
+        for run_index in run_iter:
             self.macrostate_assignment.append(
-                utils.get_macrostate_assignment_from_tree(self.tree[n_i])
+                utils.get_macrostate_assignment_from_tree(self.tree[run_index])
             )
 
             # Calculate other macrostate related values
@@ -353,14 +353,14 @@ class Lumping(object):
                     self.tmat, self.macrostate_assignment[-1], self.pop
                 )
             )
-            self.macrostate_trajectory[n_i] = utils.translate_trajectory(
+            self.macrostate_trajectory[run_index] = utils.translate_trajectory(
                 self.trajectory, self.macrostate_map[-1]
             )
             self.n_macrostates.append(self.macrostate_assignment[-1].shape[0])
             self.macrostate_feature.append(
                 [
                     self.mean_feature_trajectory[
-                        np.where(self.macrostate_trajectory[n_i] == i)
+                        np.where(self.macrostate_trajectory[run_index] == i)
                     ].mean()
                     for i in np.arange(self.n_macrostates[-1])
                 ]
@@ -368,7 +368,7 @@ class Lumping(object):
             self.macrostate_multi_feature.append(
                 [
                     self.multi_feature_trajectory_bool[
-                        np.where(self.macrostate_trajectory[n_i] == i)
+                        np.where(self.macrostate_trajectory[run_index] == i)
                     ].mean(axis=0)
                     for i in np.arange(self.n_macrostates[-1], dtype=int)
                 ]
@@ -410,21 +410,21 @@ class Lumping(object):
         self._assign_macrostates_from_gpcca(self.gpcca.macrostate_assignment)
         self._create_mock_Z()
 
-    def _assign_macrostates_from_gpcca(self, gma):
-        gmt = np.zeros(self.trajectory.shape, dtype=self.trajectory.dtype)
-        gmf = np.empty(self.n_macrostates[0])
+    def _assign_macrostates_from_gpcca(self, gpcca_assignment):
+        gpcca_trajectory = np.zeros(self.trajectory.shape, dtype=self.trajectory.dtype)
+        gpcca_feature = np.empty(self.n_macrostates[0])
         for i in range(self.n_macrostates[0]):
-            gmt[np.where(np.isin(self.trajectory, np.where(gma == i)[0]))[0]] = i + 1
-            gmf[i] = self.mean_feature_trajectory[gmt == i + 1].mean()
+            gpcca_trajectory[np.where(np.isin(self.trajectory, np.where(gpcca_assignment == i)[0]))[0]] = i + 1
+            gpcca_feature[i] = self.mean_feature_trajectory[gpcca_trajectory == i + 1].mean()
 
-        order = np.argsort(gmf)[::-1]
+        order = np.argsort(gpcca_feature)[::-1]
         new_states = np.empty(self.n_macrostates[0], dtype=self.trajectory.dtype.type)
         new_states[order] = np.arange(
             self.n_macrostates[0], dtype=self.trajectory.dtype.type
         )
-        self.macrostate_map = [np.empty(gma.shape, dtype=self.trajectory.dtype.type)]
+        self.macrostate_map = [np.empty(gpcca_assignment.shape, dtype=self.trajectory.dtype.type)]
         for i in range(self.n_macrostates[0]):
-            self.macrostate_map[0][np.where(gma == i)] = new_states[i]
+            self.macrostate_map[0][np.where(gpcca_assignment == i)] = new_states[i]
 
         self.macrostate_assignment = [
             np.full((self.n_macrostates[0], self.macrostate_map[0].shape[0]), False)
@@ -433,7 +433,7 @@ class Lumping(object):
             self.macrostate_map[0],
             np.arange(self.macrostate_map[0].shape[0], dtype=int),
         ] = True
-        self.macrostate_feature = [gmf[order]]
+        self.macrostate_feature = [gpcca_feature[order]]
         self.macrostate_trajectory = np.empty(
             (self.n_runs, self.trajectory.shape[0]), dtype=self.trajectory.dtype.type
         )
@@ -501,36 +501,36 @@ class Lumping(object):
         header = (
             f"Created by Lumping class\n"
             f"Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
-            f"Trajectory contains {self.n_macrostates[self.n_i]} states"
+            f"Trajectory contains {self.n_macrostates[self.run_index]} states"
             f" and {self.macrostate_trajectory.shape[1]} frames.\n"
-            f"Trajectory index: {self.n_i}\n"
+            f"Trajectory index: {self.run_index}\n"
         )
-        macrostate_trajectory = self.macrostate_trajectory[self.n_i]
+        macrostate_trajectory = self.macrostate_trajectory[self.run_index]
         if one_based:
             macrostate_trajectory += 1
         np.savetxt(out, macrostate_trajectory, fmt="%.0f", header=header)
 
-    def save_Z(self, out: Path, n_i: int | Iterable | Literal["all"] = "all") -> None:
+    def save_Z(self, out: Path, run_index: int | Iterable | Literal["all"] = "all") -> None:
         """Save Z matrix.
 
         Parameters
         ----------
         out : Path
             Where to save the Z matrix.
-        n_i : int or iterable of int or {"all"}
+        run_index : int or iterable of int or {"all"}
             Which lumpings to save.
         """
         if not out.endswith(".npy"):
             out += ".npy"
 
-        if n_i == "all":
+        if run_index == "all":
             np.save(out, self.Z)
-        elif isinstance(n_i, Iterable):
-            np.save(out, self.Z[n_i])
-        elif isinstance(n_i, int):
-            np.save(out, self.Z[n_i : n_i + 1])
+        elif isinstance(run_index, Iterable):
+            np.save(out, self.Z[run_index])
+        elif isinstance(run_index, int):
+            np.save(out, self.Z[run_index : run_index + 1])
         else:
-            raise ValueError("n_i must be 'all', Iterable or int.")
+            raise ValueError("run_index must be 'all', Iterable or int.")
 
     def load_Z(self, Z, gpcca=False):
         """Load Z matrix."""
@@ -602,9 +602,9 @@ class Lumping(object):
             N random frame indices if out is None, otherwise retutrns
             None.
         """
-        drawn_frames = np.empty((self.n_macrostates[self.n_i], n), dtype=int)
-        for state in np.arange(self.n_macrostates[self.n_i]):
-            frames_in_state = np.where(self.macrostate_trajectory[self.n_i] == state)[0]
+        drawn_frames = np.empty((self.n_macrostates[self.run_index], n), dtype=int)
+        for state in np.arange(self.n_macrostates[self.run_index]):
+            frames_in_state = np.where(self.macrostate_trajectory[self.run_index] == state)[0]
             drawn_frames[state] = np.random.choice(
                 frames_in_state, size=n, replace=False
             )
@@ -633,8 +633,8 @@ class Lumping(object):
         n : int
             Number of random frame indices to draw. (default 20)
         """
-        for state in np.arange(self.n_macrostates[self.n_i]):
-            frames_in_state = np.where(self.macrostate_trajectory[self.n_i] == state)[0]
+        for state in np.arange(self.n_macrostates[self.run_index]):
+            frames_in_state = np.where(self.macrostate_trajectory[self.run_index] == state)[0]
             drawn_frames = np.random.choice(frames_in_state, size=n, replace=False)
             for i, frame in enumerate(drawn_frames):
                 f = md.load_xtc(
@@ -648,7 +648,7 @@ class Lumping(object):
         """Return the feature indices with the least variance.
 
         Calculate the variance for each feature for each macrostete for
-        lumping n_i and return the indices for features with the least
+        lumping run_index and return the indices for features with the least
         variance.
 
         Parameters
@@ -663,12 +663,12 @@ class Lumping(object):
             macrostates and M is the number of features required
             (parameter n).
         """
-        contacts = np.zeros((self.n_macrostates[self.n_i], n), dtype=int)
-        for i in range(self.n_macrostates[self.n_i]):
+        contacts = np.zeros((self.n_macrostates[self.run_index], n), dtype=int)
+        for i in range(self.n_macrostates[self.run_index]):
             contacts[i] = np.argsort(
                 np.var(
                     self.multi_feature_trajectory[
-                        self.macrostate_trajectory[self.n_i] == i
+                        self.macrostate_trajectory[self.run_index] == i
                     ],
                     axis=0,
                 )
@@ -803,8 +803,8 @@ class Lumping(object):
         return self._reference
 
     @property
-    def n_i(self) -> int:
-        """Index of the lumping under consideration.
+    def run_index(self) -> int:
+        """Index of the lumping run under consideration.
 
         0 for deterministic lumpings. Is set to the lumping with the
         longest first implied timescale, if not set manually.
@@ -812,20 +812,43 @@ class Lumping(object):
         Returns
         -------
         int
-            Index of the lumping under consideration.
+            Index of the lumping run under consideration.
         """
-        if self._n_i is None:
+        if self._run_index is None:
             if self.n_runs > 1:
-                self._n_i = np.argmax(self.timescales[:, 0])
+                self._run_index = np.argmax(self.timescales[:, 0])
             else:
-                self._n_i = 0
-        return self._n_i
+                self._run_index = 0
+        return self._run_index
+
+    @run_index.setter
+    def run_index(self, value: int) -> None:
+        if not isinstance(value, int):
+            raise ValueError("run_index must be an integer")
+        self._run_index = value
+
+    @property
+    def n_i(self) -> int:
+        """Deprecated alias for :attr:`run_index`.
+
+        .. deprecated::
+            Use :attr:`run_index` instead.
+        """
+        warnings.warn(
+            "n_i is deprecated; use run_index instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.run_index
 
     @n_i.setter
     def n_i(self, value: int) -> None:
-        if not isinstance(value, int):
-            raise ValueError("n_i must be an integer")
-        self._n_i = value
+        warnings.warn(
+            "n_i is deprecated; use run_index instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.run_index = value
 
     @property
     def timescales(self) -> npt.NDArray[np.floating]:
@@ -877,7 +900,7 @@ class Lumping(object):
             column.
         """
         if self._linkage is None:
-            self._linkage = utils.Z_to_linkage(self.Z[self.n_i])
+            self._linkage = utils.Z_to_linkage(self.Z[self.run_index])
         return self._linkage
 
     @property
@@ -964,8 +987,8 @@ class Lumping(object):
         Lumping.rmsd : RMSD property.
         """
         return (
-            self.rmsd.mean(axis=1) * self.macrostate_population[self.n_i]
-        ).sum() / self.macrostate_population[self.n_i].sum()
+            self.rmsd.mean(axis=1) * self.macrostate_population[self.run_index]
+        ).sum() / self.macrostate_population[self.run_index].sum()
 
     @property
     def shannon_entropy(self) -> npt.NDArray[np.floating]:
@@ -979,7 +1002,7 @@ class Lumping(object):
 
         Returns
         -------
-        ndarray of float, shape (Lumping.n_i,)
+        ndarray of float, shape (Lumping.run_index,)
             Array contains the Shannon entropy for each run.
 
         References
@@ -1000,7 +1023,7 @@ class Lumping(object):
 
         Returns
         -------
-        ndarray of float, shape (Lumping.n_i,)
+        ndarray of float, shape (Lumping.run_index,)
             Array contains the Davies Bouldin index for each run.
 
         References
@@ -1024,7 +1047,7 @@ class Lumping(object):
 
         Returns
         -------
-        ndarray of float, shape (Lumping.n_i,)
+        ndarray of float, shape (Lumping.run_index,)
             Array contains the GMRQ for each run.
 
         References
@@ -1190,8 +1213,8 @@ class Plotter:
     def dendrogram(self, out: str, scale=1, offset=0):
         """Plot dendrogram."""
         plot.plot_tree(
-            self._obj.tree[self._obj.n_i],
-            self._obj.macrostate_assignment[self._obj.n_i],
+            self._obj.tree[self._obj.run_index],
+            self._obj.macrostate_assignment[self._obj.run_index],
             out,
             scale=scale,
             offset=offset,
@@ -1216,7 +1239,7 @@ class Plotter:
             ref_trajectory = self._obj.trajectory
 
         macrostate_trajectory = utils.get_multi_state_trajectory(
-            self._obj.macrostate_trajectory[self._obj.n_i], self._obj.limits
+            self._obj.macrostate_trajectory[self._obj.run_index], self._obj.limits
         )
 
         dlagtime = max(1, int(1 / self._obj.frame_length))
@@ -1252,21 +1275,21 @@ class Plotter:
 
     def rmsd(self, out, helices=None):
         plot.rmsd(
-            self._obj.rmsd, self._obj.macrostate_population[self._obj.n_i], helices, out
+            self._obj.rmsd, self._obj.macrostate_population[self._obj.run_index], helices, out
         )
 
     def delta_rmsd(self, out, helices=None):
         plot.delta_rmsd(
-            self._obj.rmsd, self._obj.macrostate_population[self._obj.n_i], helices, out
+            self._obj.rmsd, self._obj.macrostate_population[self._obj.run_index], helices, out
         )
 
     def contact_rep(self, cluster_file, out, scale=1):
         plot.contact_rep(
             self._obj.multi_feature_trajectory,
             cluster_file,
-            self._obj.macrostate_trajectory[self._obj.n_i],
+            self._obj.macrostate_trajectory[self._obj.run_index],
             out,
-            utils.get_grid_format(self._obj.n_macrostates[self._obj.n_i]),
+            utils.get_grid_format(self._obj.n_macrostates[self._obj.run_index]),
             scale=scale,
         )
 
@@ -1283,11 +1306,11 @@ class Plotter:
         plot.stochastic_state_similarity(self._obj, self._obj.reference, out)
 
     def transition_matrix(self, out):
-        plot.transition_matrix(self._obj.macrostate_tmat[self._obj.n_i], out)
+        plot.transition_matrix(self._obj.macrostate_tmat[self._obj.run_index], out)
 
     def transition_time(self, out):
         plot.transition_time(
-            self._obj.macrostate_tmat[self._obj.n_i],
+            self._obj.macrostate_tmat[self._obj.run_index],
             out,
             lagtime=self._obj.lagtime,
             frame_length=self._obj.frame_length,
@@ -1295,7 +1318,7 @@ class Plotter:
 
     def graph(self, out, u=0, f=0):
         draw_knetwork(
-            self._obj.macrostate_trajectory[self._obj.n_i],
+            self._obj.macrostate_trajectory[self._obj.run_index],
             self._obj.lagtime,
             self._obj.mean_feature_trajectory,
             out,
@@ -1308,7 +1331,7 @@ class Plotter:
 
     def macrostate_trajectory(self, out, row_length=0.2):
         plot.state_trajectory(
-            self._obj.macrostate_trajectory[self._obj.n_i],
+            self._obj.macrostate_trajectory[self._obj.run_index],
             out,
             row_length=row_length,
             frame_length=self._obj.frame_length,

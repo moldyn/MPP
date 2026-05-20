@@ -90,7 +90,7 @@ class Data:
         self.microstate_trajectory = np.loadtxt(
             os.path.join(self.source, self.d["microstate_trajectory"]), dtype=np.uint16
         )
-        self.multi_state_trajectory_raw = np.loadtxt(
+        self.multi_feature_trajectory_raw = np.loadtxt(
             os.path.join(
                 self.source,
                 self.d["multi_feature_trajectory"],
@@ -105,7 +105,7 @@ class Data:
                 dtype=np.int_,
             )
         )
-        self.multi_feature_trajectory = self.multi_state_trajectory_raw < 0.45
+        self.multi_feature_trajectory = self.multi_feature_trajectory_raw < 0.45
         self.feature_trajectory = self.multi_feature_trajectory.mean(axis=1)
 
         self.cluster = None
@@ -137,21 +137,21 @@ class Data:
         self.n_random_frames = 20
         self.use_ref = True
 
-    def prepare_mpp(self, dij, gij):
+    def _prepare_kernels(self, dynamic_similarity, feature_similarity):
         if "stochastic" in self.d:
             kernel = MPP.kernel.LumpingKernel(
                 method=self.d["stochastic"]["method"],
                 param=self.d["stochastic"]["param"],
-                similarity=dij,
+                similarity=dynamic_similarity,
             )
         else:
             kernel = MPP.kernel.LumpingKernel(
-                similarity=dij,
+                similarity=dynamic_similarity,
             )
 
-        if gij == "none":
+        if feature_similarity == "none":
             feature_kernel = None
-        elif gij == "JS":
+        elif feature_similarity == "JS":
             feature_kernel = MPP.kernel.FeatureKernel(
                 self.multi_feature_trajectory,
                 self.microstate_trajectory,
@@ -159,19 +159,19 @@ class Data:
         else:
             raise ValueError("feature kernel must be None, q or JS.")
 
-        if dij == "T" and gij == "none" and "stochastic" not in self.d:
+        if dynamic_similarity == "T" and feature_similarity == "none" and "stochastic" not in self.d:
             self.use_ref = False
 
         self.kernel = kernel
         self.feature_kernel = feature_kernel
 
-    def setup_mpp(self, dij, gij):
-        if dij != "gpcca":
-            self.prepare_mpp(dij, gij)
+    def setup_mpp(self, dynamic_similarity, feature_similarity):
+        if dynamic_similarity != "gpcca":
+            self._prepare_kernels(dynamic_similarity, feature_similarity)
         self.mpp = MPP.Lumping(
             self.microstate_trajectory,
             self.lagtime,
-            self.multi_state_trajectory_raw,
+            self.multi_feature_trajectory_raw,
             contact_threshold=self.d["contact_threshold"],
             pop_thr=self.pop_thr,
             q_min=self.q_min,
@@ -356,8 +356,21 @@ def parse_args():
         ),
         type=argparse.FileType("r", encoding="latin-1"),
     )
-    parser.add_argument("d", help=("dij to be used."))
-    parser.add_argument("g", help=("gij to be used."))
+    parser.add_argument(
+        "d",
+        help=(
+            "Dynamic similarity selector (kernel_similarity). "
+            "One of: 'T' (transition probability), 'KL' (Kullback-Leibler "
+            "divergence), 'none' (feature-only), or 'gpcca'."
+        ),
+    )
+    parser.add_argument(
+        "g",
+        help=(
+            "Geometric/feature similarity selector (feature_similarity). "
+            "One of: 'JS' (Jensen-Shannon divergence) or 'none'."
+        ),
+    )
     parser.add_argument(
         "-o",
         "--out",

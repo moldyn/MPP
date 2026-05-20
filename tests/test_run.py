@@ -61,7 +61,7 @@ class TestRunScript(unittest.TestCase):
     def _get_key(self, d, g):
         """Returns the key like 'kl', 't_js', etc. from the mapping."""
         for key, val in self.param_map.items():
-            if val["kernel similarity"] == d and val["feature kernel"] == g:
+            if val["kernel_similarity"] == d and val["feature_kernel"] == g:
                 return key
         raise ValueError(f"No key found for d={d}, g={g}")
 

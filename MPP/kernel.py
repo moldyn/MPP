@@ -95,14 +95,14 @@ class LumpingKernel(object):
         # If Kullback-Leibler divergence is used
         if self.similarity == "KL":
             # Mask self transition probabilities
-            t = full_tmat[mask][:, mask].copy()
-            np.fill_diagonal(t, trans_probs)
+            masked_tmat = full_tmat[mask][:, mask].copy()
+            np.fill_diagonal(masked_tmat, trans_probs)
 
             # Regularization parameter
             epsilon = 1e-6
             kl = scy.stats.entropy(
                 trans_probs + epsilon,
-                t + epsilon,
+                masked_tmat + epsilon,
                 axis=1,
             )
             dkl = utils.weighting_function(kl)

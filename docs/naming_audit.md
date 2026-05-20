@@ -34,8 +34,8 @@ All YAML config keys should be `snake_case`. The following use spaces.
 | all configs                                   | `frame length`                 | `frame_length`             | CAUTION  |
 | all configs                                   | `xtc stride`                   | `xtc_stride`               | CAUTION  |
 | `MPP/run.py:227`                              | `"n timescales"`               | `n_timescales`             | CAUTION  |
-| `workflow/lumpings.yml`, `tests/data/lumpings.yaml` | `kernel similarity`    | `kernel_similarity`        | HIGH-RISK |
-| `workflow/lumpings.yml`, `tests/data/lumpings.yaml` | `feature kernel`       | `feature_kernel`           | HIGH-RISK |
+| `workflow/lumpings.yml`, `tests/data/lumpings.yaml` | `kernel similarity`    | `kernel_similarity` ✅ TASK-2.3 | HIGH-RISK |
+| `workflow/lumpings.yml`, `tests/data/lumpings.yaml` | `feature kernel`       | `feature_kernel` ✅ TASK-2.3   | HIGH-RISK |
 
 **Note:** YAML key renames require simultaneous updates to every file that reads
 those keys (`MPP/run.py`, `workflow/Snakefile`, all config files, and tests).
@@ -43,36 +43,34 @@ Treat the entire group as a single atomic rename per key.
 
 ---
 
-## 2. `dij` / `gij` Internal Parameter Names
+## 2. `dij` / `gij` Internal Parameter Names ✅ DONE (TASK-2.3)
 
 Mathematical index notation leaks from internal documentation into production code.
 
-| File              | Location            | Current name | Proposed name          | Risk     |
-|-------------------|---------------------|--------------|------------------------|----------|
-| `MPP/run.py:88`   | `Data.prepare_mpp`  | `dij`        | `dynamic_similarity`   | CAUTION  |
-| `MPP/run.py:88`   | `Data.prepare_mpp`  | `gij`        | `feature_similarity`   | CAUTION  |
-| `MPP/run.py:116`  | `Data.setup_mpp`    | `dij`        | `dynamic_similarity`   | CAUTION  |
-| `MPP/run.py:116`  | `Data.setup_mpp`    | `gij`        | `feature_similarity`   | CAUTION  |
+| File              | Location                   | Old name | New name               | Risk     |
+|-------------------|----------------------------|----------|------------------------|----------|
+| `MPP/run.py`      | `Data._prepare_kernels`    | `dij`    | `dynamic_similarity`   | CAUTION  |
+| `MPP/run.py`      | `Data._prepare_kernels`    | `gij`    | `feature_similarity`   | CAUTION  |
+| `MPP/run.py`      | `Data.setup_mpp`           | `dij`    | `dynamic_similarity`   | CAUTION  |
+| `MPP/run.py`      | `Data.setup_mpp`           | `gij`    | `feature_similarity`   | CAUTION  |
 
-These are method parameters (not public API attributes), so the risk is contained,
-but they propagate the ambiguous `dij`/`gij` terminology through the call chain.
-The CLI-facing `d` and `g` positional args (HIGH-RISK) are excluded here — they
-stay as-is at the CLI boundary.
+Also renamed `Data.prepare_mpp` → `Data._prepare_kernels` (made private).
+CLI-facing `d` and `g` positional args stay as-is; help text updated.
 
 ---
 
-## 3. `n_i` — Ambiguous Public Property
+## 3. `n_i` — Ambiguous Public Property ✅ DONE (TASK-2.3)
 
 `Lumping.n_i` is a public property used throughout the codebase as "the index
 of the current lumping run under consideration."
 
-| File            | Location            | Current name | Proposed name | Risk     |
-|-----------------|---------------------|--------------|---------------|----------|
-| `MPP/MPP.py:806`| `Lumping.n_i`       | `n_i`        | `run_index`   | HIGH-RISK |
+| File            | Location            | Old name | New name      | Risk     |
+|-----------------|---------------------|----------|---------------|----------|
+| `MPP/MPP.py`    | `Lumping.run_index` | `n_i`    | `run_index`   | HIGH-RISK |
 
-`n_i` is referenced in: `MPP/MPP.py`, `MPP/run.py`, `MPP/plot.py`, and tests.
-A rename must be project-wide. The name `n_i` is also an attribute on `Data`
-(implicitly via `self.mpp.n_i`) and referenced in docstrings.
+Renamed to `run_index` with `n_i` kept as a deprecated alias emitting
+`DeprecationWarning`. Updated all internal uses in `MPP/MPP.py`, `MPP/plot.py`,
+`MPP/utils.py`, and `tests/test_utils.py`.
 
 ---
 
@@ -210,25 +208,25 @@ a naming violation, but noted here for completeness.
 
 ### HIGH-RISK (do not rename without a dedicated task and full cross-repo update)
 
-1. All space-separated YAML keys: `microstate trajectory`, `multi feature trajectory`, `kernel similarity`, `feature kernel`
-2. `Lumping.n_i` property (used across MPP/, tests/, plot.py)
-3. Module `MPP/MPP.py` (affects all imports)
+1. Space-separated YAML keys: `microstate trajectory`, `multi feature trajectory` — ✅ done in TASK-2.2; `kernel similarity`, `feature kernel` — ✅ done in TASK-2.3
+2. `Lumping.n_i` property — ✅ renamed to `run_index` in TASK-2.3 (deprecated alias retained)
+3. Module `MPP/MPP.py` (affects all imports) — still pending
 
 ### CAUTION (rename in a coordinated single-module task)
 
-4. YAML keys: `contact threshold`, `cluster file`, `contact index file`, `topology file`, `xtc file`, `frame length`, `xtc stride`, `n timescales`
-5. `Data.prepare_mpp(dij, gij)` / `Data.setup_mpp(dij, gij)` parameter names
-6. `Data.prepare_mpp` method name (→ `_prepare_kernels`)
-7. GPCCA `"ref"` sentinel value in lumpings YAML
+4. YAML keys: `contact threshold`, `cluster file`, `contact index file`, `topology file`, `xtc file`, `frame length`, `xtc stride`, `n timescales` — ✅ done in TASK-2.2
+5. `Data.prepare_mpp(dij, gij)` / `Data.setup_mpp(dij, gij)` parameter names — ✅ renamed to `dynamic_similarity`/`feature_similarity` in TASK-2.3
+6. `Data.prepare_mpp` method name — ✅ renamed to `_prepare_kernels` in TASK-2.3
+7. GPCCA `"ref"` sentinel value in lumpings YAML — still pending
 
 ### SAFE (rename within the containing function/method, no callers affected)
 
-8. `iter` (loop variable) in `Lumping.run_mpp`, `Lumping.assign_macrostates`
-9. `map` (parameter) in `utils.translate_trajectory`
-10. `t` (local variable) in `LumpingKernel.__call__`
-11. `ms`, `other_ms` in `utils.macrostate_tmat`
-12. `gma`, `gmt`, `gmf` in `Lumping._assign_macrostates_from_gpcca`
-13. `multi_state_trajectory_raw` in `Data.__init__`
+8. `iter` (loop variable) in `Lumping.run_mpp`, `Lumping.assign_macrostates` — ✅ done in TASK-2.3
+9. `map` (parameter) in `utils.translate_trajectory` — ✅ done in TASK-2.3
+10. `t` (local variable) in `LumpingKernel.__call__` — ✅ done in TASK-2.3
+11. `ms`, `other_ms` in `utils.macrostate_tmat` — ✅ done in TASK-2.3
+12. `gma`, `gmt`, `gmf` in `Lumping._assign_macrostates_from_gpcca` — ✅ done in TASK-2.3
+13. `multi_state_trajectory_raw` in `Data.__init__` — ✅ done in TASK-2.3
 
 ---
 

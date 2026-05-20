@@ -78,7 +78,7 @@ class TestPlotting(unittest.TestCase):
 
     def _get_key(self, d, g):
         for key, val in self.param_map.items():
-            if val["kernel similarity"] == d and val["feature kernel"] == g:
+            if val["kernel_similarity"] == d and val["feature_kernel"] == g:
                 return key
         raise ValueError(f"No mapping found for d={d}, g={g}")
 

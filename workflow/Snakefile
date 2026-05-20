@@ -11,10 +11,10 @@ configfile: os.path.join("workflow", "lumpings.yml")
 
 
 def get_d(wildcards):
-  return config[wildcards.lumping]["kernel similarity"]
+  return config[wildcards.lumping]["kernel_similarity"]
 
 def get_g(wildcards):
-  return config[wildcards.lumping]["feature kernel"]
+  return config[wildcards.lumping]["feature_kernel"]
 
 def get_top_file(wildcards):
   configfile: os.path.join(data_root, wildcards.system, "input", "config.yml")
