@@ -52,7 +52,25 @@ def translate_trajectory(
 
 
 def macrostate_tmat(tmat, macrostate_assignment, pop):
-    """Transform a transition matrix from microstates to macrostates."""
+    """Transform a microstate transition matrix to macrostate resolution.
+
+    Aggregates transition probabilities by population-weighting within each
+    macrostate, then normalizes column-wise.
+
+    Parameters
+    ----------
+    tmat : ndarray of float, shape (n_microstates, n_microstates)
+        Microstate transition matrix.
+    macrostate_assignment : ndarray of bool, shape (n_macrostates, n_microstates)
+        Boolean mask assigning each microstate to a macrostate.
+    pop : ndarray of int or float, shape (n_microstates,)
+        Microstate populations.
+
+    Returns
+    -------
+    ndarray of float, shape (n_macrostates, n_macrostates)
+        Column-normalized macrostate transition matrix.
+    """
     n_macrostates = macrostate_assignment.shape[0]
     m_tmat = np.zeros((n_macrostates, n_macrostates), dtype=tmat.dtype.type)
     for i, macrostate_mask in enumerate(macrostate_assignment):
@@ -62,6 +80,20 @@ def macrostate_tmat(tmat, macrostate_assignment, pop):
 
 
 def get_grid_format(n):
+    """Compute a near-square grid layout for n panels.
+
+    Parameters
+    ----------
+    n : int
+        Number of panels to arrange.
+
+    Returns
+    -------
+    n_rows : int
+        Number of rows.
+    n_cols : int
+        Number of columns.
+    """
     sqrt = np.sqrt(n)
     y = int(sqrt)
     x = y
@@ -73,7 +105,21 @@ def get_grid_format(n):
 
 
 def gmrq(tmat):
-    """Generalized matrix Rayleigh quotient."""
+    """Compute the generalized matrix Rayleigh quotient for a set of transition matrices.
+
+    Returns the sum of the 2nd through 4th largest eigenvalues for each
+    transition matrix.
+
+    Parameters
+    ----------
+    tmat : ndarray of float, shape (n_runs, n_states, n_states)
+        Array of transition matrices.
+
+    Returns
+    -------
+    ndarray of float, shape (n_runs,)
+        GMRQ value for each transition matrix.
+    """
     q = np.zeros(len(tmat))
     for i, t in enumerate(tmat):
         val, vec = np.linalg.eig(t)
@@ -83,7 +129,18 @@ def gmrq(tmat):
 
 
 def gmrq2(tmat):
-    """Sum of the squares of the first three eigenvalues."""
+    """Compute the sum of squares of the 2nd through 4th largest eigenvalues.
+
+    Parameters
+    ----------
+    tmat : ndarray of float, shape (n_runs, n_states, n_states)
+        Array of transition matrices.
+
+    Returns
+    -------
+    ndarray of float, shape (n_runs,)
+        Sum of squared eigenvalues for each transition matrix.
+    """
     q = np.zeros(len(tmat))
     for i, t in enumerate(tmat):
         val, vec = np.linalg.eig(t)
@@ -93,6 +150,28 @@ def gmrq2(tmat):
 
 
 def Z_to_linkage(Z):
+    """Convert an MPP Z matrix to legacy linkage format.
+
+    In the MPP Z matrix, each merge produces a new intermediate state with
+    index ``n_states + i``. The legacy linkage format does not introduce new
+    indices; instead, the merged state inherits ``state_b``'s index. This
+    function replaces all references to intermediate indices with the
+    corresponding ``state_b`` index and converts to 1-based indexing.
+
+    Parameters
+    ----------
+    Z : ndarray of float, shape (n_states-1, 4)
+        Z matrix in MPP format with columns
+        ``[state_a, state_b, metastability, joint_pop]``, using 0-based
+        indices where merged states receive new indices ``n_states + i``.
+
+    Returns
+    -------
+    ndarray of float, shape (n_states-1, 3)
+        Legacy linkage matrix with columns ``[state_a, state_b, distance]``
+        using 1-based indices, where the merged state is identified by
+        ``state_b``'s index rather than a new intermediate index.
+    """
     linkage = Z[:, :3].copy()
     for i, row in enumerate(linkage):
         mask = np.where(linkage[:, :2] == i + Z.shape[0] + 1)
@@ -102,6 +181,32 @@ def Z_to_linkage(Z):
 
 
 def linkage_to_Z(linkage, pop):
+    """Convert a legacy linkage matrix to MPP Z matrix format.
+
+    In the legacy linkage format, the merged state inherits ``state_b``'s
+    index rather than receiving a new intermediate index. This function
+    converts to the MPP Z matrix format by replacing those reused indices
+    with proper intermediate indices ``n_states + i`` and appending the
+    joint population as the fourth column.
+
+    Parameters
+    ----------
+    linkage : array-like, shape (n_states-1, 3)
+        Legacy linkage matrix with columns ``[state_a, state_b, distance]``
+        using 1-based indices, where the merged state is identified by
+        ``state_b``'s index.
+    pop : ndarray of int, shape (n_states,)
+        Microstate populations.
+
+    Returns
+    -------
+    Z : ndarray of float, shape (n_states-1, 4)
+        Z matrix in MPP format with columns
+        ``[state_a, state_b, metastability, joint_pop]``, using 0-based
+        indices where merged states receive new indices ``n_states + i``.
+    full_pop : ndarray of int, shape (2*n_states-1,)
+        Population array for all microstates and intermediate cluster states.
+    """
     linkage = np.array(linkage)
     n_states = linkage.shape[0] + 1
     Z = np.zeros((linkage.shape[0], 4))
@@ -121,6 +226,33 @@ def linkage_to_Z(linkage, pop):
 
 
 def merge_states(tmat, states, new_state, full_pop, reset_states=True):
+    """Merge two states into a new state in the full transition matrix.
+
+    Updates the full transition matrix in-place by combining rows and columns
+    of the merged states using population-weighted averaging (outgoing
+    transitions) and summation (incoming transitions).
+
+    Parameters
+    ----------
+    tmat : ndarray of float, shape (2*n_states-1, 2*n_states-1)
+        Full transition matrix, modified in-place.
+    states : list or ndarray of int
+        Indices of the two states to merge.
+    new_state : int
+        Index of the resulting merged state.
+    full_pop : ndarray of int
+        Population array for all states, modified in-place.
+    reset_states : bool, optional
+        If True, zero out the rows and columns of the merged states.
+        (default True)
+
+    Returns
+    -------
+    tmat : ndarray of float
+        Updated transition matrix.
+    full_pop : ndarray of int
+        Updated population array.
+    """
     full_pop[new_state] = full_pop[states].sum()
 
     tmat[new_state] = (tmat[states] * full_pop[states, np.newaxis]).sum(
@@ -135,7 +267,28 @@ def merge_states(tmat, states, new_state, full_pop, reset_states=True):
 
 
 def calc_full_tmat(tmat, pop, Z):
-    """Calculate full tmat for a give Z matrix"""
+    """Compute the full transition matrix for all states and merges encoded in Z.
+
+    Replays the merging sequence encoded in ``Z`` to build a full transition
+    matrix of shape ``(2*n_states-1, 2*n_states-1)`` for each run, including
+    all intermediate cluster states.
+
+    Parameters
+    ----------
+    tmat : ndarray of float, shape (n_states, n_states)
+        Microstate transition matrix.
+    pop : ndarray of int, shape (n_states,)
+        Microstate populations.
+    Z : ndarray of float, shape (n_states-1, 4) or (n_runs, n_states-1, 4)
+        Z matrix encoding the merging sequence. If 2D, treated as a single run.
+
+    Returns
+    -------
+    full_tmat : ndarray of float, shape (n_runs, 2*n_states-1, 2*n_states-1)
+        Full transition matrix for each run including intermediate states.
+    full_pop : ndarray of uint32, shape (n_runs, 2*n_states-1)
+        Full population array for each run.
+    """
     # Ensure that Z is 3D
     if Z.ndim == 2:
         Z = Z.reshape((1, *Z.shape))
@@ -188,6 +341,24 @@ def Z_to_mask(Z):
 
 
 def get_macrostate_assignment_from_tree(tree):
+    """Extract macrostate assignment from the lumping tree.
+
+    Parses the binary lumping tree to produce a boolean assignment matrix
+    mapping each macrostate to its constituent microstates, ordered by
+    decreasing metastability.
+
+    Parameters
+    ----------
+    tree : BinaryTreeNode
+        Root of the lumping tree as produced by ``core.cluster``.
+
+    Returns
+    -------
+    ndarray of bool, shape (n_macrostates, n_microstates)
+        Macrostate assignment matrix. Entry ``[i, j]`` is True if microstate
+        ``j`` belongs to macrostate ``i``. Macrostates are ordered by
+        decreasing metastability.
+    """
     macrostate_order = [l.assigned_macrostate.name for l in tree.leaves]
     macrostates = {l.assigned_macrostate for l in tree.leaves}
     q_ma = np.array([(m.name, m.feature) for m in macrostates])
@@ -206,7 +377,26 @@ def get_macrostate_assignment_from_tree(tree):
 
 
 def similarity(ref, sto):
-    """Return similarity of two clusterings"""
+    """Compute pairwise similarity between a reference and stochastic lumping.
+
+    For each macrostate in the reference lumping and each run in the stochastic
+    lumping, computes three population-weighted overlap measures: Jaccard
+    (union-based), recall (reference-based), and precision (lumping-based).
+
+    Parameters
+    ----------
+    ref : MPP.Lumping
+        Reference lumping (deterministic, single run).
+    sto : MPP.Lumping
+        Stochastic lumping with multiple runs.
+
+    Returns
+    -------
+    ndarray of float, shape (3, n_macrostates_ref, n_runs)
+        Axis 0: ``[Jaccard similarity, recall, precision]``.
+        Axis 1: reference macrostates.
+        Axis 2: stochastic runs.
+    """
     # Similarity matrix
     S = np.zeros((3, ref.n_macrostates[0], sto.n_runs))
 
@@ -239,11 +429,39 @@ def similarity(ref, sto):
 
 
 def shannon_entropy(p):
+    """Compute the normalized Shannon entropy of a probability distribution.
+
+    Parameters
+    ----------
+    p : ndarray of float
+        Non-negative values; normalized to sum to 1 internally.
+
+    Returns
+    -------
+    float
+        Shannon entropy normalized by ``log(n)``, where ``n`` is the length
+        of ``p``. Returns values in ``[0, 1]``.
+    """
     p = p / sum(p)
     return -(p * np.log(p)).sum() / np.log(p.shape[0])
 
 
 def weighting_function(dq):
+    """Transform divergences to similarity weights using a Gaussian kernel.
+
+    For a single value, returns ``exp(-dq)``. For multiple values, applies a
+    Gaussian kernel: ``exp(-dq^2 / (2 * var(dq)))``.
+
+    Parameters
+    ----------
+    dq : ndarray of float
+        Array of divergence or distance values.
+
+    Returns
+    -------
+    ndarray of float
+        Similarity weights; larger divergence yields smaller weight.
+    """
     if dq.shape[0] == 1:
         return np.exp(-dq)
     sigma2 = np.var(dq)
@@ -254,6 +472,18 @@ def weighting_function(dq):
 
 
 def argmedian(x):
+    """Return the index of the approximate median value in an array.
+
+    Parameters
+    ----------
+    x : ndarray
+        Input array.
+
+    Returns
+    -------
+    int
+        Index of the approximate median element.
+    """
     return np.argpartition(x, len(x) // 2)[len(x) // 2]
 
 
@@ -264,6 +494,28 @@ def load_trajectory(
     frames: npt.NDArray = None,
     stride: int = 1,
 ):
+    """Load an MD trajectory from XTC and topology files.
+
+    Parameters
+    ----------
+    topfile : str or path-like
+        Path to the topology file.
+    trajectoryfile : str or path-like
+        Path to the XTC trajectory file.
+    atom_selection : str, optional
+        MDTraj atom selection string. (default ``'all'``)
+    frames : ndarray of int, optional
+        Specific frame indices to load. If None, loads all frames with the
+        given stride. (default None)
+    stride : int, optional
+        Load every ``stride``-th frame when ``frames`` is None. If ``frames``
+        is provided, frame indices are multiplied by ``stride``. (default 1)
+
+    Returns
+    -------
+    md.Trajectory
+        Loaded trajectory.
+    """
     print("Loading trajectory...")
     top = md.load_topology(topfile)
     if frames is None:
@@ -290,6 +542,26 @@ def load_trajectory(
 
 
 def load_mean_frames(topfile, trajectoryfile, mean_frames, dt=0.1):
+    """Load mean representative frames from an XTC trajectory.
+
+    Parameters
+    ----------
+    topfile : str or path-like
+        Path to the topology file.
+    trajectoryfile : str or path-like
+        Path to the XTC trajectory file.
+    mean_frames : list of md.Trajectory
+        Single-frame trajectories whose time stamps indicate which frames to
+        load.
+    dt : float, optional
+        Time step in ps used to convert time stamps to frame indices.
+        (default 0.1)
+
+    Returns
+    -------
+    md.Trajectory
+        Trajectory containing only the requested mean frames.
+    """
     top = md.load_topology(topfile)
     idxs = [int(frame.time[0]) / dt for frame in mean_frames]
     trajectory = md.join(
@@ -299,6 +571,26 @@ def load_mean_frames(topfile, trajectoryfile, mean_frames, dt=0.1):
 
 
 def find_mean_frame(trajectory, estimator=np.argmin):
+    """Find a representative mean frame from a collection of trajectory frames.
+
+    Selects the frame with the smallest (or otherwise estimated) mean RMSD to
+    all other frames in the joined trajectory.
+
+    Parameters
+    ----------
+    trajectory : list of md.Trajectory or md.Trajectory
+        Input trajectory frames.
+    estimator : callable, optional
+        Function applied to the mean RMSD array to select the representative
+        frame index. (default ``numpy.argmin``)
+
+    Returns
+    -------
+    mean_frame : md.Trajectory
+        The selected representative frame.
+    index : ndarray
+        Index of the selected frame within the joined trajectory.
+    """
     trajectory = md.join(trajectory)
     mean_rmsd = np.array([estimate_rmsd(frame, trajectory) for frame in trajectory])
     index_mean_frame = estimator(mean_rmsd)
@@ -307,7 +599,20 @@ def find_mean_frame(trajectory, estimator=np.argmin):
 
 
 def estimate_rmsd(frame, trajectory):
-    """Calculate mean RMSD"""
+    """Compute mean RMSD of a reference frame against a trajectory.
+
+    Parameters
+    ----------
+    frame : md.Trajectory
+        Reference frame.
+    trajectory : md.Trajectory
+        Trajectory to compute RMSD against.
+
+    Returns
+    -------
+    float
+        Mean RMSD over all frames in the trajectory.
+    """
     rmsd = md.rmsd(
         trajectory,
         frame,
@@ -316,6 +621,23 @@ def estimate_rmsd(frame, trajectory):
 
 
 def find_mean_frame_feature(trajectory, estimator=np.argmin):
+    """Find a representative mean frame from feature-space trajectories.
+
+    Parameters
+    ----------
+    trajectory : array-like of ndarray
+        Collection of feature vectors.
+    estimator : callable, optional
+        Function applied to the distance array to select the representative
+        frame index. (default ``numpy.argmin``)
+
+    Returns
+    -------
+    mean_frame : ndarray
+        The selected representative feature vector.
+    index : ndarray
+        Index of the selected frame within the stacked trajectory.
+    """
     trajectory = np.array(trajectory)
     mean_rmsd = np.array(
         [estimate_rmsd_feature(frame, trajectory) for frame in trajectory]
@@ -326,6 +648,20 @@ def find_mean_frame_feature(trajectory, estimator=np.argmin):
 
 
 def estimate_rmsd_feature(frame, trajectory):
+    """Compute RMS deviation between a reference feature vector and a trajectory.
+
+    Parameters
+    ----------
+    frame : ndarray
+        Reference feature vector.
+    trajectory : ndarray of float, shape (N, M)
+        Feature trajectory with N frames and M features.
+
+    Returns
+    -------
+    float
+        Root-mean-square deviation from the reference.
+    """
     return np.sqrt(((trajectory - frame) ** 2).sum() / (len(trajectory) - 1))
 
 
@@ -396,16 +732,22 @@ def align_trajectory_to_reference(trajectory, reference):
 def calc_var(
     ref: npt.NDArray[np.floating], trajectory: npt.NDArray[np.floating]
 ) -> npt.NDArray[np.floating]:
-    """Calculate RMSD
+    """Compute per-atom RMSD between a reference frame and a trajectory.
+
+    Aligns the trajectory to the reference using the Kabsch algorithm before
+    computing deviations.
 
     Parameters
     ----------
-    ref, trajectory : ndarray of float, shape (N, M, 3)
-        N frames, M atoms
+    ref : ndarray of float, shape (1, M, 3) or (M, 3)
+        Reference frame with M atoms.
+    trajectory : ndarray of float, shape (N, M, 3)
+        Trajectory to compare; aligned to ``ref`` before computing.
 
     Returns
     -------
     ndarray of float, shape (M,)
+        Per-atom root-mean-square deviation averaged over all N frames.
     """
     aligned_trajectory = align_trajectory_to_reference(trajectory, ref)
     d_square = ((aligned_trajectory - ref) ** 2).sum(axis=2)
@@ -415,10 +757,36 @@ def calc_var(
 def calc_var_feature(
     ref: npt.NDArray[np.floating], trajectory: npt.NDArray[np.floating]
 ) -> npt.NDArray[np.floating]:
+    """Compute per-feature RMS deviation between a reference and a trajectory.
+
+    Parameters
+    ----------
+    ref : ndarray of float, shape (M,) or (1, M)
+        Reference feature vector.
+    trajectory : ndarray of float, shape (N, M)
+        Feature trajectory with N frames and M features.
+
+    Returns
+    -------
+    ndarray of float, shape (M,)
+        Per-feature root-mean-square deviation averaged over all N frames.
+    """
     return np.sqrt(((trajectory - ref) ** 2).mean(axis=0))
 
 
 def opt_num_batches(n):
+    """Compute the optimal number of batches for batched RMSD calculation.
+
+    Parameters
+    ----------
+    n : int
+        Number of frames.
+
+    Returns
+    -------
+    int
+        Optimal batch count, approximately ``n^(2/3) / 2^(1/3)``.
+    """
     return int(np.cbrt(n**2 / 2))
 
 
@@ -492,6 +860,28 @@ def _calc_rmsd_generic(
 
 # Specializations
 def calc_rmsd(lumping, estimator=np.argmin, quiet=True):
+    """Calculate per-atom RMSD across macrostates using C-alpha atoms.
+
+    Loads the XTC trajectory with C-alpha atom selection and computes per-atom
+    RMSD for each macrostate in the current run.
+
+    Parameters
+    ----------
+    lumping : MPP.Lumping
+        Lumping object with XTC/topology file paths and macrostate assignments.
+    estimator : callable, optional
+        Function to select the representative frame from RMSD values.
+        (default ``numpy.argmin``)
+    quiet : bool, optional
+        If True, suppress progress output. (default True)
+
+    Returns
+    -------
+    rmsd : ndarray of float, shape (n_macrostates, n_atoms)
+        Per-atom RMSD for each macrostate.
+    mean_frames_idx : ndarray of int
+        Trajectory indices of the representative frame for each macrostate.
+    """
     def get_traj(lumping):
         return load_trajectory(
             lumping.topology_file,
@@ -511,6 +901,26 @@ def calc_rmsd(lumping, estimator=np.argmin, quiet=True):
 
 
 def calc_rmsd_feature(lumping, estimator=np.argmin, quiet=True):
+    """Calculate per-feature RMSD across macrostates using the feature trajectory.
+
+    Parameters
+    ----------
+    lumping : MPP.Lumping
+        Lumping object with ``multi_feature_trajectory`` and macrostate
+        assignments.
+    estimator : callable, optional
+        Function to select the representative frame from RMSD values.
+        (default ``numpy.argmin``)
+    quiet : bool, optional
+        If True, suppress progress output. (default True)
+
+    Returns
+    -------
+    rmsd : ndarray of float, shape (n_macrostates, n_features)
+        Per-feature RMSD for each macrostate.
+    mean_frames_idx : ndarray of int
+        Trajectory indices of the representative frame for each macrostate.
+    """
     return _calc_rmsd_generic(
         lumping,
         lambda l: l.multi_feature_trajectory,
@@ -522,6 +932,20 @@ def calc_rmsd_feature(lumping, estimator=np.argmin, quiet=True):
 
 
 def find_state_lengths(arr):
+    """Compute run-length encoding of a state trajectory.
+
+    Parameters
+    ----------
+    arr : array-like
+        Sequence of state labels.
+
+    Returns
+    -------
+    unique_states : ndarray
+        Ordered sequence of states as they appear in ``arr``.
+    lengths : ndarray of int
+        Consecutive length of each state run.
+    """
     # Lists to store unique states and their consecutive counts
     unique_states = []
     lengths = []
@@ -551,7 +975,22 @@ def find_state_lengths(arr):
 
 
 def get_multi_state_trajectory(trajectories: npt.NDArray, limits: npt.NDArray):
-    """Load trajectory containing several concatenated trajectories"""
+    """Split a concatenated trajectory into per-segment sub-trajectories.
+
+    Parameters
+    ----------
+    trajectories : ndarray
+        Concatenated trajectory array.
+    limits : ndarray of int or None
+        Length of each segment. If None, the full trajectory is returned
+        unchanged.
+
+    Returns
+    -------
+    list of ndarray or ndarray
+        List of sub-trajectories, one per segment, or the original array if
+        ``limits`` is None.
+    """
     if limits is None:
         return trajectories
     trajectory_collection = []

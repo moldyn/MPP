@@ -216,10 +216,35 @@ class FeatureKernel(object):
             ].mean(axis=0)
 
     def reset(self):
+        """Reset intermediate cluster feature state.
+
+        Clears population counts and mean feature values for all intermediate
+        cluster states (indices ``n_states`` to ``2*n_states-2``), restoring
+        the kernel to its initial per-microstate state.
+        """
         self.full_pop[self.n_states :] = 0
         self.full_feature[self.n_states :] = 0
 
     def apply(self, state, mask):
+        """Compute normalized geometric similarity weights for a state.
+
+        Computes the Jensen-Shannon divergence between the mean feature vector
+        of ``state`` and all active states indicated by ``mask``, transforms
+        via the weighting function, and returns normalized weights.
+
+        Parameters
+        ----------
+        state : int
+            Index of the state whose similarity to others is computed.
+        mask : ndarray of bool
+            Boolean mask indicating currently active states.
+
+        Returns
+        -------
+        ndarray of float or int
+            Normalized similarity weights for each active state, or ``0``
+            if all pairwise similarities are equal (uninformative feature).
+        """
         f = self.js(state, mask)
         f -= f.min()
         if f.sum() != 0:
@@ -228,6 +253,20 @@ class FeatureKernel(object):
             return 0
 
     def update(self, origin, target, new_state):
+        """Update population and mean feature for a newly merged state.
+
+        Computes the population-weighted mean feature for the merged state
+        from its two constituent states and stores the result.
+
+        Parameters
+        ----------
+        origin : int
+            Index of the first state being merged.
+        target : int
+            Index of the second state being merged.
+        new_state : int
+            Index of the resulting merged state (typically ``n_states + i``).
+        """
         self.full_pop[new_state] = self.full_pop[[origin, target]].sum()
         self.full_feature[new_state] = (
             self.full_feature[origin] * self.full_pop[origin]
@@ -235,6 +274,25 @@ class FeatureKernel(object):
         ) / self.full_pop[new_state]
 
     def js(self, state, mask):
+        """Compute Jensen-Shannon divergence-based weights between a state and active states.
+
+        Computes the squared Jensen-Shannon divergence between the mean feature
+        vector of ``state`` and those of all active states indicated by
+        ``mask``, then applies the weighting function to convert divergences to
+        similarities.
+
+        Parameters
+        ----------
+        state : int
+            Index of the reference state.
+        mask : ndarray of bool
+            Boolean mask indicating currently active states.
+
+        Returns
+        -------
+        ndarray of float
+            Weighted similarity values, one per active state.
+        """
         p = self.full_feature[state]
         q = self.full_feature[mask]
         if p.ndim == 1:
@@ -245,6 +303,24 @@ class FeatureKernel(object):
         return utils.weighting_function(djs)
 
     def full_feature_from_Z(self, Z):
+        """Reconstruct full feature array for all runs from a Z matrix.
+
+        Replays the merging sequence encoded in ``Z`` to compute
+        population-weighted mean features for all intermediate cluster states
+        across all runs.
+
+        Parameters
+        ----------
+        Z : ndarray of float, shape (n_states-1, 4) or (n_runs, n_states-1, 4)
+            Z matrix encoding the merging sequence. If 2D, treated as a single
+            run.
+
+        Returns
+        -------
+        ndarray of float, shape (n_runs, 2*n_states-1, n_features)
+            Full feature array including both microstate and intermediate
+            cluster state features for each run.
+        """
         # Ensure that Z is 3D
         if Z.ndim == 2:
             Z = Z.reshape((1, *Z.shape))
