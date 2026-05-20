@@ -1,5 +1,3 @@
-import sys
-import MPP
 import MPP.run as r
 import numpy as np
 import yaml

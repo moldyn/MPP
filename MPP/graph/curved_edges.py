@@ -27,7 +27,6 @@ SOFTWARE.
 
 """
 import bezier
-import networkx as nx
 import numpy as np
 
 def curved_edges(G, pos, dist_ratio=0.2, bezier_precision=20, polarity='random'):

@@ -5,7 +5,6 @@ import math
 import prettypyplot as pplt
 from .curved_edges import curved_edges
 from fa2_modified import ForceAtlas2
-from scipy.spatial import distance_matrix
 from matplotlib import pyplot as plt
 from matplotlib.colors import to_hex
 from matplotlib.collections import LineCollection

@@ -151,7 +151,7 @@ def stochastic_state_similarity(mpt1, mpt2, out):
         ax.set_title(f"state {state + 1}")
     fig.supxlabel("Macrostate similarity")
     fig.supylabel(f"Count of clusterings ({sto.n_runs} clusterings)")
-    leg = plt.figlegend(
+    plt.figlegend(
         ["union", "reference", "clustering"],
         ncols=3,
         loc="lower center",

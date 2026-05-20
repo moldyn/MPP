@@ -1,6 +1,5 @@
 import unittest
 
-import os
 import yaml
 import numpy as np
 import tempfile

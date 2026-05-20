@@ -276,9 +276,6 @@ def sankey(
                 ys_u = np.convolve(ys_u, 0.05 * np.ones(20), mode="valid")
                 ys_u = np.convolve(ys_u, 0.05 * np.ones(20), mode="valid")
 
-                yrange = np.subtract(*ax.get_ylim()[::-1])
-                relative_width = np.mean(ys_u - ys_d) / yrange
-
                 # Update bottom edges at each label so next strip starts at the right place
                 leftWidths[leftLabel]["bottom"] += ns_l[leftLabel][rightLabel]
                 rightWidths[rightLabel]["bottom"] += ns_r[leftLabel][rightLabel]
