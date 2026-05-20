@@ -19,6 +19,10 @@ micromamba run -n mpp-test <command>
 EOF
 ```
 
+Only use heredocs when explicitly required (e.g. the nix-shell pattern above). Do not use heredocs for `git commit` or other commands where a plain `-m` flag suffices.
+
+For commits, use `git commit -am "..."`. Only use `git add` when a new (untracked) file needs to be included.
+
 ### Run all tests with coverage
 ```bash
 bash run_all_tests.sh
@@ -97,6 +101,11 @@ The `Plotter` inner class (accessed via `mpp.plot`) delegates to `MPP/plot.py`.
 
 ### Z Matrix Format
 Shape `(n_runs, n_states-1, 4)`. Each row: `[state_a, state_b, metastability_a, joint_population]`. Intermediate cluster index = `n_states + i`. Saved/loaded as `.npy`.
+
+## Commit Messages
+
+- Must include the issue number, e.g. `TASK-2.2 (#22): ...`
+- Must NOT reference Claude Code, any AI model, or include `Co-Authored-By` lines
 
 ### Test Structure
 - `tests/data/<dataset>/input/` — Input files (microstate trajectory, feature trajectory, config YAML)
