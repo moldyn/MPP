@@ -177,7 +177,7 @@ class Lumping(object):
         feature_trajectory : ndarray of float, shape (N, M)
             A feature trajectory of M features and N frames. For
             example selected contact distances are passed here. Must
-            be the same as for trajectory. If None, a moch array of
+            be the same as for trajectory. If None, a mock array of
             ones is created. (default None)
         contact_threshold : float
             Distance in feature space below which the interaction is
@@ -321,7 +321,19 @@ class Lumping(object):
         self.assign_macrostates()
 
     def assign_macrostates(self) -> None:
-        """Assign macrostates and provide macrostate data."""
+        """Assign macrostates from the Z matrix and populate macrostate attributes.
+
+        Parses the lumping tree for each run and populates the following
+        attributes: :attr:`macrostate_assignment`, :attr:`macrostate_map`,
+        :attr:`macrostate_tmat`, :attr:`macrostate_trajectory`,
+        :attr:`macrostate_feature`, :attr:`macrostate_multi_feature`, and
+        :attr:`n_macrostates`.
+
+        This method is called automatically by :meth:`run_mpp` and
+        :meth:`load_Z`. It can also be called manually after modifying
+        ``pop_thr`` or ``q_min`` to re-assign macrostates without re-running
+        the lumping algorithm.
+        """
         self.macrostate_feature = []
         self.macrostate_multi_feature = []
         self.macrostate_assignment = []
@@ -497,7 +509,16 @@ class Lumping(object):
                 last_merged = origin
 
     def save_macrostate_trajectory(self, out: Path, one_based: bool = False) -> None:
-        """Write macrostate trajectory to a text file."""
+        """Write the macrostate trajectory for the current run to a text file.
+
+        Parameters
+        ----------
+        out : Path
+            Output file path.
+        one_based : bool
+            If True, macrostate indices are shifted to 1-based before
+            writing. (default False)
+        """
         header = (
             f"Created by Lumping class\n"
             f"Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
@@ -532,8 +553,23 @@ class Lumping(object):
         else:
             raise ValueError("run_index must be 'all', Iterable or int.")
 
-    def load_Z(self, Z, gpcca=False):
-        """Load Z matrix."""
+    def load_Z(self, Z, gpcca: bool = False) -> None:
+        """Load a Z matrix and assign macrostates.
+
+        Parameters
+        ----------
+        Z : ndarray of float, shape (n_runs, n_states-1, 4) or str or Path
+            The Z matrix to load. Either a NumPy array or a path to a
+            ``.npy`` file.
+        gpcca : bool
+            If True, interpret the Z matrix as originating from a GPCCA
+            run and apply GPCCA-style macrostate assignment. (default False)
+
+        Raises
+        ------
+        ValueError
+            If ``Z`` is neither a NumPy array nor a path to an existing file.
+        """
         if isinstance(Z, np.ndarray):
             self.Z = Z
         elif os.path.exists(Z):
@@ -571,14 +607,33 @@ class Lumping(object):
         else:
             self.assign_macrostates()
 
-    def save_rmsd(self, out):
-        """Save RMSD of states to numpy file."""
+    def save_rmsd(self, out) -> None:
+        """Save RMSD values and mean frame indices to files.
+
+        Writes RMSD values to a ``.npy`` file at ``out`` and mean frame
+        indices to a companion ``.ndx`` file derived from ``out``.
+
+        Parameters
+        ----------
+        out : str or Path
+            Output file path for the RMSD ``.npy`` file. The mean frame
+            index file is written to the same path with ``_mean_frames.ndx``
+            appended to the base name.
+        """
         np.save(out, self.rmsd)
         fname, ext = os.path.splitext(out)
         self.save_mean_frames_idx(fname + "_mean_frames.ndx")
 
-    def load_rmsd(self, f_name):
-        """Save RMSD of states from numpy file."""
+    def load_rmsd(self, f_name) -> None:
+        """Load RMSD values and mean frame indices from files.
+
+        Parameters
+        ----------
+        f_name : str or Path
+            Path to the RMSD ``.npy`` file. The mean frame index file is
+            expected at the same path with ``_mean_frames.ndx`` appended to
+            the base name.
+        """
         self._rmsd = np.load(f_name)
         fname, ext = os.path.splitext(f_name)
         self.load_mean_frames_idx(fname + "_mean_frames.ndx")
@@ -598,9 +653,9 @@ class Lumping(object):
 
         Returns
         -------
-        ndarray of int, shape (N,) or None
-            N random frame indices if out is None, otherwise retutrns
-            None.
+        ndarray of int, shape (n_macrostates, n) or None
+            Array of drawn frame indices if ``out`` is None, otherwise
+            returns None.
         """
         drawn_frames = np.empty((self.n_macrostates[self.run_index], n), dtype=int)
         for state in np.arange(self.n_macrostates[self.run_index]):
@@ -647,7 +702,7 @@ class Lumping(object):
     def get_best_defined_contacts(self, n: int = 3) -> npt.NDArray[np.int_]:
         """Return the feature indices with the least variance.
 
-        Calculate the variance for each feature for each macrostete for
+        Calculate the variance for each feature for each macrostate for
         lumping run_index and return the indices for features with the least
         variance.
 
@@ -777,7 +832,7 @@ class Lumping(object):
 
     @property
     def reference(self) -> "Lumping":
-        """The reference lupming of the system.
+        """The reference lumping of the system.
 
         Only the transition probability is utilized to estimate the
         state similarity in the lumping process.
@@ -905,7 +960,14 @@ class Lumping(object):
 
     @property
     def macrostate_population(self) -> list[npt.NDArray[np.int_]]:
-        """Return the macrostate populations for all runs."""
+        """Macrostate populations in frames for all runs.
+
+        Returns
+        -------
+        list of ndarray of int, shape (n_macrostates,)
+            One array per run. Each element gives the number of frames
+            assigned to the corresponding macrostate.
+        """
         if self._macrostate_population is None:
             self._macrostate_population = []
             for j, ma in enumerate(self.macrostate_assignment):
@@ -942,17 +1004,40 @@ class Lumping(object):
                 )
         return self._rmsd
 
-    def save_mean_frames_idx(self, out):
-        """Save mean frames index to out."""
+    def save_mean_frames_idx(self, out) -> None:
+        """Save mean frame indices to a text file.
+
+        Parameters
+        ----------
+        out : str or Path
+            Output file path. Written as a plain-text ``.ndx`` file with
+            one index per line.
+        """
         np.savetxt(out, self._mean_frames_idx, fmt="%.0f", header="[frames]")
 
-    def load_mean_frames_idx(self, fname):
-        """Load mean frames index from fname."""
+    def load_mean_frames_idx(self, fname) -> None:
+        """Load mean frame indices from a text file.
+
+        Parameters
+        ----------
+        fname : str or Path
+            Path to the ``.ndx`` file written by :meth:`save_mean_frames_idx`.
+        """
         self._mean_frames_idx = np.loadtxt(fname, dtype=int)
 
     # Don't use this method, rather use gmx instead.
-    def load_mean_frames(self):
-        """Load mean frames"""
+    def load_mean_frames(self) -> None:
+        """Load mean frame structures from the XTC trajectory.
+
+        Requires :attr:`_mean_frames_idx` to be set first (via
+        :meth:`load_mean_frames_idx` or by computing :attr:`rmsd`).
+        Loaded frames are stored in :attr:`mean_frames`.
+
+        Notes
+        -----
+        Prefer extracting mean frames with GROMACS (``gmx``) rather than
+        this method.
+        """
         if self._mean_frames_idx is None:
             print("You first need to load the mean frame indices.")
         else:
@@ -963,7 +1048,18 @@ class Lumping(object):
                 stride=self.xtc_stride,
             )
 
-    def save_mean_frames(self, out):
+    def save_mean_frames(self, out) -> None:
+        """Save mean frame structures to a file.
+
+        If mean frames have not been loaded yet, :meth:`load_mean_frames`
+        is called first.
+
+        Parameters
+        ----------
+        out : str or Path
+            Output file path. The format is determined by the file extension
+            (e.g., ``.pdb``).
+        """
         if self.mean_frames is None:
             self.load_mean_frames()
         if self._mean_frames_idx is not None:
@@ -994,11 +1090,10 @@ class Lumping(object):
     def shannon_entropy(self) -> npt.NDArray[np.floating]:
         """The Shannon entropy.
 
-        The Shannon entropy is employed to measure how evenly the
-        macrostate are populated in a lumping. The Shannon entropy
-        penalizes in this case very low puplated macrostates. The lower
-        the entropy, the more even the population partition of the
-        macrostates.
+        The Shannon entropy measures how evenly the macrostates are
+        populated. A higher entropy value indicates more uniform population
+        across macrostates; a lower value indicates that population is
+        concentrated in fewer macrostates.
 
         Returns
         -------
@@ -1019,7 +1114,9 @@ class Lumping(object):
 
     @property
     def davies_bouldin_index(self) -> npt.NDArray[np.floating]:
-        """The davies bouldin index.
+        """The Davies-Bouldin index, a clustering quality metric.
+
+        Lower values indicate better-separated macrostates.
 
         Returns
         -------
@@ -1063,7 +1160,13 @@ class Lumping(object):
 
     @property
     def gmrq2(self) -> npt.NDArray[np.floating]:
-        """Sum of the first three eigenvalue squares."""
+        """Sum of the first three macrostate transition matrix eigenvalue squares.
+
+        Returns
+        -------
+        ndarray of float, shape (n_runs,)
+            Array contains the GMRQ2 value for each run.
+        """
         if self._gmrq2 is None:
             self._gmrq2 = utils.gmrq2(self.macrostate_tmat)
         return self._gmrq2
@@ -1097,10 +1200,16 @@ class Lumping(object):
 
     @property
     def tree(self) -> list[core.BinaryTreeNode]:
-        """The lumping tree.
+        """The lumping trees for all runs.
 
-        This property holds the lumping trees of all lumpings performed
-        by this object. The root node is stored for each lumping.
+        Built lazily from the Z matrix on first access. The root node of
+        each binary tree is stored.
+
+        Returns
+        -------
+        list of BinaryTreeNode
+            One root node per run. Each tree encodes the full merge
+            history and is used by :meth:`assign_macrostates`.
         """
         if self._tree is None:
             self._tree = []
@@ -1108,8 +1217,27 @@ class Lumping(object):
                 self._tree.append(self.build_tree(z, pop))
         return self._tree
 
-    def build_tree(self, Z, full_pop):
-        """Build tree using BinaryTreeNode and return root."""
+    def build_tree(
+        self,
+        Z: npt.NDArray[np.floating],
+        full_pop: npt.NDArray[np.integer],
+    ) -> core.BinaryTreeNode:
+        """Build a binary lumping tree from a single Z matrix row.
+
+        Parameters
+        ----------
+        Z : ndarray of float, shape (n_states-1, 4)
+            Z matrix for one lumping run. Each row encodes one merge step
+            (see :attr:`Z` for format details).
+        full_pop : ndarray of int, shape (2*n_states-1,)
+            Population array covering both microstates and intermediate
+            merged states.
+
+        Returns
+        -------
+        BinaryTreeNode
+            Root node of the binary lumping tree.
+        """
         n = Z.shape[0] + 1
         nodes = {}
         for i, (state, target_state, q, pop) in enumerate(Z):
@@ -1148,7 +1276,22 @@ class Lumping(object):
 
     @property
     def trajectory(self) -> npt.NDArray[np.int_]:
-        """The microstate trajectory - 0-based."""
+        """The microstate trajectory (0-based).
+
+        On assignment, 1-based trajectories are automatically shifted to
+        0-based with a warning. State numbering must be contiguous
+        (no gaps).
+
+        Returns
+        -------
+        ndarray of int
+            0-based microstate trajectory array.
+
+        Raises
+        ------
+        ValueError
+            If the state numbering is not contiguous.
+        """
         return self._trajectory
 
     @trajectory.setter
@@ -1168,7 +1311,15 @@ class Lumping(object):
 
     @property
     def topology_file(self):
-        """The topology_file property."""
+        """Path to the topology file used for structural analysis.
+
+        Raises
+        ------
+        ValueError
+            If no topology file has been set.
+        FileNotFoundError
+            If the assigned path does not exist (raised on assignment).
+        """
         if self._topology_file is None:
             raise ValueError("No topology file set.")
         return self._topology_file
@@ -1182,7 +1333,15 @@ class Lumping(object):
 
     @property
     def xtc_trajectory_file(self):
-        """The xtc_trajectory_file property."""
+        """Path to the XTC trajectory file used for structural analysis.
+
+        Raises
+        ------
+        ValueError
+            If no XTC trajectory file has been set.
+        FileNotFoundError
+            If the assigned path does not exist (raised on assignment).
+        """
         if self._xtc_trajectory_file is None:
             raise ValueError("No xtc trajectory file set.")
         return self._xtc_trajectory_file
@@ -1205,13 +1364,33 @@ class Lumping(object):
 
 
 class Plotter:
-    """Delegate class for producing various plots from a Lumping instance."""
+    """Delegate class for producing various plots from a Lumping instance.
 
-    def __init__(self, obj):
+    Accessed via :attr:`Lumping.plot`. Each method writes a plot to a file.
+    """
+
+    def __init__(self, obj: "Lumping") -> None:
+        """Initialize with the parent Lumping instance.
+
+        Parameters
+        ----------
+        obj : Lumping
+            The Lumping instance to produce plots for.
+        """
         self._obj = obj
 
-    def dendrogram(self, out: str, scale=1, offset=0):
-        """Plot dendrogram."""
+    def dendrogram(self, out: str, scale: float = 1, offset: float = 0) -> None:
+        """Plot the lumping dendrogram.
+
+        Parameters
+        ----------
+        out : str
+            File path to write the plot.
+        scale : float
+            Scaling factor for the figure size. (default 1)
+        offset : float
+            Offset applied to the metastability axis. (default 0)
+        """
         plot.plot_tree(
             self._obj.tree[self._obj.run_index],
             self._obj.macrostate_assignment[self._obj.run_index],
@@ -1273,17 +1452,46 @@ class Plotter:
             self._obj.reference if ref is None else ref,
         )
 
-    def rmsd(self, out, helices=None):
+    def rmsd(self, out, helices=None) -> None:
+        """Plot per-macrostate C-alpha RMSD.
+
+        Parameters
+        ----------
+        out : str
+            File path to write the plot.
+        helices : list, optional
+            Helix residue ranges to annotate on the plot. (default None)
+        """
         plot.rmsd(
             self._obj.rmsd, self._obj.macrostate_population[self._obj.run_index], helices, out
         )
 
-    def delta_rmsd(self, out, helices=None):
+    def delta_rmsd(self, out, helices=None) -> None:
+        """Plot per-macrostate delta C-alpha RMSD relative to macrostate 0.
+
+        Parameters
+        ----------
+        out : str
+            File path to write the plot.
+        helices : list, optional
+            Helix residue ranges to annotate on the plot. (default None)
+        """
         plot.delta_rmsd(
             self._obj.rmsd, self._obj.macrostate_population[self._obj.run_index], helices, out
         )
 
-    def contact_rep(self, cluster_file, out, scale=1):
+    def contact_rep(self, cluster_file, out, scale: float = 1) -> None:
+        """Plot contact representation for each macrostate.
+
+        Parameters
+        ----------
+        cluster_file : str or Path
+            Path to the contact index file.
+        out : str
+            File path to write the plot.
+        scale : float
+            Scaling factor for the figure size. (default 1)
+        """
         plot.contact_rep(
             self._obj.multi_feature_trajectory,
             cluster_file,
@@ -1293,22 +1501,64 @@ class Plotter:
             scale=scale,
         )
 
-    def relative_implied_timescales(self, out):
+    def relative_implied_timescales(self, out) -> None:
+        """Plot implied timescales relative to the reference lumping.
+
+        Parameters
+        ----------
+        out : str
+            File path to write the plot.
+        """
         plot.relative_implied_timescales(self._obj, out)
 
-    def ck_test(self, out):
+    def ck_test(self, out) -> None:
+        """Plot Chapman-Kolmogorov test results.
+
+        Parameters
+        ----------
+        out : str
+            File path to write the plot.
+        """
         plot.chapman_kolmogorov(self._obj, out, self._obj.frame_length)
 
-    def state_network(self, out):
+    def state_network(self, out) -> None:
+        """Plot the macrostate transition network.
+
+        Parameters
+        ----------
+        out : str
+            File path to write the plot.
+        """
         plot.state_network(self._obj, out)
 
-    def stochastic_state_similarity(self, out):
+    def stochastic_state_similarity(self, out) -> None:
+        """Plot state overlap between stochastic runs and the reference lumping.
+
+        Parameters
+        ----------
+        out : str
+            File path to write the plot.
+        """
         plot.stochastic_state_similarity(self._obj, self._obj.reference, out)
 
-    def transition_matrix(self, out):
+    def transition_matrix(self, out) -> None:
+        """Plot the macrostate transition matrix as a heatmap.
+
+        Parameters
+        ----------
+        out : str
+            File path to write the plot.
+        """
         plot.transition_matrix(self._obj.macrostate_tmat[self._obj.run_index], out)
 
-    def transition_time(self, out):
+    def transition_time(self, out) -> None:
+        """Plot mean first-passage times between macrostates.
+
+        Parameters
+        ----------
+        out : str
+            File path to write the plot.
+        """
         plot.transition_time(
             self._obj.macrostate_tmat[self._obj.run_index],
             out,
@@ -1316,7 +1566,20 @@ class Plotter:
             frame_length=self._obj.frame_length,
         )
 
-    def graph(self, out, u=0, f=0):
+    def graph(self, out, u: float = 0, f: float = 0) -> None:
+        """Plot the macrostate kinetic network graph.
+
+        Parameters
+        ----------
+        out : str
+            File path to write the plot.
+        u : float
+            Upper threshold parameter passed to the network drawing
+            function. (default 0)
+        f : float
+            Lower threshold parameter passed to the network drawing
+            function. (default 0)
+        """
         draw_knetwork(
             self._obj.macrostate_trajectory[self._obj.run_index],
             self._obj.lagtime,
@@ -1326,10 +1589,30 @@ class Plotter:
             f=f,
         )
 
-    def sankey(self, out, ax=None, scale=1):
+    def sankey(self, out, ax=None, scale: float = 1) -> None:
+        """Plot a Sankey diagram comparing this lumping to the reference.
+
+        Parameters
+        ----------
+        out : str
+            File path to write the plot.
+        ax : matplotlib.axes.Axes, optional
+            Axes to draw on. If None, a new figure is created. (default None)
+        scale : float
+            Scaling factor for the figure size. (default 1)
+        """
         plot.sankey_diagram(self._obj, self._obj.reference, out, ax=ax, scale=scale)
 
-    def macrostate_trajectory(self, out, row_length=0.2):
+    def macrostate_trajectory(self, out, row_length: float = 0.2) -> None:
+        """Plot the macrostate trajectory as a color-coded time series.
+
+        Parameters
+        ----------
+        out : str
+            File path to write the plot.
+        row_length : float
+            Length of each row in ns. (default 0.2)
+        """
         plot.state_trajectory(
             self._obj.macrostate_trajectory[self._obj.run_index],
             out,
