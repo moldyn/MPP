@@ -832,9 +832,11 @@ def rmsd(rmsds, pops, helices=None, filename=None):
     Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
 
     Parameters:
-    - vars (np.ndarray): The 2D NumPy array to plot. Values must be positive for logarithmic scaling.
+    - vars (np.ndarray): The 2D NumPy array to plot. Values must be positive
+      for logarithmic scaling.
     - row_heights (np.ndarray): 1D array defining the height of each row.
-    - helices (np.ndarray): Array with start and end points for blocks to be indicated in the bottom row.
+    - helices (np.ndarray): Array with start and end points for blocks to be
+      indicated in the bottom row.
     - filename (str, optional): If provided, saves the heatmap to this file.
     """
     # Ensure all values are positive for logarithmic scaling
@@ -1001,9 +1003,11 @@ def delta_rmsd(rmsds, pops, helices=None, filename=None):
     Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
 
     Parameters:
-    - vars (np.ndarray): The 2D NumPy array to plot. Values must be positive for logarithmic scaling.
+    - vars (np.ndarray): The 2D NumPy array to plot. Values must be positive
+      for logarithmic scaling.
     - row_heights (np.ndarray): 1D array defining the height of each row.
-    - helices (np.ndarray): Array with start and end points for blocks to be indicated in the bottom row.
+    - helices (np.ndarray): Array with start and end points for blocks to be
+      indicated in the bottom row.
     - filename (str, optional): If provided, saves the heatmap to this file.
     """
     # Ensure all values are positive for logarithmic scaling

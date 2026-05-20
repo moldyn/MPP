@@ -6,7 +6,8 @@ data_root = "example"
 configfile: os.path.join("workflow", "lumpings.yml")
 
 # TODO:
-# - source in config file required? Probably yes, because of all the file that are loaded within python.
+# - source in config file required? Probably yes, because of all the file
+#   that are loaded within python.
 
 
 def get_d(wildcards):
@@ -69,7 +70,10 @@ rule plot:
   conda:
     "mpp.yml"
   shell:
-    "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -p {wildcards.plot} -o {output}"
+    (
+        "python -m MPP.run {input.config} {params.d} {params.g}"
+        " -Z {input.z} -p {wildcards.plot} -o {output}"
+    )
 
 rule rmsd_CA:
   input:
@@ -103,14 +107,19 @@ rule rmsd_feature:
   conda:
     "mpp.yml"
   shell:
-    "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} --rmsd {output.npy} --rmsd-feature feature"
+    (
+        "python -m MPP.run {input.config} {params.d} {params.g}"
+        " -Z {input.z} --rmsd {output.npy} --rmsd-feature feature"
+    )
 
 checkpoint draw_random:
   input:
     config=os.path.join(data_root, "{system}", "input", "config.yml"),
     z=os.path.join(data_root, "{system}", "results", "{lumping}", "Z.npy")
   output:
-    macrostates=directory(os.path.join(data_root, "{system}", "results", "{lumping}", "random_frames"))
+    macrostates=directory(
+        os.path.join(data_root, "{system}", "results", "{lumping}", "random_frames")
+    )
   params:
     d=get_d,
     g=get_g,
@@ -123,17 +132,25 @@ checkpoint draw_random:
 
 def aggregate_input(wildcards):
     checkpoint_output = checkpoints.draw_random.get(**wildcards).output[0]
-    return expand(os.path.join(data_root, "{system}", "results", "{lumping}", "random_pngs", "{macrostate}.png"),
-           system=wildcards.system,
-           lumping=wildcards.lumping,
-           macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.ndx")).macrostate)
+    return expand(
+        os.path.join(
+            data_root, "{system}", "results", "{lumping}", "random_pngs", "{macrostate}.png"
+        ),
+        system=wildcards.system,
+        lumping=wildcards.lumping,
+        macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.ndx")).macrostate,
+    )
 
 def aggregate_input_pdb(wildcards):
     checkpoint_output = checkpoints.draw_random.get(**wildcards).output[0]
-    return expand(os.path.join(data_root, "{system}", "results", "{lumping}", "random_pdbs", "{macrostate}.pdb"),
-           system=wildcards.system,
-           lumping=wildcards.lumping,
-           macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.ndx")).macrostate)
+    return expand(
+        os.path.join(
+            data_root, "{system}", "results", "{lumping}", "random_pdbs", "{macrostate}.pdb"
+        ),
+        system=wildcards.system,
+        lumping=wildcards.lumping,
+        macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.ndx")).macrostate,
+    )
 
 rule aggregate:
   input:
@@ -165,7 +182,10 @@ rule get_least_moving_residues:
   conda:
     "mpp.yml"
   shell:
-    "python -m MPP.run {input.config} {params.d} {params.g} -Z {input.z} -o {output} --get-least-moving-residues {params.ndx_file}"
+    (
+        "python -m MPP.run {input.config} {params.d} {params.g}"
+        " -Z {input.z} -o {output} --get-least-moving-residues {params.ndx_file}"
+    )
 
 # TODO:
 # Mind the xtc stride / --skip not working; rewrite of .ndx required
@@ -213,7 +233,9 @@ eof"""
 
 rule render_pdb_files:
   input:
-    pdb=os.path.join(data_root, "{system}", "results", "{lumping}", "random_pdbs", "{macrostate}.pdb"),
+    pdb=os.path.join(
+        data_root, "{system}", "results", "{lumping}", "random_pdbs", "{macrostate}.pdb"
+    ),
     ndx=os.path.join(data_root, "{system}", "results", "{lumping}", "least_moving_residues.ndx")
   output:
     os.path.join(data_root, "{system}", "results", "{lumping}", "random_pngs", "{macrostate}.png")
@@ -222,32 +244,50 @@ rule render_pdb_files:
   params:
     ndx_file=get_contact_index_file,
   shell:
-    "pymol -cq " + os.path.join("workflow", "render_random_structures.py") + " -- {input.pdb} {output} {input.ndx}"
+    (
+        "pymol -cq "
+        + os.path.join("workflow", "render_random_structures.py")
+        + " -- {input.pdb} {output} {input.ndx}"
+    )
 
 
 checkpoint draw_cluster_in_states:
   input:
     config=os.path.join(data_root, "{system}", "input", "config.yml"),
-    frames=os.path.join(data_root, "{system}", "results", "{lumping}", "mean_frames_{rmsd_feature}.pdb")
+    frames=os.path.join(
+        data_root, "{system}", "results", "{lumping}", "mean_frames_{rmsd_feature}.pdb"
+    )
   output:
-    directory(os.path.join(data_root, "{system}", "results", "{lumping}", "mean_frames_{rmsd_feature}_{clusters}"))
+    directory(os.path.join(
+        data_root, "{system}", "results", "{lumping}", "mean_frames_{rmsd_feature}_{clusters}"
+    ))
   conda:
     "pymol"
   shell:
-    os.path.join("workflow", "create_cluster_pml.py") + " {output} {input.config} {input.frames} {wildcards.clusters}"
+    (
+        os.path.join("workflow", "create_cluster_pml.py")
+        + " {output} {input.config} {input.frames} {wildcards.clusters}"
+    )
 
 def aggregate_input_draw_cluster(wildcards):
     checkpoint_output = checkpoints.draw_cluster_in_states.get(**wildcards).output[0]
-    return expand(os.path.join(data_root, "{system}", "results", "{lumping}", "mean_frames_{rmsd_feature}", "{macrostate}.png"),
-           system=wildcards.system,
-           lumping=wildcards.lumping,
-           macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.png")).macrostate)
+    return expand(
+        os.path.join(
+            data_root, "{system}", "results", "{lumping}",
+            "mean_frames_{rmsd_feature}", "{macrostate}.png"
+        ),
+        system=wildcards.system,
+        lumping=wildcards.lumping,
+        macrostate=glob_wildcards(os.path.join(checkpoint_output, "{macrostate}.png")).macrostate,
+    )
 
 rule aggregate_draw_cluster:
   input:
     aggregate_input_draw_cluster
   output:
-    os.path.join(data_root, "{system}", "results", "{lumping}", "rmsd_mean_{rmsd_feature}_{clusters}.txt")
+    os.path.join(
+        data_root, "{system}", "results", "{lumping}", "rmsd_mean_{rmsd_feature}_{clusters}.txt"
+    )
   shell:
     "echo {input} > {output}"
 

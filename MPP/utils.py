@@ -325,10 +325,12 @@ def align_trajectory_to_reference(trajectory, reference):
     - reference: numpy array of shape (1, 35, 3) representing the reference points.
 
     Returns:
-    - aligned_trajectory: numpy array of shape (N, 35, 3) where each frame is aligned to the reference.
+    - aligned_trajectory: numpy array of shape (N, 35, 3) where each frame is
+      aligned to the reference.
     """
 
-    # Extract the reference frame (since reference is of shape (1, 35, 3), we need to squeeze it to (35, 3))
+    # Extract the reference frame (since reference is of shape (1, 35, 3),
+    # we need to squeeze it to (35, 3))
     reference_frame = reference.squeeze()
 
     # Compute the centroid (mean) of the reference points

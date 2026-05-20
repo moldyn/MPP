@@ -40,7 +40,10 @@ def curved_edges(G, pos, dist_ratio=0.2, bezier_precision=20, polarity='random')
     else:
         # Create a fixed (hashed) polarity column in the case we use fixed polarity
         # This is useful, e.g., for animations
-        rnd = np.where(np.mod(np.vectorize(hash)(edges[:,0])+np.vectorize(hash)(edges[:,1]),2)==0,-1,1)
+        rnd = np.where(
+            np.mod(np.vectorize(hash)(edges[:,0])+np.vectorize(hash)(edges[:,1]),2)==0,
+            -1, 1
+        )
     
     # Coordinates (x,y) of both nodes for each edge
     # e.g., https://stackoverflow.com/questions/16992713/translate-every-element-in-numpy-array-according-to-key
@@ -52,7 +55,9 @@ def curved_edges(G, pos, dist_ratio=0.2, bezier_precision=20, polarity='random')
     
     # Swap node1/node2 allocations to make sure the directionality works correctly
     should_swap = coords_node1[:,0] > coords_node2[:,0]
-    coords_node1[should_swap], coords_node2[should_swap] = coords_node2[should_swap], coords_node1[should_swap]
+    coords_node1[should_swap], coords_node2[should_swap] = (
+        coords_node2[should_swap], coords_node1[should_swap]
+    )
     
     # Distance for control points
     dist = dist_ratio * np.sqrt(np.sum((coords_node1-coords_node2)**2, axis=1))
@@ -82,7 +87,9 @@ def curved_edges(G, pos, dist_ratio=0.2, bezier_precision=20, polarity='random')
     curveplots = []
     for i in range(l):
         nodes = node_matrix[:,i,:].T
-        curveplots.append(bezier.Curve(nodes, degree=3).evaluate_multi(np.linspace(0,1,bezier_precision)).T)
+        curveplots.append(
+            bezier.Curve(nodes, degree=3).evaluate_multi(np.linspace(0,1,bezier_precision)).T
+        )
       
     # Return an array of these curves
     curves = np.array(curveplots)

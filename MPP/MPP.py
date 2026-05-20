@@ -498,7 +498,8 @@ class Lumping(object):
         header = (
             f"Created by Lumping class\n"
             f"Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
-            f"Trajectory contains {self.n_macrostates[self.n_i]} states and {self.macrostate_trajectory.shape[1]} frames.\n"
+            f"Trajectory contains {self.n_macrostates[self.n_i]} states"
+            f" and {self.macrostate_trajectory.shape[1]} frames.\n"
             f"Trajectory index: {self.n_i}\n"
         )
         macrostate_trajectory = self.macrostate_trajectory[self.n_i]
