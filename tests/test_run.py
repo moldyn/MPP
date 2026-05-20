@@ -2,6 +2,7 @@ import unittest
 
 
 import sys
+import warnings
 from io import StringIO
 from contextlib import redirect_stdout, redirect_stderr
 import tempfile
@@ -197,3 +198,134 @@ class TestRunScript(unittest.TestCase):
 
     def test_random_frames_indices_aSyn_t_ref(self):
         self._run_random_frames_indices("aSyn", "T", "none")
+
+
+class TestConfigNormalization(unittest.TestCase):
+    """Tests for backward-compatible YAML config key normalization."""
+
+    def _write_config(self, path, extra_keys):
+        """Write a minimal valid config to *path* with the given extra keys."""
+        config = {
+            "source": "tests/data/HP35/input/",
+            "lagtime": 1,
+            "pop_thr": 0.005,
+            "q_min": 0.5,
+        }
+        config.update(extra_keys)
+        import yaml as _yaml
+        with open(path, "w") as f:
+            _yaml.dump(config, f)
+
+    def test_canonical_keys_load_without_warning(self):
+        """New snake_case keys must load without any DeprecationWarning."""
+        with tempfile.NamedTemporaryFile(
+            suffix=".yml", mode="w", delete=False
+        ) as tmp:
+            tmp_path = tmp.name
+        self._write_config(
+            tmp_path,
+            {
+                "microstate_trajectory": "microstate_trajectory",
+                "multi_feature_trajectory": "contact_distances_trajectory",
+            },
+        )
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            run_module.Data(tmp_path)
+        deprecations = [w for w in caught if issubclass(w.category, DeprecationWarning)]
+        self.assertEqual(
+            len(deprecations),
+            0,
+            f"Unexpected DeprecationWarning(s): {[str(w.message) for w in deprecations]}",
+        )
+
+    def test_legacy_keys_emit_deprecation_warning(self):
+        """Old space-separated keys must emit DeprecationWarning and still load."""
+        with tempfile.NamedTemporaryFile(
+            suffix=".yml", mode="w", delete=False
+        ) as tmp:
+            tmp_path = tmp.name
+        self._write_config(
+            tmp_path,
+            {
+                "microstate trajectory": "microstate_trajectory",
+                "multi feature trajectory": "contact_distances_trajectory",
+            },
+        )
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            data = run_module.Data(tmp_path)
+        deprecation_messages = [
+            str(w.message) for w in caught if issubclass(w.category, DeprecationWarning)
+        ]
+        self.assertTrue(
+            any("microstate trajectory" in m for m in deprecation_messages),
+            f"Expected DeprecationWarning for 'microstate trajectory', got: {deprecation_messages}",
+        )
+        self.assertTrue(
+            any("multi feature trajectory" in m for m in deprecation_messages),
+            f"Expected DeprecationWarning for 'multi feature trajectory', got: {deprecation_messages}",
+        )
+        # Value must still be accessible under the canonical key
+        self.assertEqual(data.d["microstate_trajectory"], "microstate_trajectory")
+
+    def test_duplicate_legacy_and_canonical_keys_raises(self):
+        """Specifying both a legacy key and its canonical equivalent must raise ValueError."""
+        with tempfile.NamedTemporaryFile(
+            suffix=".yml", mode="w", delete=False
+        ) as tmp:
+            tmp_path = tmp.name
+        # Write raw YAML to avoid dict deduplication
+        with open(tmp_path, "w") as f:
+            f.write(
+                "source: tests/data/HP35/input/\n"
+                "lagtime: 1\npop_thr: 0.005\nq_min: 0.5\n"
+                "microstate trajectory: old_traj\n"
+                "microstate_trajectory: new_traj\n"
+                "multi_feature_trajectory: contact_distances_trajectory\n"
+            )
+        with self.assertRaises(ValueError) as ctx:
+            run_module.Data(tmp_path)
+        self.assertIn("microstate trajectory", str(ctx.exception))
+        self.assertIn("microstate_trajectory", str(ctx.exception))
+
+    def test_normalize_config_canonical_keys_unchanged(self):
+        """_normalize_config must return canonical keys unchanged."""
+        config = {"microstate_trajectory": "foo", "lagtime": 1}
+        result = run_module._normalize_config(config)
+        self.assertEqual(result["microstate_trajectory"], "foo")
+        self.assertNotIn("microstate trajectory", result)
+
+    def test_normalize_config_all_aliases(self):
+        """Every legacy alias must be renamed to its canonical form."""
+        legacy = {
+            "microstate trajectory": "a",
+            "multi feature trajectory": "b",
+            "contact threshold": 0.45,
+            "cluster file": "c",
+            "contact index file": "d",
+            "topology file": "e",
+            "xtc file": "f",
+            "frame length": 10,
+            "xtc stride": 1000,
+            "n timescales": 3,
+        }
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+            result = run_module._normalize_config(legacy)
+        for old_key in legacy:
+            self.assertNotIn(old_key, result, f"Legacy key '{old_key}' should be removed")
+        expected_canonical = [
+            "microstate_trajectory",
+            "multi_feature_trajectory",
+            "contact_threshold",
+            "cluster_file",
+            "contact_index_file",
+            "topology_file",
+            "xtc_file",
+            "frame_length",
+            "xtc_stride",
+            "n_timescales",
+        ]
+        for key in expected_canonical:
+            self.assertIn(key, result, f"Canonical key '{key}' missing from result")

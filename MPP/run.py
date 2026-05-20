@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import warnings
 import yaml
 from pathlib import Path
 import argparse
@@ -9,39 +10,90 @@ import numpy as np
 import MPP
 
 
+# Mapping from legacy space-separated keys to canonical snake_case keys.
+_KEY_ALIASES = {
+    "microstate trajectory": "microstate_trajectory",
+    "multi feature trajectory": "multi_feature_trajectory",
+    "contact threshold": "contact_threshold",
+    "cluster file": "cluster_file",
+    "contact index file": "contact_index_file",
+    "topology file": "topology_file",
+    "xtc file": "xtc_file",
+    "frame length": "frame_length",
+    "xtc stride": "xtc_stride",
+    "n timescales": "n_timescales",
+}
+
+
+def _normalize_config(config):
+    """Normalize legacy space-separated config keys to canonical snake_case.
+
+    Parameters
+    ----------
+    config : dict
+        Raw config dict loaded from YAML.
+
+    Returns
+    -------
+    dict
+        Config dict with all keys normalized to snake_case.
+
+    Raises
+    ------
+    ValueError
+        If both a legacy key and its canonical equivalent are present.
+    """
+    normalized = {}
+    for key, value in config.items():
+        canonical = _KEY_ALIASES.get(key, key)
+        if canonical != key:
+            if canonical in config:
+                raise ValueError(
+                    f"Duplicate config keys: '{key}' (legacy) and "
+                    f"'{canonical}' (canonical) cannot both be specified."
+                )
+            warnings.warn(
+                f"Config key '{key}' is deprecated; use '{canonical}' instead.",
+                DeprecationWarning,
+                stacklevel=3,
+            )
+        normalized[canonical] = value
+    return normalized
+
+
 OPTIONAL_PARAMS = [
-    "cluster file",
-    "contact index file",
-    "contact threshold",
+    "cluster_file",
+    "contact_index_file",
+    "contact_threshold",
     "limits",
-    "topology file",
-    "xtc file",
+    "topology_file",
+    "xtc_file",
     "helices",
-    "frame length",
+    "frame_length",
     "view",
     "width",
     "height",
 ]
 
 DEFAULTS = {k: None for k in OPTIONAL_PARAMS}
-DEFAULTS["contact threshold"] = 0.45
+DEFAULTS["contact_threshold"] = 0.45
 
 
 class Data:
     def __init__(self, yaml_file):
         with open(yaml_file, "r") as f:
             config = yaml.safe_load(f) or {}
-        self.d = {**DEFAULTS, **config}
+        self.d = {**DEFAULTS, **_normalize_config(config)}
 
         self.source = self.d["source"]
 
         self.microstate_trajectory = np.loadtxt(
-            os.path.join(self.source, self.d["microstate trajectory"]), dtype=np.uint16
+            os.path.join(self.source, self.d["microstate_trajectory"]), dtype=np.uint16
         )
         self.multi_state_trajectory_raw = np.loadtxt(
             os.path.join(
                 self.source,
-                self.d["multi feature trajectory"],
+                self.d["multi_feature_trajectory"],
             ),
             ndmin=2,
         )
@@ -61,9 +113,9 @@ class Data:
         self.xtc = None
         self.helices = None
         for file, param in [
-            ("cluster file", "cluster"),
-            ("topology file", "top"),
-            ("xtc file", "xtc"),
+            ("cluster_file", "cluster"),
+            ("topology_file", "top"),
+            ("xtc_file", "xtc"),
             ("helices", "helices"),
         ]:
             if self.d[file] is not None:
@@ -72,7 +124,7 @@ class Data:
         if self.helices is not None:
             self.helices = np.loadtxt(self.helices, dtype=int)
 
-        self.frame_length = self.d["frame length"]
+        self.frame_length = self.d["frame_length"]
         self.lagtime = self.d["lagtime"]
         self.pop_thr = self.d["pop_thr"]
         self.q_min = self.d["q_min"]
@@ -120,7 +172,7 @@ class Data:
             self.microstate_trajectory,
             self.lagtime,
             self.multi_state_trajectory_raw,
-            contact_threshold=self.d["contact threshold"],
+            contact_threshold=self.d["contact_threshold"],
             pop_thr=self.pop_thr,
             q_min=self.q_min,
             limits=self.limits,
@@ -130,7 +182,7 @@ class Data:
             self.mpp.topology_file = self.top
         if self.xtc is not None and os.path.exists(self.xtc):
             self.mpp.xtc_trajectory_file = self.xtc
-        self.mpp.xtc_stride = self.d.get("xtc stride", None)
+        self.mpp.xtc_stride = self.d.get("xtc_stride", None)
         self.mpp.frame_length = self.frame_length
 
     def perform_mpp(self, out, overwrite=False):
@@ -223,8 +275,8 @@ def plot(data, out, kind="dendrogram", scale=1):
     if kind == "dendrogram":
         data.mpp.plot.dendrogram(out, scale=scale, offset=0.0)
     elif kind == "timescales":
-        if "n timescales" in data.d:
-            data.mpp.calc_timescales(data.d["n timescales"])
+        if "n_timescales" in data.d:
+            data.mpp.calc_timescales(data.d["n_timescales"])
         data.mpp.plot.implied_timescales(out, scale=scale, use_ref=data.use_ref)
     elif kind == "sankey":
         data.mpp.plot.sankey(out, scale=scale)

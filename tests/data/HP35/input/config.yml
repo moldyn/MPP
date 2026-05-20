@@ -1,16 +1,16 @@
 source: tests/data/HP35/input/
 
-microstate trajectory: microstate_trajectory
-multi feature trajectory: contact_distances_trajectory
-cluster file: clusters
-contact index file: contacts.ndx
+microstate_trajectory: microstate_trajectory
+multi_feature_trajectory: contact_distances_trajectory
+cluster_file: clusters
+contact_index_file: contacts.ndx
 limits: null
 
-topology file: structure.pdb
-xtc file: trajectory.xtc
+topology_file: structure.pdb
+xtc_file: trajectory.xtc
 helices: helices
 
-frame length: 10 # in ns / frame
+frame_length: 10 # in ns / frame
 lagtime: 1 # in frames
 pop_thr: 0.005
 q_min: 0.5

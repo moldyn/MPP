@@ -1,17 +1,17 @@
 source: example/sample_system/input
 
-microstate trajectory: traj
-multi feature trajectory: feature_traj
-contact threshold: null
-# cluster file: clusters
-# contact index file: contacts.ndx
+microstate_trajectory: traj
+multi_feature_trajectory: feature_traj
+contact_threshold: null
+# cluster_file: clusters
+# contact_index_file: contacts.ndx
 # limits: null
 #
-# topology file: structure.pdb
-# xtc file: trajectory.xtc
+# topology_file: structure.pdb
+# xtc_file: trajectory.xtc
 # helices: helices
 
-# frame length: 0.2 # in ns / frame
+# frame_length: 0.2 # in ns / frame
 lagtime: 20 # in frames
 pop_thr: 0.15
 q_min: 0.5

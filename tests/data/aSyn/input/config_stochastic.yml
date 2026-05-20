@@ -1,20 +1,20 @@
 source: tests/data/aSyn/input/
 
-microstate trajectory: microstate_trajectory
-multi feature trajectory: contact_distances_trajectory
-cluster file: clusters_s
+microstate_trajectory: microstate_trajectory
+multi_feature_trajectory: contact_distances_trajectory
+cluster_file: clusters_s
 limits: null
 
-topology file: topology.pdb
-xtc file: trajectory.xtc
-xtc stride: 1000
+topology_file: topology.pdb
+xtc_file: trajectory.xtc
+xtc_stride: 1000
 
-frame length: 200 # in ns / frame
+frame_length: 200 # in ns / frame
 lagtime: 1 # in frames
 pop_min: 0.01
 q_min: 0.5
 
-n timescales: 5
+n_timescales: 5
 
 stochastic:
   method: n

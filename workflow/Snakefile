@@ -18,29 +18,29 @@ def get_g(wildcards):
 
 def get_top_file(wildcards):
   configfile: os.path.join(data_root, wildcards.system, "input", "config.yml")
-  return os.path.join(config["source"], config["topology file"])
+  return os.path.join(config["source"], config["topology_file"])
 
 def get_xtc_file(wildcards):
   configfile: os.path.join(data_root, wildcards.system, "input", "config.yml")
-  return os.path.join(config["source"], config["xtc file"])
+  return os.path.join(config["source"], config["xtc_file"])
 
 def get_contact_index_file(wildcards):
   configfile: os.path.join(data_root, wildcards.system, "input", "config.yml")
-  if "contact index file" in config:
-    return os.path.join(config["source"], config["contact index file"])
+  if "contact_index_file" in config:
+    return os.path.join(config["source"], config["contact_index_file"])
   else:
     return "none"
 
 def get_xtc_stride(wildcards):
   configfile: os.path.join(data_root, wildcards.system, "input", "config.yml")
-  if "xtc stride" in config:
-    return int(config["xtc stride"])
+  if "xtc_stride" in config:
+    return int(config["xtc_stride"])
   else:
     return 1
 
 def get_mem_mb(wildcards):
   configfile: os.path.join(data_root, wildcards.system, "input", "config.yml")
-  return os.path.getsize(os.path.join(config["source"], config["xtc file"])) / 1e6 + 500
+  return os.path.getsize(os.path.join(config["source"], config["xtc_file"])) / 1e6 + 500
 
 rule gen_Z:
   input:

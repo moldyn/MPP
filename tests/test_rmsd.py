@@ -119,7 +119,7 @@ class TestRMSD_aSyn(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpfile = Path(tmpdir) / "least_moving_residues.ndx"
             self.mpp.write_least_moving_residues(
-                self.d.d["source"] + self.d.d["contact index file"],
+                self.d.d["source"] + self.d.d["contact_index_file"],
                 tmpfile,
             )
             self.compare_text_files(tmpfile, expected_output)

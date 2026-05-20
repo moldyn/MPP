@@ -174,14 +174,14 @@ def main():
 
     # List of lists containing the contacts of each cluster
     clusters = []
-    with open(os.path.join(cfg["source"], cfg["cluster file"]), "r") as f:
+    with open(os.path.join(cfg["source"], cfg["cluster_file"]), "r") as f:
         for line in f:
             if line.startswith("#"):
                 continue
             clusters.append([int(i) for i in line.split()])
 
     # Definition of the contacts (list of residue pairs)
-    ndx = np.loadtxt(os.path.join(cfg["source"], cfg["contact index file"]), dtype=int)
+    ndx = np.loadtxt(os.path.join(cfg["source"], cfg["contact_index_file"]), dtype=int)
 
     # Set of selected clusters
     cluster_selection = parse_cluster_selecton(args.clusters)
