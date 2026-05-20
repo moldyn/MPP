@@ -40,18 +40,24 @@ class BinaryTreeNode(NodeMixin):
         right=None,
     ):
         """
-        This class is used to plot dendrograms.
+        Initialize a BinaryTreeNode.
 
-        prameters:
+        Parameters
         ----------
-
-        name (str): name of the node
-        population (float): population of the node
-        q (float): value at which the node is merged
-        feature (float): some feature used for coloring
-        parent: parent node
-        left: left node
-        right: right node
+        name : str
+            Name of the node.
+        population : float
+            Population of the node.
+        q : float
+            Value at which the node is merged.
+        feature : float
+            Feature value used for coloring.
+        parent : BinaryTreeNode, optional
+            Parent node.
+        left : BinaryTreeNode, optional
+            Left child node.
+        right : BinaryTreeNode, optional
+            Right child node.
         """
         self._left = None
         self._right = None
@@ -115,10 +121,7 @@ class BinaryTreeNode(NodeMixin):
 
     @property
     def feature(self):
-        """
-        Feature for states (e. g. fraction of native contacts). Is forwarded
-        weighted by population
-        """
+        """Feature for states (e.g. fraction of native contacts), weighted by population."""
         if self.is_leaf:
             return self._feature
         else:
@@ -320,10 +323,7 @@ class BinaryTreeNode(NodeMixin):
 
     @property
     def macrostate(self):
-        """
-        Macrostate this state belongs to. None if no macrostates are found
-        above in tree.
-        """
+        """Macrostate this state belongs to, or None if no macrostates are found above."""
         node = self
         while not node.is_macrostate and node.parent:
             node = node.parent
@@ -334,7 +334,7 @@ class BinaryTreeNode(NodeMixin):
 
     @property
     def x(self):
-        """X coordinates for dandrogram for this node"""
+        """X coordinates for dendrogram for this node."""
         return np.array([self.x_origin, self.x_origin, self.x_target]) + 0.5
 
     @property
@@ -365,7 +365,7 @@ class BinaryTreeNode(NodeMixin):
 
     @property
     def y(self):
-        """Y coordinates for dandrogram for this node"""
+        """Y coordinates for dendrogram for this node."""
         return np.array([self.y_origin, self.y_target, self.y_target])
 
     @property
@@ -419,25 +419,28 @@ def cluster(
     feature_kernel=None,
 ) -> (NDArray[float], NDArray[np.int_]):
     """
-    cluster
+    Perform full clustering for a transition matrix, given populations and a kernel.
+
+    Parameters
+    ----------
+    tmat : NDArray[float]
+        Transition matrix, e.g. from ``mh.msm.estimate_markov_model``.
+    pop : NDArray[float]
+        Populations of microstates.
+    kernel : callable
+        Kernel object that determines the next merge.
+    feature_kernel : FeatureKernel, optional
+        Optional feature kernel for geometric similarity. (default None)
+
+    Returns
     -------
-    Perform full clustering for a transition matrix, given populations and a
-    kernel.
-
-    tmat (NDArray[float]): transition matrix, e. g. from
-            mh.msm.estimate_markov_model
-    pop (NDArray[float]): populations of microstates
-    kernel: kernel object that determines the next merge
-
-    returns Z (np.ndarray), full_pop (np.ndarray):
-        The Z matrix holds the full merging of microstates:
-            0: origin state
-            1: target state
-            2: distance between origin and target
-            3: joint population
-            i: Z[i, 0] and Z[i, 1] are combined to cluster n + i
-            reference: scipy.cluster.hierarchy.linkage
-        full_pop holds all state populations from state 0 to n + i
+    Z : ndarray of float, shape (n-1, 4)
+        The Z matrix holds the full merging of microstates. Each row contains:
+        ``[origin_state, target_state, metastability, joint_population]``.
+        State ``n + i`` is the result of merging ``Z[i, 0]`` and ``Z[i, 1]``.
+        See also ``scipy.cluster.hierarchy.linkage``.
+    full_pop : ndarray of int
+        All state populations from state 0 to n + i.
     """
     n = tmat.shape[0]
 

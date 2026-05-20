@@ -28,27 +28,28 @@ class LumpingKernel(object):
     """
 
     def __init__(self, method="n", param=1, similarity="T"):
-        """Initialize LumpingKernel
+        """
+        Initialize LumpingKernel.
 
         Parameters
         ----------
         method : str
-            'n' : Consider <param> most similar options. (default)
-            'p' : Consider as many most similar options as needed to
-                represent <param> similarity. For similarity 'T',
-                <param>=0.5 means that at least 50% of the transitions
-                to other states must be considered.
-        param : int|float
-            for 'n' : Number of most similar options to consider
-                (1 deterministic lumping). (default 1)
-            for 'p' : Accumulated similarity threshold for most similar
-                states to consider.
-        similarity:
-            - T: Utilize the transition probabilities as dynamic
-                metric. (default)
-            - KL: Utilize the Kullback-Leibler divergence between the
-                transition probabilities of the options.
-            - none: Utilize only the feature as similarity measure.
+            ``'n'``: Consider ``param`` most similar options. (default)
+            ``'p'``: Consider as many most similar options as needed to
+            represent ``param`` similarity. For similarity ``'T'``,
+            ``param=0.5`` means that at least 50% of the transitions
+            to other states must be considered.
+        param : int or float
+            For ``'n'``: Number of most similar options to consider
+            (1 for deterministic lumping). (default 1)
+            For ``'p'``: Accumulated similarity threshold for most similar
+            states to consider.
+        similarity : str
+            ``'T'``: Utilize the transition probabilities as dynamic metric.
+            (default)
+            ``'KL'``: Utilize the Kullback-Leibler divergence between the
+            transition probabilities of the options.
+            ``'none'``: Utilize only the feature as similarity measure.
         """
         self.method = method
         self.param = param
@@ -56,12 +57,31 @@ class LumpingKernel(object):
 
     def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=None):
         """
-        Finds the states to be lumped together next.
+        Find the states to be lumped together next.
 
-        The least metastable state is selected and the most similar
-        other state is determined. The similarity of two states is
-        determined by the parameters of the object and the feature
-        kernel.
+        The least metastable state is selected and the most similar other state
+        is determined. The similarity of two states is determined by the
+        parameters of the object and the feature kernel.
+
+        Parameters
+        ----------
+        full_tmat : ndarray of float, shape (2n-1, 2n-1)
+            Full transition matrix including intermediate cluster states.
+        states_not_merged : ndarray of int
+            Array of not-yet-merged state indices.
+        mask : ndarray of bool
+            Boolean mask indicating currently active states.
+        feature_kernel : FeatureKernel, optional
+            Optional feature kernel for geometric similarity. (default None)
+
+        Returns
+        -------
+        state : int
+            Index of the state to be merged (least metastable).
+        target_state : int
+            Index of the target state to merge into.
+        mask : ndarray of bool
+            Updated mask after removing the merged state.
         """
         # Select state with least self transition probability
         mask_state = np.argmin(np.diag(full_tmat)[mask])
@@ -140,6 +160,12 @@ class LumpingKernel(object):
 
 
 class FeatureKernel(object):
+    """Kernel for geometric similarity based on Jensen-Shannon divergence of feature distributions.
+
+    Tracks population-weighted mean features for merged states and computes JS
+    divergence between states to guide the lumping process.
+    """
+
     def __init__(
         self,
         feature_trajectory,
@@ -148,8 +174,18 @@ class FeatureKernel(object):
         trajectory_type=np.uint16,
     ):
         """
-        feature_trajectory: either N or NxM, N being the number of frames and M the
-                number of features
+        Initialize FeatureKernel.
+
+        Parameters
+        ----------
+        feature_trajectory : ndarray of float, shape (N,) or (N, M)
+            Feature trajectory with N frames and M features.
+        microstate_trajectory : ndarray of int
+            Microstate trajectory used to compute per-state feature means.
+        feature_type : dtype, optional
+            Data type for feature storage. (default np.float64)
+        trajectory_type : dtype, optional
+            Data type for trajectory storage. (default np.uint16)
         """
         if feature_trajectory.ndim == 2:
             self.feature_trajectory = feature_trajectory.astype(feature_type)

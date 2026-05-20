@@ -23,11 +23,17 @@ def translate_trajectory(
     """
     Transform trajectory to other state names.
 
-    trajectory (NDArray[np.int_]): original state trajectory
-    map (NDArray[np.int_]): index is original state, value at that position is
-            new value
+    Parameters
+    ----------
+    trajectory : ndarray of int
+        Original state trajectory.
+    map : ndarray of int
+        Index is original state; value at that position is the new state name.
 
-    returns translated trajectory
+    Returns
+    -------
+    ndarray of int
+        Translated trajectory.
     """
     macrostates = np.unique(map)
     if map.max() < 2**8:
@@ -46,9 +52,7 @@ def translate_trajectory(
 
 
 def macrostate_tmat(tmat, macrostate_assignment, pop):
-    """
-    transform a transition matrix from microstates to macrostates
-    """
+    """Transform a transition matrix from microstates to macrostates."""
     n_macrostates = macrostate_assignment.shape[0]
     m_tmat = np.zeros((n_macrostates, n_macrostates), dtype=tmat.dtype.type)
     for i, ms in enumerate(macrostate_assignment):
@@ -161,7 +165,16 @@ def calc_full_tmat(tmat, pop, Z):
 def Z_to_mask(Z):
     """
     Calculate the mask for each lumping step.
-    Z (Nx4): Z matrix
+
+    Parameters
+    ----------
+    Z : ndarray of float, shape (N, 4)
+        Z matrix encoding the merging sequence.
+
+    Returns
+    -------
+    ndarray of bool, shape (N, 2*n-1)
+        Boolean mask for each lumping step.
     """
     n1 = Z.shape[0]
     n = n1 + 1
@@ -318,15 +331,19 @@ def estimate_rmsd_feature(frame, trajectory):
 
 def align_trajectory_to_reference(trajectory, reference):
     """
-    Aligns each frame in the trajectory array to the reference frame using the Kabsch algorithm.
+    Align each frame in the trajectory to the reference frame using the Kabsch algorithm.
 
-    Parameters:
-    - trajectory: numpy array of shape (N, 35, 3) where N is the number of frames.
-    - reference: numpy array of shape (1, 35, 3) representing the reference points.
+    Parameters
+    ----------
+    trajectory : ndarray of float, shape (N, M, 3)
+        N frames with M atoms to align.
+    reference : ndarray of float, shape (1, M, 3)
+        Reference frame to align to.
 
-    Returns:
-    - aligned_trajectory: numpy array of shape (N, 35, 3) where each frame is
-      aligned to the reference.
+    Returns
+    -------
+    ndarray of float, shape (N, M, 3)
+        Trajectory with each frame aligned to the reference.
     """
 
     # Extract the reference frame (since reference is of shape (1, 35, 3),

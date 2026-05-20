@@ -134,7 +134,16 @@ class Data:
         self.mpp.frame_length = self.frame_length
 
     def perform_mpp(self, out, overwrite=False):
-        """out: Z.npy"""
+        """
+        Run MPP and save the Z matrix, or load it if it already exists.
+
+        Parameters
+        ----------
+        out : str
+            Path to save the Z matrix (e.g. ``Z.npy``).
+        overwrite : bool
+            If True, recompute even if the file already exists. (default False)
+        """
         if os.path.exists(out) and not overwrite:
             print("Loading existing Z")
             self.mpp.load_Z(out)
@@ -148,7 +157,20 @@ class Data:
             self.mpp.save_Z(out)
 
     def perform_gpcca(self, n_macrostates="ref", out=None, overwrite=False):
-        """n_macrostates: int or 'ref' for n_macrostates from reference (T)"""
+        """
+        Run GPCCA lumping and optionally save the Z matrix.
+
+        Parameters
+        ----------
+        n_macrostates : int or ``'ref'``
+            Number of macrostates, or ``'ref'`` to use the count from the
+            reference lumping (T). (default ``'ref'``)
+        out : str, optional
+            Path to save the Z matrix. If None, the result is not saved.
+            (default None)
+        overwrite : bool
+            If True, recompute even if the file already exists. (default False)
+        """
         if n_macrostates == "ref":
             n_macrostates = self.mpp.reference.n_macrostates[0]
         if out is not None and os.path.exists(out) and not overwrite:
@@ -160,7 +182,16 @@ class Data:
                 self.mpp.save_Z(out)
 
     def get_rmsd(self, out, overwrite=False):
-        """out: rmsd.npy"""
+        """
+        Compute or load RMSD and save to file.
+
+        Parameters
+        ----------
+        out : str
+            Path to the RMSD file (e.g. ``rmsd.npy``).
+        overwrite : bool
+            If True, recompute even if the file already exists. (default False)
+        """
         if not out.endswith(".npy"):
             out += ".npy"
         if os.path.exists(out) and not overwrite:
@@ -171,7 +202,23 @@ class Data:
 
 def plot(data, out, kind="dendrogram", scale=1):
     """
-    kind: dendrogram, timescales, sankey, contacts, macrostate_trajectory, ck_test, rmsd
+    Generate a plot of the requested kind from the given data.
+
+    Parameters
+    ----------
+    data : Data
+        Data object holding the MPP lumping and configuration.
+    out : str
+        Output file path for the plot.
+    kind : str
+        Type of plot to generate. One of: ``dendrogram``, ``timescales``,
+        ``sankey``, ``contacts``, ``macrotraj``, ``ck_test``, ``rmsd``,
+        ``delta_rmsd``, ``state_network``, ``macro_feature``,
+        ``stochastic_state_similarity``, ``relative_implied_timescales``,
+        ``transition_matrix``, ``transition_time``, ``macrostate_trajectory``.
+        (default ``'dendrogram'``)
+    scale : float
+        Scaling factor for the plot. (default 1)
     """
     if kind == "dendrogram":
         data.mpp.plot.dendrogram(out, scale=scale, offset=0.0)

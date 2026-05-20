@@ -244,8 +244,11 @@ class Lumping(object):
         self,
         feature_trajectory: npt.NDArray[np.floating],
     ):
-        """Add feature data to the instance.
+        """
+        Add feature data to the instance.
 
+        Parameters
+        ----------
         feature_trajectory : ndarray of float, shape (N, M)
             A feature trajectory of M features and N frames. For
             example selected contact distances are passed here. Must
@@ -1075,8 +1078,6 @@ class Lumping(object):
 
         This property holds the lumping trees of all lumpings performed
         by this object. The root node is stored for each lumping.
-
-
         """
         if self._tree is None:
             self._tree = []
@@ -1085,7 +1086,7 @@ class Lumping(object):
         return self._tree
 
     def build_tree(self, Z, full_pop):
-        """Build tree using BinaryTreeNode and return root"""
+        """Build tree using BinaryTreeNode and return root."""
         n = Z.shape[0] + 1
         nodes = {}
         for i, (state, target_state, q, pop) in enumerate(Z):
@@ -1181,11 +1182,13 @@ class Lumping(object):
 
 
 class Plotter:
+    """Delegate class for producing various plots from a Lumping instance."""
+
     def __init__(self, obj):
         self._obj = obj
 
     def dendrogram(self, out: str, scale=1, offset=0):
-        """Plot dendrogram"""
+        """Plot dendrogram."""
         plot.plot_tree(
             self._obj.tree[self._obj.n_i],
             self._obj.macrostate_assignment[self._obj.n_i],
@@ -1196,9 +1199,16 @@ class Plotter:
 
     def implied_timescales(self, out, use_ref=True, scale=1):
         """
-        out: File to write plot
-        use_ref: If it for reference trajectory should be plotted
-        scale: scaling factor for plot
+        Plot implied timescales.
+
+        Parameters
+        ----------
+        out : str
+            File path to write the plot.
+        use_ref : bool
+            Whether to plot the reference trajectory. (default True)
+        scale : float
+            Scaling factor for the plot. (default 1)
         """
         if use_ref:
             ref_trajectory = self._obj.reference.macrostate_trajectory[0]
@@ -1225,15 +1235,14 @@ class Plotter:
         """
         Plot histogram of feature distribution.
 
-        micro_feature (np.ndarray, NxR): N microstates, R runs, holds feature
-                values of respective macrostate
-        out (str): file to save the plot
-        ref (list[tuple]): list of
-                - macrostate_assignment
-                - macrostate_feature
-                - color
-                - label
-                of the clusterings that should be shown explicitly.
+        Parameters
+        ----------
+        out : str
+            File path to save the plot.
+        ref : list of tuple, optional
+            Each tuple contains macrostate_assignment, macrostate_feature,
+            color, and label for clusterings to show explicitly.
+            (default None)
         """
         plot.macro_feature(
             self._obj.macro_micro_feature,
