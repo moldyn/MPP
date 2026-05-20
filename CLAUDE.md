@@ -5,12 +5,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ### Environment Setup (NixOS)
-On NixOS, Python is not available directly. You must first enter the nix-shell and activate the prepared conda environment:
+On NixOS, Python is not available directly. You must enter the nix-shell and activate the prepared conda environment before running any Python commands:
 ```bash
 nix-shell ~/Documents/shell.nix
 micromamba activate mpp-test
 ```
 After these two steps, `python`, `MPP`, and the test suite are available. The `mpp-test` environment has MPP installed in editable mode.
+
+When running commands non-interactively (e.g. from a script or Bash tool), use the heredoc form — `nix-shell --run "..."` does not produce output reliably:
+```bash
+nix-shell ~/Documents/shell.nix <<'EOF'
+micromamba run -n mpp-test <command>
+EOF
+```
 
 ### Run all tests with coverage
 ```bash
@@ -18,6 +25,27 @@ bash run_all_tests.sh
 # equivalent to:
 coverage run --branch --source=. -m unittest_parallel --level test --coverage-branch --coverage-html htmlcov
 ```
+
+### Run CORE tests only (currently in scope)
+```bash
+python -m pytest tests/test_properties.py tests/test_utils.py \
+  tests/test_run.py::TestRunScript::test_HP35_t_ref \
+  tests/test_run.py::TestRunScript::test_HP35_kl \
+  tests/test_run.py::TestRunScript::test_HP35_t_js \
+  tests/test_run.py::TestRunScript::test_HP35_js \
+  tests/test_run.py::TestRunScript::test_PDZ3_kl \
+  tests/test_run.py::TestRunScript::test_aSyn_t \
+  tests/test_run.py::TestRunScript::test_aSyn_kl_js \
+  tests/test_plots.py::TestPlotting::test_manual_ck_test \
+  tests/test_plots.py::TestPlotting::test_manual_contacts \
+  tests/test_plots.py::TestPlotting::test_manual_dendrogram \
+  tests/test_plots.py::TestPlotting::test_manual_macrotraj_PDZ3 \
+  tests/test_plots.py::TestPlotting::test_manual_macrotraj_ref \
+  tests/test_plots.py::TestPlotting::test_manual_sankey \
+  tests/test_plots.py::TestPlotting::test_manual_state_network \
+  tests/test_plots.py::TestPlotting::test_manual_timescales -v
+```
+See `tests/TEST_CATEGORIES.md` for the full classification (CORE / OPTIONAL / DEFERRED). OPTIONAL and DEFERRED tests may fail due to missing data files (topology, xtc) — this is expected and out of scope.
 
 ### Run a single test
 ```bash
