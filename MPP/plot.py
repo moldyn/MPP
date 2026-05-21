@@ -37,7 +37,25 @@ pplt.use_style(true_black=True)
 
 def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
     """
-    Plot the dendrogram from a given state tree of BinaryTreeNode.
+    Plot the lumping dendrogram from a binary tree of BinaryTreeNode objects.
+
+    Generates a two-panel figure: the upper panel shows the dendrogram with a
+    colorbar for the node feature (fraction of contacts); the lower panel
+    shows the macrostate assignment as a pcolormesh grid. The figure is saved
+    to ``output_file``.
+
+    Parameters
+    ----------
+    root : BinaryTreeNode
+        Root of the lumping tree.
+    macrostate_assignment : ndarray of bool, shape (n_macrostates, n_microstates)
+        Boolean assignment matrix mapping macrostates to microstates.
+    output_file : str
+        Path to save the output figure.
+    scale : float, optional
+        Figure size scaling factor. (default 1)
+    offset : float, optional
+        Lower y-axis limit for the dendrogram panel. (default 0)
     """
     n_states = len(root.leaves)
 
@@ -133,7 +151,22 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
 
 def stochastic_state_similarity(mpt1, mpt2, out):
     """
-    Plot similarity values for a reference and a stochastic clustering.
+    Plot similarity distributions between a reference and a stochastic lumping.
+
+    For each macrostate, plots histograms of three overlap measures (Jaccard/
+    union, recall/reference, precision/lumping) across all stochastic runs.
+    The figure is saved to ``out``.
+
+    Parameters
+    ----------
+    mpt1 : tuple
+        First part of the input tuple. Together with ``mpt2``, unpacked as
+        ``ref, sto, S = mpt1 + mpt2``, where ``S`` has shape
+        ``(3, n_macrostates, n_runs)``.
+    mpt2 : tuple
+        Second part of the input tuple; see ``mpt1``.
+    out : str
+        Path to save the output figure.
     """
     ref, sto, S = mpt1 + mpt2
     s1, s2, s3 = S
@@ -166,7 +199,7 @@ def stochastic_state_similarity(mpt1, mpt2, out):
 
 
 def implied_timescales(
-    trajectorys,
+    trajectories,
     lagtimes,
     out,
     titles="",
@@ -177,11 +210,44 @@ def implied_timescales(
     ntimescales=3,
 ):
     """
-    frame_length in ns / frame
+    Plot implied timescales for one or more macrostate trajectories.
+
+    Computes implied timescales using msmhelper for each trajectory in
+    ``trajectories`` and renders them in a grid of subplots with a log y-axis.
+    If ``first_ref`` is True, the first trajectory is treated as a reference
+    and overlaid in each panel. The figure is saved to ``out``.
+
+    Parameters
+    ----------
+    trajectories : list
+        Macrostate trajectories. If ``first_ref`` is True, the first element
+        is used as the reference and removed from the list in-place.
+    lagtimes : array-like of int
+        Lag times in frames at which to compute implied timescales.
+    out : str
+        Path to save the output figure.
+    titles : list of str or str, optional
+        Subplot titles, one per trajectory. Pass an empty string for no
+        titles. (default "")
+    frame_length : float, optional
+        Frame length in ns, used to convert lag times and timescales to ns.
+        (default 0.2)
+    first_ref : bool, optional
+        If True, pop the first trajectory from ``trajectories`` and use it as
+        a reference, overlaid in each panel. (default False)
+    scale : float, optional
+        Figure size scaling factor applied to both width and height.
+        (default 1)
+    use_ref : bool, optional
+        Controls the reference line style when ``first_ref`` is True.
+        If True, the reference is drawn dotted; if False, dashed.
+        (default True)
+    ntimescales : int, optional
+        Number of implied timescales to compute and display. (default 3)
     """
     if first_ref:
-        ref_trajectory = trajectorys.pop(0)
-    x, y = utils.get_grid_format(len(trajectorys))
+        ref_trajectory = trajectories.pop(0)
+    x, y = utils.get_grid_format(len(trajectories))
     pplt.use_style(
         figsize=(2.7 * scale, 2.7 * scale), latex=False, colors="pastel_autumn"
     )
@@ -193,7 +259,7 @@ def implied_timescales(
     if titles != "":
         titles = titles
     else:
-        titles = [""] * len(trajectorys)
+        titles = [""] * len(trajectories)
 
     min_it = None
     max_it = None
@@ -209,7 +275,7 @@ def implied_timescales(
 
     lagtime = lagtimes[-1] / 4.5 * frame_length
     lagtimes_ns = lagtimes * frame_length
-    for ax, traj, title in zip(axs.flatten(), trajectorys, titles):
+    for ax, traj, title in zip(axs.flatten(), trajectories, titles):
         ax.axvline(lagtime, color="pplt:grid")
         it = mh.msm.implied_timescales(traj, lagtimes, ntimescales=ntimescales)
         # change from frames to ns
@@ -292,6 +358,22 @@ def _plot_impl_times(impl_times, lagtimes, ax, ls="-"):
 
 
 def relative_implied_timescales(cl, out):
+    """
+    Plot relative implied timescales and macrostate count distribution.
+
+    Generates a three-panel figure: (1) distribution of the first relative
+    implied timescale across stochastic runs, (2) distribution of the mean
+    relative implied timescales 1–3, and (3) histogram of the number of
+    macrostates per run. The figure is saved to ``out``.
+
+    Parameters
+    ----------
+    cl : MPP.Lumping
+        Stochastic lumping with ``timescales``, ``reference``, and
+        ``n_macrostates`` attributes.
+    out : str
+        Path to save the output figure.
+    """
     pplt.use_style(figsize=(8, 2.5), latex=False, colors="pastel_autumn")
 
     ref = cl.reference
@@ -333,8 +415,16 @@ def relative_implied_timescales(cl, out):
 
 def plot_heatmap(a, out, title=""):
     """
-    Plot heatmap from a matrix. This is supposed for a similarity matrix as
-    returned from the multiplication of two MPT objects.
+    Plot a matrix as a heatmap with logarithmic color scaling.
+
+    Parameters
+    ----------
+    a : ndarray of float, shape (M, N)
+        Matrix to visualize.
+    out : str
+        Path to save the output figure.
+    title : str, optional
+        Figure title. If empty, no title is shown. (default "")
     """
     fig, ax = plt.subplots()
     ax.imshow(a, norm="log")
@@ -353,8 +443,25 @@ def plot_heatmap(a, out, title=""):
 
 def transition_matrix(a, out, title="Transition Matrix", color_thr=0.01):
     """
-    Plot heatmap from a matrix. This is supposed for a similarity matrix as
-    returned from the multiplication of two MPT objects.
+    Plot a macrostate transition matrix as a color-coded heatmap.
+
+    Diagonal entries (self-transition probabilities / metastabilities) use a
+    logarithmic Reds colormap. Off-diagonal entries use a logarithmic viridis
+    colormap; entries below ``color_thr`` of the maximum off-diagonal value
+    are shown in light gray. Transition probabilities are annotated as
+    percentages. The figure is saved to ``out``.
+
+    Parameters
+    ----------
+    a : ndarray of float, shape (n_macrostates, n_macrostates)
+        Transition matrix with values in ``[0, 1]``.
+    out : str
+        Path to save the output figure.
+    title : str, optional
+        Figure title. (default "Transition Matrix")
+    color_thr : float, optional
+        Threshold as a fraction of the maximum off-diagonal value below which
+        entries are rendered in light gray. (default 0.01)
     """
     # Scale a to percent
     a = a * 100
@@ -462,9 +569,29 @@ def transition_time(
     color_thr=0.01,
 ):
     """
-    Plot heatmap from a matrix. This is supposed for a similarity matrix as
-    returned from the multiplication of two MPT objects.
-    frame_length in ns
+    Plot macrostate transition times as a color-coded heatmap.
+
+    Transition times are computed as ``lagtime / a * frame_length``. Diagonal
+    entries use a logarithmic reversed Reds colormap; off-diagonal entries use
+    a logarithmic reversed viridis colormap. Entries exceeding the gray
+    threshold are shown in light gray. Zero-probability transitions (infinite
+    time) are shown in white. The figure is saved to ``out``.
+
+    Parameters
+    ----------
+    a : ndarray of float, shape (n_macrostates, n_macrostates)
+        Transition probability matrix with values in ``[0, 1]``.
+    out : str
+        Path to save the output figure.
+    lagtime : float, optional
+        Lag time in frames. (default 50.0)
+    frame_length : float, optional
+        Frame length in ns. (default 0.2)
+    title : str, optional
+        Figure title. (default "Transition Times t_lag / P")
+    color_thr : float, optional
+        Threshold controlling the gray cutoff for large transition times.
+        (default 0.01)
     """
     with np.errstate(divide="ignore"):
         a = lagtime / a * frame_length
@@ -570,17 +697,20 @@ def transition_time(
 
 def macro_feature(micro_feature, out, ref=None, pop=None):
     """
-    Plot histogram of feature distribution.
+    Plot macrostate feature distributions as a population-weighted histogram.
 
-    micro_feature (np.ndarray, NxR): N microstates, R runs, holds feature
-            values of respective macrostate
-    out (str): file to save the plot
-    ref (list[tuple]): list of
-            - macrostate_assignment
-            - macrostate_feature
-            - color
-            - label
-            of the clusterings that should be shown explicitly.
+    Parameters
+    ----------
+    micro_feature : ndarray of float, shape (n_microstates, n_runs)
+        Feature values for each microstate across all stochastic runs.
+    out : str
+        Path to save the output figure.
+    ref : MPP.Lumping, optional
+        Reference lumping whose macrostate features are overlaid on the
+        histogram via ``add_ref``. If None, no reference is shown.
+        (default None)
+    pop : ndarray of float, optional
+        Microstate populations used to weight the histogram. (default None)
     """
     min_feature = micro_feature.min() * 0.95
     max_feature = micro_feature.max() * 1.05
@@ -620,11 +750,26 @@ def add_ref(
     weights=None,
 ):
     """
-    Add a clustering to the histogram.
+    Overlay a reference lumping's macrostate features onto a histogram axis.
 
-    macrostate_assignment (np.ndarray, MxN): macrostate assignement, M: number
-            of macrostates, N: number of microstates.
-    macrostate_feature (np.ndarray, M): mean feature for every macrostate.
+    For each macrostate, draws a vertical line at the macrostate feature value
+    whose height is proportional to the population fraction.
+
+    Parameters
+    ----------
+    macrostate_assignment : ndarray of bool, shape (n_macrostates, n_microstates)
+        Boolean assignment matrix mapping macrostates to microstates.
+    macrostate_feature : ndarray of float, shape (n_macrostates,)
+        Mean feature value for each macrostate.
+    ax : matplotlib.axes.Axes
+        Axis to draw on.
+    color : str, optional
+        Line color. (default "r")
+    label : str, optional
+        Legend label for the first macrostate line. (default "Reference")
+    weights : ndarray of float, optional
+        Microstate population weights. If None, uniform weights are used.
+        (default None)
     """
     b = True
     for i, (ma, mf) in enumerate(zip(macrostate_assignment, macrostate_feature)):
@@ -655,17 +800,30 @@ def add_ref(
 
 def contact_rep(contacts, cluster_file, state_trajectory, output, grid, scale=1):
     """
-    Adapted from msmhelper.
+    Plot contact representations for each microstate.
 
-    Contact representation of states.
+    For each microstate, displays a box-plot-style contact distribution using
+    quartiles and whiskers. States are batched into pages based on ``grid``.
+    Each page is saved to a separate file derived from ``output``.
 
-    This script creates a contact representation of states. Were the states
-    are obtained by [MoSAIC](https://github.com/moldyn/MoSAIC) and the contact
-    representation was introduced in Nagel et al.[^1].
+    Adapted from the msmhelper contact representation (Nagel et al.).
 
-    [^1]: Nagel et al., **Selecting Features for Markov Modeling: A Case Study
-          on HP35.**, *J. Chem. Theory Comput.*, submitted,
-
+    Parameters
+    ----------
+    contacts : ndarray of float, shape (n_frames, n_contacts)
+        Contact distance array.
+    cluster_file : str
+        Path to the cluster file defining contact group membership.
+    state_trajectory : ndarray of int, shape (n_frames,)
+        Microstate trajectory used to assign frames to states.
+    output : str or None
+        Base path for output files. If None, figures are displayed
+        interactively. For multiple pages, the state range is appended to
+        the filename before the extension.
+    grid : tuple of int
+        Grid layout as ``(nrows, ncols)`` for the contact panels.
+    scale : float, optional
+        Figure size scaling factor. (default 1)
     """
     # setup matplotlib
     pplt.use_style(
@@ -784,7 +942,6 @@ def contact_rep(contacts, cluster_file, state_trajectory, output, grid, scale=1)
         # save figure and continue
         if output is None:
             plt.show()
-            # output = f"{state_file}.contactRep.pdf"
         # insert state_str between pathname and extension
         path, ext = splitext(output)
         if counter == 0:
@@ -800,6 +957,28 @@ def contact_rep(contacts, cluster_file, state_trajectory, output, grid, scale=1)
 
 
 def sankey_diagram(cl, ref, out, ax=None, scale=1):
+    """
+    Plot a Sankey diagram comparing a lumping to a reference lumping.
+
+    Macrostates from ``cl`` (left) are mapped to macrostates from ``ref``
+    (right), weighted by microstate populations. Macrostates are colored
+    according to the lumping tree. If ``ax`` is None, a new figure is created
+    and saved to ``out``; otherwise the diagram is drawn onto ``ax`` and no
+    file is written.
+
+    Parameters
+    ----------
+    cl : MPP.Lumping
+        Lumping to display on the left side.
+    ref : MPP.Lumping
+        Reference lumping to display on the right side.
+    out : str
+        Path to save the output figure. Used only when ``ax`` is None.
+    ax : matplotlib.axes.Axes, optional
+        Axes to draw onto. If None, a new figure is created. (default None)
+    scale : float, optional
+        Figure size scaling factor. Used only when ``ax`` is None. (default 1)
+    """
     features = []
     for macrostate in cl.tree[cl.run_index].macrostates:
         features.append(macrostate.feature)
@@ -829,15 +1008,35 @@ def sankey_diagram(cl, ref, out, ax=None, scale=1):
 
 def rmsd(rmsds, pops, helices=None, filename=None):
     """
-    Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
+    Plot per-residue RMSD profiles for each macrostate.
 
-    Parameters:
-    - vars (np.ndarray): The 2D NumPy array to plot. Values must be positive
-      for logarithmic scaling.
-    - row_heights (np.ndarray): 1D array defining the height of each row.
-    - helices (np.ndarray): Array with start and end points for blocks to be
-      indicated in the bottom row.
-    - filename (str, optional): If provided, saves the heatmap to this file.
+    Generates a multi-row figure with one row per macrostate. Each row shows
+    the per-residue RMSD profile (log scale), the macrostate population, and
+    the summed RMSD. An optional bottom row displays secondary structure
+    elements (helices and sheets). The figure is saved to ``filename`` if
+    provided, otherwise displayed interactively.
+
+    Parameters
+    ----------
+    rmsds : ndarray of float, shape (n_macrostates, n_residues)
+        Per-residue RMSD values. All values must be positive.
+    pops : ndarray of float, shape (n_macrostates,)
+        Macrostate populations.
+    helices : ndarray of int, shape (n_elements, 2), optional
+        Secondary structure elements. Each row is ``[start, end]`` where
+        positive values indicate helices and negative values indicate
+        beta-sheets. If None, no secondary structure panel is shown.
+        (default None)
+    filename : str, optional
+        Path to save the output figure at 192 dpi. If None, the figure is
+        displayed interactively. (default None)
+
+    Raises
+    ------
+    ValueError
+        If any value in ``rmsds`` is non-positive.
+    ValueError
+        If the number of rows in ``rmsds`` does not match ``len(pops)``.
     """
     # Ensure all values are positive for logarithmic scaling
     if np.any(rmsds <= 0):
@@ -1000,15 +1199,37 @@ def rmsd(rmsds, pops, helices=None, filename=None):
 
 def delta_rmsd(rmsds, pops, helices=None, filename=None):
     """
-    Plots a 2D NumPy array as a heatmap with a logarithmic color scale and variable row heights.
+    Plot per-residue RMSD difference profiles relative to the first macrostate.
 
-    Parameters:
-    - vars (np.ndarray): The 2D NumPy array to plot. Values must be positive
-      for logarithmic scaling.
-    - row_heights (np.ndarray): 1D array defining the height of each row.
-    - helices (np.ndarray): Array with start and end points for blocks to be
-      indicated in the bottom row.
-    - filename (str, optional): If provided, saves the heatmap to this file.
+    Generates a multi-row figure with one row per macrostate. The first row
+    shows the absolute RMSD profile of the first macrostate on a log scale;
+    subsequent rows show the RMSD difference relative to the first macrostate
+    on a linear scale. Each row also shows the macrostate population and
+    summed absolute RMSD difference. An optional bottom row displays secondary
+    structure elements. The figure is saved to ``filename`` if provided,
+    otherwise displayed interactively.
+
+    Parameters
+    ----------
+    rmsds : ndarray of float, shape (n_macrostates, n_residues)
+        Per-residue RMSD values. All values must be positive.
+    pops : ndarray of float, shape (n_macrostates,)
+        Macrostate populations.
+    helices : ndarray of int, shape (n_elements, 2), optional
+        Secondary structure elements. Each row is ``[start, end]`` where
+        positive values indicate helices and negative values indicate
+        beta-sheets. If None, no secondary structure panel is shown.
+        (default None)
+    filename : str, optional
+        Path to save the output figure at 192 dpi. If None, the figure is
+        displayed interactively. (default None)
+
+    Raises
+    ------
+    ValueError
+        If any value in ``rmsds`` is non-positive.
+    ValueError
+        If the number of rows in ``rmsds`` does not match ``len(pops)``.
     """
     # Ensure all values are positive for logarithmic scaling
     if np.any(rmsds <= 0):
@@ -1190,14 +1411,29 @@ def delta_rmsd(rmsds, pops, helices=None, filename=None):
 
 def state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2):
     """
-    Plot state trajectory
+    Plot a macrostate trajectory as a multi-row colored line chart.
 
-    trajectory (np.ndarray): state trajectory
-    filename (str): file name to save the plot to
-    row_length (int|float):
-        row_length > 1: number of frames in each row
-        0 < row_length <= 1: fraction of total frames per row (1/n_rows)
-    frame_length (float): frame length in ns
+    Each macrostate is assigned a distinct color from the turbo colormap.
+    The trajectory is split into rows of a fixed duration. The figure is
+    saved to ``filename``.
+
+    Parameters
+    ----------
+    trajectory : ndarray of int, shape (n_frames,)
+        Macrostate trajectory.
+    filename : str
+        Path to save the output figure.
+    row_length : float, optional
+        Length of each row in the figure.
+
+        - If ``> 1``: interpreted as the number of frames per row.
+        - If ``0 < row_length <= 1``: interpreted as a fraction of the
+          total trajectory length per row.
+
+        (default 0.2)
+    frame_length : float, optional
+        Duration of each frame in ns. Used to scale the x-axis label in μs.
+        (default 0.2)
     """
     if row_length > 1:
         x_max = int(row_length)
@@ -1296,7 +1532,24 @@ def state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2):
 
 
 def chapman_kolmogorov(mpt, out, frame_length=0.2):
-    """Chapman-Kolmogorov Test. Frame length in ns"""
+    """
+    Run and plot the Chapman-Kolmogorov test for a lumping.
+
+    Computes the Chapman-Kolmogorov test using msmhelper with fixed lag times
+    ``[50, 50, 50, 50, 50]`` frames and a maximum time of 4000 frames, then
+    plots the result. The figure is saved to ``out``.
+
+    Parameters
+    ----------
+    mpt : MPP.Lumping
+        Lumping object with macrostate trajectory and optional trajectory
+        limits attribute.
+    out : str
+        Path to save the output figure.
+    frame_length : float, optional
+        Frame length in ns, used to convert frame counts to ns for axis
+        labels. (default 0.2)
+    """
     ck = mh.msm.tests.chapman_kolmogorov_test(
         utils.get_multi_state_trajectory(
             mpt.macrostate_trajectory[mpt.run_index], mpt.limits
@@ -1476,6 +1729,21 @@ def plot_ck_test(
 
 
 def state_network(lumping, out):
+    """
+    Plot a macrostate transition network.
+
+    Draws the macrostate network using the mean feature trajectory for node
+    attributes and the macrostate trajectory at the current run index for
+    edge weights. The figure is saved to ``out``.
+
+    Parameters
+    ----------
+    lumping : MPP.Lumping
+        Lumping object with macrostate trajectory, lag time, and mean feature
+        trajectory.
+    out : str
+        Path to save the output figure.
+    """
     draw_knetwork(
         lumping.macrostate_trajectory[lumping.run_index],
         lumping.lagtime,
