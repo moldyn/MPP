@@ -2,7 +2,7 @@
 core.py
 =======
 
-Core functions for MPT class
+Core functions for MPP
 """
 
 __all__ = [

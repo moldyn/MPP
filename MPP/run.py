@@ -157,7 +157,7 @@ class Data:
                 self.microstate_trajectory,
             )
         else:
-            raise ValueError("feature kernel must be None, q or JS.")
+            raise ValueError("feature kernel must be 'none' or 'JS'.")
 
         if dynamic_similarity == "T" and feature_similarity == "none" and "stochastic" not in self.d:
             self.use_ref = False

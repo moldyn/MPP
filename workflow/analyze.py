@@ -25,7 +25,7 @@ interesting_lumpings = {
         "setups": ["t", "kl", "t_js", "kl_js", "gpcca"],
     },
     "aSyn": {
-        "name": "aSyn_rdc_200ns",
+        "name": "aSyn",
         "setups": ["t", "kl", "t_js", "kl_js", "gpcca"],
     },
 }
@@ -45,8 +45,8 @@ with open(f"{workflow}lumpings.yml") as f:
 def get_d(system, setup):
     d = r.Data(f"{root}{system}/input/config.yml")
     d.setup_mpp(
-        lumpings[setup]["kernel similarity"],
-        lumpings[setup]["feature kernel"],
+        lumpings[setup]["kernel_similarity"],
+        lumpings[setup]["feature_kernel"],
     )
     if setup == "gpcca":
         d.perform_gpcca(

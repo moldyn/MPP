@@ -90,9 +90,6 @@ class Lumping(object):
     n_macrostates : list of int
         Number of macrostates in each lumping.
 
-    Citation
-    --------
-    tbd
     """
 
     lagtime: int
@@ -150,9 +147,6 @@ class Lumping(object):
     """Macrostate assignments."""
 
     macrostate_map: list[npt.NDArray]
-    # macrostate_tmat = []
-    # macrostate_trajectory = np.zeros(
-    # n_macrostates = []
 
     def __init__(
         self,
@@ -309,7 +303,7 @@ class Lumping(object):
         if self.quiet:
             run_iter = range(self.n_runs)
         else:
-            print("Clustering ...")
+            print("Lumping ...")
             run_iter = tqdm(range(self.n_runs))
         for i in run_iter:
             self.Z[i], self.full_pop[i] = core.cluster(
@@ -402,14 +396,13 @@ class Lumping(object):
             macrostates as yielded from the reference lumping.
             (default None)
         """
-        # Create the reference anyways as pop_thr and q_min are changed
+        # Create the reference before modifying pop_thr
         if n_macrostates is None:
             n_macrostates = self.reference.n_macrostates[0]
         else:
             self.reference
 
-        # Change pop_thr and q_min in order to make sure that tiny macrostates
-        # can be created as well.
+        # Set pop_thr to 0 to allow macrostates of any size
         self.pop_thr = 0
         self.q_min = 0.5
 
@@ -466,7 +459,6 @@ class Lumping(object):
 
     def _create_mock_Z(self):
         # Create mock Z and mock full_pop for Sankey plot
-        # After implementation remove mock Z.npy file in run.py
         self.Z = np.zeros((self.n_runs, self.n_states - 1, 4), dtype=np.float64)
         self.full_pop = np.zeros((self.n_runs, 2 * self.n_states - 1), dtype=np.uint32)
         self.full_pop[0, : self.n_states] = self.pop
@@ -578,7 +570,6 @@ class Lumping(object):
             raise ValueError("Z must be a numpy array or a .npy file.")
 
         self.n_runs = self.Z.shape[0]
-        # n: number of macrostates
         tmat, states = mh.msm.estimate_markov_model(
             utils.get_multi_state_trajectory(self.trajectory, self.limits),
             self.lagtime,
@@ -591,11 +582,10 @@ class Lumping(object):
         self.full_pop[:, self.n_states :] = self.Z[:, :, 3]
 
         if gpcca:
-            # First create the reference, then change pop_thr and q_min
+            # Create the reference before modifying pop_thr
             self.reference
 
-            # Change pop_thr and q_min in order to make sure that tiny macrostates
-            # can be created as well.
+            # Set pop_thr to 0 to allow macrostates of any size
             self.pop_thr = 0
             self.q_min = 0.5
 
@@ -1097,7 +1087,7 @@ class Lumping(object):
 
         Returns
         -------
-        ndarray of float, shape (Lumping.run_index,)
+        ndarray of float, shape (n_runs,)
             Array contains the Shannon entropy for each run.
 
         References
@@ -1120,8 +1110,8 @@ class Lumping(object):
 
         Returns
         -------
-        ndarray of float, shape (Lumping.run_index,)
-            Array contains the Davies Bouldin index for each run.
+        ndarray of float, shape (n_runs,)
+            Array contains the Davies-Bouldin index for each run.
 
         References
         ----------
@@ -1144,7 +1134,7 @@ class Lumping(object):
 
         Returns
         -------
-        ndarray of float, shape (Lumping.run_index,)
+        ndarray of float, shape (n_runs,)
             Array contains the GMRQ for each run.
 
         References
@@ -1222,7 +1212,7 @@ class Lumping(object):
         Z: npt.NDArray[np.floating],
         full_pop: npt.NDArray[np.integer],
     ) -> core.BinaryTreeNode:
-        """Build a binary lumping tree from a single Z matrix row.
+        """Build a binary lumping tree from a single Z matrix.
 
         Parameters
         ----------
