@@ -110,7 +110,11 @@ class Data:
                 dtype=np.int_,
             )
         )
-        self.multi_feature_trajectory = self.multi_feature_trajectory_raw < 0.45
+        ct = self.d["contact_threshold"]
+        if ct is not None:
+            self.multi_feature_trajectory = self.multi_feature_trajectory_raw < ct
+        else:
+            self.multi_feature_trajectory = self.multi_feature_trajectory_raw
         self.feature_trajectory = self.multi_feature_trajectory.mean(axis=1)
 
         self.cluster = None
@@ -373,7 +377,9 @@ def parse_args():
         "g",
         help=(
             "Geometric/feature similarity selector (feature_similarity). "
-            "One of: 'JS' (Jensen-Shannon divergence) or 'none'."
+            "One of: 'JS' (Jensen-Shannon divergence) or 'none'. "
+            "When d='gpcca', interpreted as number of macrostates: an integer "
+            "or 'reference_count' to reuse the reference lumping count."
         ),
     )
     parser.add_argument(
@@ -418,6 +424,18 @@ def parse_args():
         ),
     )
     parser.add_argument(
+        "--scale",
+        help="Scaling factor for plot size (default: 1)",
+        type=float,
+        default=1.0,
+    )
+    parser.add_argument(
+        "--n-timescales",
+        help="Number of implied timescales to compute (overrides config value)",
+        type=int,
+        dest="n_timescales",
+    )
+    parser.add_argument(
         "--get-least-moving-residues",
         help="Write least moving residues for each macrostate to a file",
     )
@@ -431,18 +449,26 @@ def main():
     data = Data(args.data_specification.name)
     data.setup_mpp(args.d, args.g)
     if args.d == "gpcca":
-        data.perform_gpcca(args.g, args.Z)
+        n_macrostates = args.g
+        if n_macrostates != "reference_count":
+            try:
+                n_macrostates = int(n_macrostates)
+            except ValueError:
+                pass
+        data.perform_gpcca(n_macrostates, args.Z)
     else:
         data.perform_mpp(args.Z)
+
+    if args.n_timescales is not None:
+        data.d["n_timescales"] = args.n_timescales
 
     if args.rmsd:
         data.mpp.rmsd_feature = args.rmsd_feature
         data.mpp.rmsd_estimator = MPP.utils.argmedian
         data.get_rmsd(args.rmsd, overwrite=False)
 
-    # for p in args.plot:
     if args.plot:
-        plot(data, args.out, kind=args.plot)
+        plot(data, args.out, kind=args.plot, scale=args.scale)
 
     if args.draw_random:
         write_random_frames_indices(data.mpp, args.out, args.draw_random)

@@ -37,8 +37,12 @@ Copy the `workflow/` directory into your working directory alongside your data:
                 └── *.pdf
 ```
 
-The `data_root` variable at the top of `workflow/Snakefile` controls where
-data is read from. It defaults to `"example"`.
+The `data_root` defaults to `"example"` and can be overridden from the
+command line without editing the Snakefile:
+
+```bash
+snakemake --config data_root=mydata ...
+```
 
 ---
 
@@ -58,6 +62,7 @@ multi_feature_trajectory: feature_traj
 lagtime: 20
 pop_thr: 0.15
 q_min: 0.5
+frame_length: 0.2  # in ns / frame — required
 ```
 
 ### Lumping definitions: `workflow/lumpings.yml`
@@ -115,7 +120,15 @@ python -m MPP.run {config} {d} {g} -Z {Z} -p {plot} -o {output}
 ### `plot_all` — Generate all standard plots
 
 Collects: `sankey`, `dendrogram`, `ck_test`, `timescales`, `contacts`,
-`macrotraj`, `rmsd`, `delta_rmsd` in both `pdf` and `png` formats.
+`macrotraj`, `state_network`, `transition_matrix`, `transition_time`
+in both `pdf` and `png` formats, plus `macrostate_trajectory.txt`.
+All of these plots require only the microstate trajectory and feature
+trajectory — no topology or XTC files.
+
+### `plot_all_rmsd` — Generate RMSD plots
+
+Collects: `rmsd`, `delta_rmsd` in both `pdf` and `png` formats.
+Requires `topology_file` and `xtc_file` in the system config.
 
 ### `rmsd_CA` / `rmsd_feature` — Compute RMSD
 
@@ -154,7 +167,13 @@ snakemake --use-conda -j 4 \
 ```
 
 The `plotted` sentinel file is created by the `plot_all` rule when all
-standard plots exist.
+standard (non-structural) plots exist. To also generate RMSD plots, request
+the `plotted_rmsd` sentinel:
+
+```bash
+snakemake --use-conda -j 4 \
+    example/SampleSystem/results/t/plotted_rmsd
+```
 
 **Dry run (preview without execution):**
 
@@ -182,6 +201,26 @@ Python API).
 
 ---
 
+## Stochastic Lumpings
+
+Stochastic lumpings (multiple independent runs with randomized neighbor
+selection) are triggered via a `stochastic` block in the per-system
+`config.yml`. No changes to `lumpings.yml` or any Snakemake rule are needed —
+the stochastic configuration is embedded in the system config.
+
+```yaml
+stochastic:
+  method: n     # 'n': consider the N most similar neighbors
+  param: 10     # N = 10 most similar candidates
+  n: 100        # number of independent stochastic runs
+```
+
+With this block present, `gen_Z` will perform 100 stochastic runs and store
+the full `(100, n_states-1, 4)` Z matrix. All downstream plot rules work
+unchanged — plots will use the first run by default.
+
+---
+
 ## Current Limitations
 
 - **Structural rules** (`rmsd_CA`, `rmsd_feature`, `draw_random`,
@@ -205,14 +244,19 @@ After a successful `gen_Z` + `plot_all` run, the results directory contains:
 
 ```
 example/<SystemName>/results/<lumping>/
-├── Z.npy                  # Z matrix (lumping tree)
+├── Z.npy                         # Z matrix (lumping tree)
 ├── dendrogram.pdf/.png
 ├── sankey.pdf/.png
 ├── ck_test.pdf/.png
 ├── timescales.pdf/.png
 ├── contacts.pdf/.png
 ├── macrotraj.pdf/.png
-├── rmsd.pdf/.png          # requires topology/XTC
-├── delta_rmsd.pdf/.png    # requires topology/XTC
-└── plotted                # sentinel file
+├── state_network.pdf/.png
+├── transition_matrix.pdf/.png
+├── transition_time.pdf/.png
+├── macrostate_trajectory.txt
+├── plotted                       # sentinel: plot_all complete
+├── rmsd.pdf/.png                 # requires topology/XTC
+├── delta_rmsd.pdf/.png           # requires topology/XTC
+└── plotted_rmsd                  # sentinel: plot_all_rmsd complete
 ```

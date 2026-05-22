@@ -37,7 +37,7 @@ See `docs/naming_audit.md` for the full violation inventory.
 | Scope          | Convention     | Example                      |
 |----------------|----------------|------------------------------|
 | Python modules | `snake_case`   | `kernel.py`, `run.py`        |
-| YAML configs   | `snake_case`   | `config.yml`, `lumpings.yaml`|
+| YAML configs   | `snake_case`   | `config.yml`, `lumpings.yml` |
 | Test files     | `test_<name>`  | `test_run.py`                |
 | Docs files     | `snake_case`   | `naming_conventions.md`      |
 

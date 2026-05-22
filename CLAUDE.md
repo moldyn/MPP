@@ -111,5 +111,5 @@ Shape `(n_runs, n_states-1, 4)`. Each row: `[state_a, state_b, metastability_a, 
 - `tests/data/<dataset>/input/` — Input files (microstate trajectory, feature trajectory, config YAML)
 - `tests/data/<dataset>/expected_output/<lumping_key>/` — Reference Z matrices and plots
 - `tests/data/<dataset>/baseline/` — Baseline Z matrices and macrostate assignments for regression tests
-- `tests/data/lumpings.yaml` — Maps lumping keys (e.g. `t`, `kl`, `t_js`) to kernel parameters
+- `tests/data/lumpings.yml` — Maps lumping keys (e.g. `t`, `kl`, `t_js`) to kernel parameters
 - Three test datasets: `HP35`, `PDZ3`, `aSyn`

@@ -38,6 +38,8 @@ python -m MPP.run <config.yml> <d> <g> -Z <Z.npy> [-p <plot>] [-o <output>]
 | `-Z <path>` | Path to save (or load) the Z matrix (`.npy`). If the file already exists, it is loaded instead of recomputed. |
 | `-p <plot>` | Plot type to generate (see [Plot Types](#plot-types)) |
 | `-o <output>` | Output file path for the plot or macrostate trajectory |
+| `--scale <float>` | Scaling factor for plot size (default `1`) |
+| `--n-timescales <N>` | Number of implied timescales to compute (overrides config value) |
 | `--rmsd <path>` | Compute C-alpha RMSD and write to `.npy` file |
 | `--rmsd-feature <CA\|feature>` | RMSD variant: `CA` (default) or `feature` |
 | `-r <N>` | Draw N random frame indices per macrostate (writes `.ndx` files) |
@@ -60,12 +62,13 @@ multi_feature_trajectory: feature_traj
 lagtime: 20          # lag time in frames
 pop_thr: 0.15        # minimum macrostate population (fraction)
 q_min: 0.5           # minimum macrostate metastability
+frame_length: 0.2    # frame length in ns
 
 contact_threshold: 0.45  # distance threshold to binarise feature (nm)
 ```
 
 **Required keys:** `source`, `microstate_trajectory`,
-`multi_feature_trajectory`, `lagtime`, `pop_thr`, `q_min`.
+`multi_feature_trajectory`, `lagtime`, `pop_thr`, `q_min`, `frame_length`.
 
 **Optional keys:**
 
@@ -76,7 +79,6 @@ contact_threshold: 0.45  # distance threshold to binarise feature (nm)
 | `contact_index_file` | Contact pair index file for structural analysis |
 | `topology_file` | PDB topology file for structural analysis |
 | `xtc_file` | XTC trajectory file for structural analysis |
-| `frame_length` | Frame length in ns (default `0.2`) |
 | `xtc_stride` | Stride for XTC reading |
 | `n_timescales` | Number of implied timescales to compute |
 | `helices` | Helix residue ranges for RMSD annotation |
@@ -106,6 +108,8 @@ distributions.
 |---|---|
 | `none` | No feature similarity |
 | `JS` | Jensen-Shannon divergence of feature distributions |
+| `reference_count` | *(gpcca mode only)* Use macrostate count from the reference `T` lumping |
+| `<int>` | *(gpcca mode only)* Use a fixed number of macrostates |
 
 ---
 

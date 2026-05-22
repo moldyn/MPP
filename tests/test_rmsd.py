@@ -24,7 +24,7 @@ SETUPS = [
     "gpcca",
 ]
 
-with open(f"{config_dir}lumpings.yaml") as f:
+with open(f"{config_dir}lumpings.yml") as f:
     lumpings = yaml.safe_load(f)
 
 

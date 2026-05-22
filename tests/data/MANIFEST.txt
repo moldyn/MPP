@@ -76,7 +76,7 @@ Additional dataset names referenced by tests
 
 Shared mapping file
   REQUIRED (present)
-    - lumpings.yaml
+    - lumpings.yml
 
 TASK-1.7 deterministic baseline files
   HP35

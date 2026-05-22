@@ -17,7 +17,7 @@ import MPP.run as run_module
 
 
 DATASETS = ["HP35"]
-MAPPING_FILE = Path(__file__).parent / "data" / "lumpings.yaml"
+MAPPING_FILE = Path(__file__).parent / "data" / "lumpings.yml"
 
 
 def _run_main_with_args(args_list):

@@ -34,8 +34,8 @@ All YAML config keys should be `snake_case`. The following use spaces.
 | all configs                                   | `frame length`                 | `frame_length`             | CAUTION  |
 | all configs                                   | `xtc stride`                   | `xtc_stride`               | CAUTION  |
 | `MPP/run.py:227`                              | `"n timescales"`               | `n_timescales`             | CAUTION  |
-| `workflow/lumpings.yml`, `tests/data/lumpings.yaml` | `kernel similarity`    | `kernel_similarity` ✅ TASK-2.3 | HIGH-RISK |
-| `workflow/lumpings.yml`, `tests/data/lumpings.yaml` | `feature kernel`       | `feature_kernel` ✅ TASK-2.3   | HIGH-RISK |
+| `workflow/lumpings.yml`, `tests/data/lumpings.yml` | `kernel similarity`    | `kernel_similarity` ✅ TASK-2.3 | HIGH-RISK |
+| `workflow/lumpings.yml`, `tests/data/lumpings.yml` | `feature kernel`       | `feature_kernel` ✅ TASK-2.3   | HIGH-RISK |
 
 **Note:** YAML key renames require simultaneous updates to every file that reads
 those keys (`MPP/run.py`, `workflow/Snakefile`, all config files, and tests).
@@ -159,21 +159,16 @@ index, a mask, or a list.
 
 ---
 
-## 10. `lumpings.yaml` Value `"ref"` — Ambiguous Sentinel
+## 10. `lumpings.yaml` Value `"ref"` — Ambiguous Sentinel ✅ DONE (TASK-2.3)
 
-| File                         | Key              | Current value | Proposed value     | Risk     |
-|------------------------------|------------------|---------------|--------------------|----------|
-| `workflow/lumpings.yml:18`   | `feature kernel` | `"ref"`       | `"reference_count"` | CAUTION  |
-| `tests/data/lumpings.yaml:18`| `feature kernel` | `"ref"`       | `"reference_count"` | CAUTION  |
+| File                         | Key              | Current value       | Proposed value     | Risk     |
+|------------------------------|------------------|---------------------|--------------------|----------|
+| `workflow/lumpings.yml`      | `feature_kernel` | `"reference_count"` | *(already done)*   | CAUTION  |
+| `tests/data/lumpings.yml`    | `feature_kernel` | `"reference_count"` | *(already done)*   | CAUTION  |
 
-For the GPCCA entry, `feature kernel: ref` is a special sentinel meaning "use the
-macrostate count from the reference (T) lumping." This is not obvious and is
-distinct from the `JS`/`none` values used by other entries. A more descriptive
-sentinel such as `"reference_count"` would clarify intent.
-
-**Note:** This value is parsed in `MPP/run.py:174` as the `n_macrostates="ref"`
-default. Renaming requires updating the parser, config files, and documentation
-together.
+Both files already use `"reference_count"` and the snake_case key `feature_kernel`.
+The `perform_gpcca` default was updated to `n_macrostates="reference_count"` in
+TASK-2.3. Integer parsing for the CLI `g` argument was added in TASK-4.2.
 
 ---
 
@@ -217,7 +212,7 @@ a naming violation, but noted here for completeness.
 4. YAML keys: `contact threshold`, `cluster file`, `contact index file`, `topology file`, `xtc file`, `frame length`, `xtc stride`, `n timescales` — ✅ done in TASK-2.2
 5. `Data.prepare_mpp(dij, gij)` / `Data.setup_mpp(dij, gij)` parameter names — ✅ renamed to `dynamic_similarity`/`feature_similarity` in TASK-2.3
 6. `Data.prepare_mpp` method name — ✅ renamed to `_prepare_kernels` in TASK-2.3
-7. GPCCA `"ref"` sentinel value in lumpings YAML — still pending
+7. GPCCA `"ref"` sentinel value in lumpings YAML — ✅ done in TASK-2.3 / TASK-4.2
 
 ### SAFE (rename within the containing function/method, no callers affected)
 

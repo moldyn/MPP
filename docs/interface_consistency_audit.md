@@ -323,12 +323,12 @@ integer parsing in `perform_gpcca` or in `main()` when `d == "gpcca"`.
 
 **Severity:** LOW
 
-**Files:** `docs/naming_audit.md`, `workflow/lumpings.yml`, `tests/data/lumpings.yaml`
+**Files:** `docs/naming_audit.md`, `workflow/lumpings.yml`, `tests/data/lumpings.yml`
 
 **Description:**
 `docs/naming_audit.md` item 10 lists the GPCCA `feature_kernel` sentinel
 value `"ref"` as "still pending" (proposed replacement: `"reference_count"`).
-Both `workflow/lumpings.yml` and `tests/data/lumpings.yaml` already use
+Both `workflow/lumpings.yml` and `tests/data/lumpings.yml` already use
 `"reference_count"`. The audit document is stale.
 
 Similarly, item 10 shows `feature kernel` (space-separated) as the current
@@ -347,7 +347,7 @@ update the "current value" column to reflect the actual state.
 
 **Severity:** LOW
 
-**Files:** `workflow/lumpings.yml`, `tests/data/lumpings.yaml`
+**Files:** `workflow/lumpings.yml`, `tests/data/lumpings.yml`
 
 **Description:**
 The workflow uses `lumpings.yml` while the test fixture uses `lumpings.yaml`.
@@ -360,7 +360,7 @@ across the repo is preferable.
 
 **Harmonization strategy:**
 Standardize on `.yml` (matching the workflow convention and the majority of
-config files). Update `tests/data/lumpings.yaml` → `tests/data/lumpings.yml`
+config files). Update `tests/data/lumpings.yml` → `tests/data/lumpings.yml`
 and all references. Low breakage risk — only test code reads the test fixture.
 
 ---

@@ -1,7 +1,7 @@
 import os
 
 # Relative path to the directory where you store the data of this workflow.
-data_root = "example"
+data_root = config.get("data_root", "example")
 
 configfile: os.path.join("workflow", "lumpings.yml")
 
@@ -300,12 +300,19 @@ rule plot_all:
     os.path.join(data_root, "{system}", "results", "{lumping}", "timescales.pdf"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "contacts.pdf"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "macrotraj.pdf"),
+    os.path.join(data_root, "{system}", "results", "{lumping}", "state_network.pdf"),
+    os.path.join(data_root, "{system}", "results", "{lumping}", "transition_matrix.pdf"),
+    os.path.join(data_root, "{system}", "results", "{lumping}", "transition_time.pdf"),
+    os.path.join(data_root, "{system}", "results", "{lumping}", "macrostate_trajectory.txt"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "sankey.png"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "dendrogram.png"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "ck_test.png"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "timescales.png"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "contacts.png"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "macrotraj.png"),
+    os.path.join(data_root, "{system}", "results", "{lumping}", "state_network.png"),
+    os.path.join(data_root, "{system}", "results", "{lumping}", "transition_matrix.png"),
+    os.path.join(data_root, "{system}", "results", "{lumping}", "transition_time.png"),
   output:
     os.path.join(data_root, "{system}", "results", "{lumping}", "plotted"),
   shell:

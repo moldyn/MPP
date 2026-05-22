@@ -23,7 +23,7 @@ PLOT_KINDS = [
     "ck_test",
     "state_network",
 ]
-MAPPING_FILE = Path(__file__).parent / "data" / "lumpings.yaml"
+MAPPING_FILE = Path(__file__).parent / "data" / "lumpings.yml"
 
 
 def _run_main_with_args(args_list):
