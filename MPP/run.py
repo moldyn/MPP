@@ -198,6 +198,10 @@ class Data:
         """
         Run MPP and save the Z matrix, or load it if it already exists.
 
+        Also saves ``macrostate_map.npy`` in the same directory as ``out``.
+        This file maps each microstate index to its assigned macrostate index
+        (integer array, shape ``(n_states,)``).
+
         Parameters
         ----------
         out : str
@@ -216,6 +220,9 @@ class Data:
                 n=self.d["stochastic"]["n"] if "stochastic" in self.d else 1,
             )
             self.mpp.save_Z(out)
+        macrostate_map_out = Path(out).parent / "macrostate_map.npy"
+        if not macrostate_map_out.exists() or overwrite:
+            np.save(macrostate_map_out, self.mpp.macrostate_map[0])
 
     def perform_gpcca(self, n_macrostates="reference_count", out=None, overwrite=False):
         """

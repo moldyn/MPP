@@ -122,8 +122,9 @@ python -m MPP.run {config} {d} {g} -Z {Z} -p {plot} -o {output}
 Collects: `sankey`, `dendrogram`, `ck_test`, `timescales`, `contacts`,
 `macrotraj`, `state_network`, `transition_matrix`, `transition_time`
 in both `pdf` and `png` formats, plus `macrostate_trajectory.txt`.
-All of these plots require only the microstate trajectory and feature
-trajectory — no topology or XTC files.
+Most plots require only the microstate trajectory and feature trajectory.
+The `contacts` plot additionally requires `cluster_file` to be set in the
+system config — if absent, the rule will fail for that plot.
 
 ### `plot_all_rmsd` — Generate RMSD plots
 
@@ -245,6 +246,7 @@ After a successful `gen_Z` + `plot_all` run, the results directory contains:
 ```
 example/<SystemName>/results/<lumping>/
 ├── Z.npy                         # Z matrix (lumping tree)
+├── macrostate_map.npy            # microstate → macrostate index map
 ├── dendrogram.pdf/.png
 ├── sankey.pdf/.png
 ├── ck_test.pdf/.png

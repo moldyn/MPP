@@ -166,7 +166,7 @@ python -m MPP.run example/sample_system/input/config.yml T none \
 
 ```bash
 python -m MPP.run example/sample_system/input/config.yml T none \
-    -Z results/t/Z.npy -p macrostate_trajectory -o results/t/macrotraj.txt
+    -Z results/t/Z.npy -p macrostate_trajectory -o results/t/macrostate_trajectory.txt
 ```
 
 ---
@@ -199,8 +199,12 @@ merge step: `[state_a, state_b, metastability_a, joint_population]`. The Z
 matrix is in scipy linkage format with `n_states + i` as the intermediate
 cluster index. For deterministic runs, `n_runs = 1`.
 
+**Macrostate map (`macrostate_map.npy`):** Integer array of shape `(n_states,)`.
+Entry `i` gives the macrostate index assigned to microstate `i`. Written
+automatically to the same directory as `Z.npy` whenever `-Z` is used.
+
 **Macrostate trajectory (text):** One integer per line, 0-based macrostate
-index. Written by `-p macrostate_trajectory`.
+index. Written by `-p macrostate_trajectory -o macrostate_trajectory.txt`.
 
 **RMSD file (`.npy`):** Shape `(n_macrostates, n_CA_atoms)`, C-alpha RMSD
 values per macrostate.

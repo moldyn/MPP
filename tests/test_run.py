@@ -158,6 +158,52 @@ class TestRunScript(unittest.TestCase):
     def test_aSyn_t_stoch(self):
         self.run_and_validate_output("aSyn", "T", "none", stochastic=True)
 
+    def test_macrostate_map_saved_alongside_z(self):
+        """macrostate_map.npy must be written to the same directory as Z.npy."""
+        config_file = self.base_data_dir / "HP35" / "input" / "config.yml"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            z_output = Path(tmpdir) / "Z.npy"
+            exit_code, stdout, stderr = self._run_command(
+                config_file, "T", "none", z_output
+            )
+            self.assertEqual(exit_code, 0, f"Run failed: {stderr}")
+
+            map_output = Path(tmpdir) / "macrostate_map.npy"
+            self.assertTrue(
+                map_output.exists(),
+                "macrostate_map.npy not created alongside Z.npy",
+            )
+            macrostate_map = np.load(map_output)
+            self.assertEqual(macrostate_map.ndim, 1, "macrostate_map should be 1D")
+            self.assertTrue(
+                np.all(macrostate_map >= 0),
+                "macrostate_map values must be non-negative",
+            )
+
+    def test_macrostate_map_reloaded_on_load(self):
+        """macrostate_map.npy must be (re-)written when loading an existing Z."""
+        config_file = self.base_data_dir / "HP35" / "input" / "config.yml"
+        key = "t"
+        z_file = self.base_data_dir / "HP35" / "expected_output" / key / "Z.npy"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Copy Z.npy into tmpdir so perform_mpp loads it rather than computing
+            import shutil
+
+            z_copy = Path(tmpdir) / "Z.npy"
+            shutil.copy(z_file, z_copy)
+
+            exit_code, stdout, stderr = self._run_command(
+                config_file, "T", "none", z_copy
+            )
+            self.assertEqual(exit_code, 0, f"Reload failed: {stderr}")
+            self.assertIn("Loading existing Z", stdout)
+
+            map_output = Path(tmpdir) / "macrostate_map.npy"
+            self.assertTrue(
+                map_output.exists(),
+                "macrostate_map.npy not written when loading existing Z",
+            )
+
     def assert_same_file_count(self, expected_dir, actual_dir, pattern="*"):
         expected_files = list(Path(expected_dir).glob(pattern))
         actual_files = list(Path(actual_dir).glob(pattern))

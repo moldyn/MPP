@@ -46,7 +46,8 @@ rule gen_Z:
   input:
     os.path.join(data_root, "{system}", "input", "config.yml"),
   output:
-    os.path.join(data_root, "{system}", "results", "{lumping}", "Z.npy")
+    z=os.path.join(data_root, "{system}", "results", "{lumping}", "Z.npy"),
+    macrostate_map=os.path.join(data_root, "{system}", "results", "{lumping}", "macrostate_map.npy"),
   params:
     d=get_d,
     g=get_g
@@ -54,7 +55,7 @@ rule gen_Z:
     "mpp.yml"
   cache: True
   shell:
-    "python -m MPP.run {input} {params.d} {params.g} -Z {output}"
+    "python -m MPP.run {input} {params.d} {params.g} -Z {output.z}"
 
 rule plot:
   input:
