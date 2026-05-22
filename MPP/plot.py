@@ -183,9 +183,9 @@ def stochastic_state_similarity(mpt1, mpt2, out):
         ax.hist(s3[state], bins=np.linspace(m, 1, 21), color="r", alpha=0.7)
         ax.set_title(f"state {state + 1}")
     fig.supxlabel("Macrostate similarity")
-    fig.supylabel(f"Count of clusterings ({sto.n_runs} clusterings)")
+    fig.supylabel(f"Count of lumpings ({sto.n_runs} lumpings)")
     plt.figlegend(
-        ["union", "reference", "clustering"],
+        ["union", "reference", "lumping"],
         ncols=3,
         loc="lower center",
         bbox_to_anchor=(0.5, 0.05),
@@ -724,14 +724,14 @@ def macro_feature(micro_feature, out, ref=None, pop=None):
     y_min = norm_counts[norm_counts > 0].min() * 0.7
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    ax.hist(bins[:-1], bins=bins, weights=norm_counts, label="Stochastic Clustering")
+    ax.hist(bins[:-1], bins=bins, weights=norm_counts, label="Stochastic Lumping")
     if ref is not None:
         # for mas, mfs, c, l, w in ref:
         # add_ref(mas, mfs, ax, color=c, label=l, weights=w)
         add_ref(ref.macrostate_assignment[ref.run_index], ref.macrostate_feature[ref.run_index], ax)
     ax.set_xlabel("Fraction of Contacts")
     ax.set_ylabel("Population")
-    ax.set_title(f"Macrostate Features, {micro_feature.shape[1]} clusterings")
+    ax.set_title(f"Macrostate Features, {micro_feature.shape[1]} lumpings")
     ax.set_yscale("log")
     ylim = ax.get_ylim()
     ax.set_ylim((y_min, ylim[1]))

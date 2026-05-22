@@ -66,7 +66,7 @@ class LumpingKernel(object):
         Parameters
         ----------
         full_tmat : ndarray of float, shape (2n-1, 2n-1)
-            Full transition matrix including intermediate cluster states.
+            Full transition matrix including intermediate merged states.
         states_not_merged : ndarray of int
             Array of not-yet-merged state indices.
         mask : ndarray of bool
@@ -216,10 +216,10 @@ class FeatureKernel(object):
             ].mean(axis=0)
 
     def reset(self):
-        """Reset intermediate cluster feature state.
+        """Reset intermediate merged state features.
 
         Clears population counts and mean feature values for all intermediate
-        cluster states (indices ``n_states`` to ``2*n_states-2``), restoring
+        merged states (indices ``n_states`` to ``2*n_states-2``), restoring
         the kernel to its initial per-microstate state.
         """
         self.full_pop[self.n_states :] = 0
@@ -306,7 +306,7 @@ class FeatureKernel(object):
         """Reconstruct full feature array for all runs from a Z matrix.
 
         Replays the merging sequence encoded in ``Z`` to compute
-        population-weighted mean features for all intermediate cluster states
+        population-weighted mean features for all intermediate merged states
         across all runs.
 
         Parameters
@@ -319,7 +319,7 @@ class FeatureKernel(object):
         -------
         ndarray of float, shape (n_runs, 2*n_states-1, n_features)
             Full feature array including both microstate and intermediate
-            cluster state features for each run.
+            merged state features for each run.
         """
         # Ensure that Z is 3D
         if Z.ndim == 2:

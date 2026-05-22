@@ -14,5 +14,5 @@ t_js:
   feature_kernel: JS
   kernel_similarity: T
 gpcca:
-  feature_kernel: ref
+  feature_kernel: reference_count
   kernel_similarity: gpcca

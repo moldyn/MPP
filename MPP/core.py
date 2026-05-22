@@ -29,8 +29,8 @@ class BinaryTreeNode(NodeMixin):
     """
     A node in the MPP lumping tree.
 
-    Each node represents either a microstate (leaf) or a merged cluster
-    (internal node) produced during the MPP lumping procedure. The tree is
+    Each node represents either a microstate (leaf) or an intermediate
+    merged state (internal node) produced during the MPP lumping procedure. The tree is
     built bottom-up by the ``cluster`` function and parsed top-down to
     identify macrostates.
 
@@ -123,7 +123,7 @@ class BinaryTreeNode(NodeMixin):
         Population of this node.
 
         For leaf nodes (microstates), returns the stored population value.
-        For internal nodes (merged clusters), returns the sum of the left
+        For internal nodes (intermediate merged states), returns the sum of the left
         and right children's populations.
 
         Returns
@@ -173,7 +173,7 @@ class BinaryTreeNode(NodeMixin):
         Feature value for this node, weighted by population.
 
         For leaf nodes (microstates), returns the stored feature value.
-        For internal nodes (merged clusters), returns the population-weighted
+        For internal nodes (intermediate merged states), returns the population-weighted
         mean of the left and right children's feature values.
 
         Returns
@@ -751,10 +751,10 @@ def cluster(
     """
     Perform full lumping for a transition matrix, given populations and a kernel.
 
-    Iteratively merges microstates according to the lumping kernel until a
-    single cluster remains. At each step, the kernel selects the microstate
-    to merge and its target, the transition matrix is updated via
-    ``utils.merge_states``, and the merge is recorded in the Z matrix.
+    Iteratively merges microstates according to the lumping kernel until all
+    microstates have been merged into one state. At each step, the kernel
+    selects the microstate to merge and its target, the transition matrix is
+    updated via ``utils.merge_states``, and the merge is recorded in the Z matrix.
 
     Parameters
     ----------
@@ -798,7 +798,7 @@ def cluster(
     else:
         states_type = np.uint32
 
-    # complete linkage
+    # state merge tracking
     full_states = np.zeros((2 * n - 1, 2), dtype=states_type)
     full_states[:n, 0] = np.arange(0, n)
 
@@ -807,9 +807,9 @@ def cluster(
 
     # 0: state a
     # 1: state b
-    # 2: distance between a and b
-    # 3: population
-    # i: Z[i, 0] and Z[i, 1] are combined to cluster n + i
+    # 2: metastability of state a
+    # 3: joint population
+    # i: Z[i, 0] and Z[i, 1] are merged into intermediate state n + i
     Z = np.zeros((n - 1, 4), dtype=np.float32)
 
     if feature_kernel:

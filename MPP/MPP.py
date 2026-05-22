@@ -385,7 +385,7 @@ class Lumping(object):
 
         Generalized Perron Cluster Cluster Analysis (GPCCA) is used
         instead of the MPP algorithm. GPCCA requires the definition of
-        a number of macrostates to cluster the microstates into. For
+        a number of macrostates to lump the microstates into. For
         comparison, the number of macrostates in the reference lumping
         may be a good choice. This method is implemented for reference.
 
@@ -590,9 +590,9 @@ class Lumping(object):
             self.q_min = 0.5
 
             self.n_macrostates = [((self.Z[0, :, 2] > self.q_min).sum() + 1)]
-            gma = utils.get_macrostate_assignment_from_tree(self.tree[0])
+            gpcca_assignment = utils.get_macrostate_assignment_from_tree(self.tree[0])
             self._assign_macrostates_from_gpcca(
-                np.array([np.where(i)[0][0] for i in gma.T])
+                np.array([np.where(i)[0][0] for i in gpcca_assignment.T])
             )
         else:
             self.assign_macrostates()
@@ -1433,7 +1433,7 @@ class Plotter:
             File path to save the plot.
         ref : list of tuple, optional
             Each tuple contains macrostate_assignment, macrostate_feature,
-            color, and label for clusterings to show explicitly.
+            color, and label for lumpings to show explicitly.
             (default None)
         """
         plot.macro_feature(

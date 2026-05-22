@@ -208,22 +208,22 @@ class Data:
             )
             self.mpp.save_Z(out)
 
-    def perform_gpcca(self, n_macrostates="ref", out=None, overwrite=False):
+    def perform_gpcca(self, n_macrostates="reference_count", out=None, overwrite=False):
         """
         Run GPCCA lumping and optionally save the Z matrix.
 
         Parameters
         ----------
-        n_macrostates : int or ``'ref'``
-            Number of macrostates, or ``'ref'`` to use the count from the
-            reference lumping (T). (default ``'ref'``)
+        n_macrostates : int or ``'reference_count'``
+            Number of macrostates, or ``'reference_count'`` to use the count
+            from the reference lumping (T). (default ``'reference_count'``)
         out : str, optional
             Path to save the Z matrix. If None, the result is not saved.
             (default None)
         overwrite : bool
             If True, recompute even if the file already exists. (default False)
         """
-        if n_macrostates == "ref":
+        if n_macrostates == "reference_count":
             n_macrostates = self.mpp.reference.n_macrostates[0]
         if out is not None and os.path.exists(out) and not overwrite:
             print("Loading existing Z")
@@ -378,7 +378,10 @@ def parse_args():
     )
     parser.add_argument(
         "-Z",
-        help="Perform MPP and write the Z matrix",
+        help=(
+            "Path to the Z matrix (.npy). Runs MPP and saves the result if "
+            "the file does not exist; loads the existing file otherwise."
+        ),
     )
     parser.add_argument(
         "--rmsd",

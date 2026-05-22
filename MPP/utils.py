@@ -205,7 +205,7 @@ def linkage_to_Z(linkage, pop):
         ``[state_a, state_b, metastability, joint_pop]``, using 0-based
         indices where merged states receive new indices ``n_states + i``.
     full_pop : ndarray of int, shape (2*n_states-1,)
-        Population array for all microstates and intermediate cluster states.
+        Population array for all microstates and intermediate merged states.
     """
     linkage = np.array(linkage)
     n_states = linkage.shape[0] + 1
@@ -271,7 +271,7 @@ def calc_full_tmat(tmat, pop, Z):
 
     Replays the merging sequence encoded in ``Z`` to build a full transition
     matrix of shape ``(2*n_states-1, 2*n_states-1)`` for each run, including
-    all intermediate cluster states.
+    all intermediate merged states.
 
     Parameters
     ----------
