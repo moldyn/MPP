@@ -11,7 +11,7 @@ contact_threshold: null
 # xtc_file: trajectory.xtc
 # helices: helices
 
-# frame_length: 0.2 # in ns / frame
+frame_length: 0.2 # in ns / frame
 lagtime: 20 # in frames
 pop_thr: 0.15
 q_min: 0.5

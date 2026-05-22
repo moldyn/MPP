@@ -300,17 +300,24 @@ rule plot_all:
     os.path.join(data_root, "{system}", "results", "{lumping}", "timescales.pdf"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "contacts.pdf"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "macrotraj.pdf"),
-    os.path.join(data_root, "{system}", "results", "{lumping}", "rmsd.pdf"),
-    os.path.join(data_root, "{system}", "results", "{lumping}", "delta_rmsd.pdf"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "sankey.png"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "dendrogram.png"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "ck_test.png"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "timescales.png"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "contacts.png"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "macrotraj.png"),
+  output:
+    os.path.join(data_root, "{system}", "results", "{lumping}", "plotted"),
+  shell:
+    "date > {output}"
+
+rule plot_all_rmsd:
+  input:
+    os.path.join(data_root, "{system}", "results", "{lumping}", "rmsd.pdf"),
+    os.path.join(data_root, "{system}", "results", "{lumping}", "delta_rmsd.pdf"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "rmsd.png"),
     os.path.join(data_root, "{system}", "results", "{lumping}", "delta_rmsd.png"),
   output:
-    os.path.join(data_root, "{system}", "results", "{lumping}", "plotted"),
+    os.path.join(data_root, "{system}", "results", "{lumping}", "plotted_rmsd"),
   shell:
     "date > {output}"

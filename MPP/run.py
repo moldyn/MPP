@@ -69,7 +69,6 @@ OPTIONAL_PARAMS = [
     "topology_file",
     "xtc_file",
     "helices",
-    "frame_length",
     "view",
     "width",
     "height",
@@ -84,6 +83,12 @@ class Data:
         with open(yaml_file, "r") as f:
             config = yaml.safe_load(f) or {}
         self.d = {**DEFAULTS, **_normalize_config(config)}
+
+        if "frame_length" not in self.d:
+            raise ValueError(
+                "Config key 'frame_length' is required. "
+                "Specify the frame length in ns (e.g. frame_length: 0.2)."
+            )
 
         self.source = self.d["source"]
 
