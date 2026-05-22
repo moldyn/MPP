@@ -123,7 +123,7 @@ class TestRunScript(unittest.TestCase):
 
                 # Verify "Loading existing Z" is printed (indicating from_Z was called)
                 self.assertIn(
-                    "Loading existing Z",
+                    "Loading existing Z matrix",
                     stdout2,
                     f"Z not loaded from file for {stderr2} {d}-{g}",
                 )
@@ -196,7 +196,7 @@ class TestRunScript(unittest.TestCase):
                 config_file, "T", "none", z_copy
             )
             self.assertEqual(exit_code, 0, f"Reload failed: {stderr}")
-            self.assertIn("Loading existing Z", stdout)
+            self.assertIn("Loading existing Z matrix", stdout)
 
             map_output = Path(tmpdir) / "macrostate_map.npy"
             self.assertTrue(
@@ -256,6 +256,7 @@ class TestConfigNormalization(unittest.TestCase):
             "lagtime": 1,
             "pop_thr": 0.005,
             "q_min": 0.5,
+            "frame_length": 10,
         }
         config.update(extra_keys)
         import yaml as _yaml
@@ -375,3 +376,79 @@ class TestConfigNormalization(unittest.TestCase):
         ]
         for key in expected_canonical:
             self.assertIn(key, result, f"Canonical key '{key}' missing from result")
+
+
+class TestCLIValidation(unittest.TestCase):
+    """Tests for CLI argument validation and user-facing error messages."""
+
+    def setUp(self):
+        self.base_data_dir = Path(__file__).parent / "data"
+        self.valid_config = str(
+            self.base_data_dir / "HP35" / "input" / "config.yml"
+        )
+        self.valid_z = str(
+            self.base_data_dir / "HP35" / "expected_output" / "t" / "Z.npy"
+        )
+
+    def _run(self, args_list):
+        return _run_main_with_args(args_list)
+
+    def test_invalid_d_exits_with_error(self):
+        """An unrecognised dynamic similarity selector must produce a clear error."""
+        code, stdout, stderr = self._run(
+            [self.valid_config, "INVALID", "none", "-Z", self.valid_z]
+        )
+        self.assertNotEqual(code, 0)
+        self.assertIn("INVALID", stderr)
+        self.assertIn("dynamic similarity selector", stderr)
+
+    def test_invalid_g_exits_with_error(self):
+        """An unrecognised feature similarity selector must produce a clear error."""
+        code, stdout, stderr = self._run(
+            [self.valid_config, "T", "INVALID", "-Z", self.valid_z]
+        )
+        self.assertNotEqual(code, 0)
+        self.assertIn("INVALID", stderr)
+        self.assertIn("feature similarity selector", stderr)
+
+    def test_missing_z_for_mpp_exits_with_error(self):
+        """Omitting -Z for a non-gpcca run must produce a clear error."""
+        code, stdout, stderr = self._run([self.valid_config, "T", "none"])
+        self.assertNotEqual(code, 0)
+        self.assertIn("-Z", stderr)
+
+    def test_plot_without_out_exits_with_error(self):
+        """Specifying -p without -o must produce a clear error."""
+        code, stdout, stderr = self._run(
+            [self.valid_config, "T", "none", "-Z", self.valid_z, "-p", "dendrogram"]
+        )
+        self.assertNotEqual(code, 0)
+        self.assertIn("-o", stderr)
+
+    def test_missing_required_config_key_raises(self):
+        """A config file missing required keys must raise a ValueError with the key name."""
+        import tempfile
+        import yaml as _yaml
+
+        with tempfile.NamedTemporaryFile(suffix=".yml", mode="w", delete=False) as tmp:
+            tmp_path = tmp.name
+        # Write a config missing 'lagtime', 'pop_thr', 'q_min', 'frame_length'
+        with open(tmp_path, "w") as f:
+            _yaml.dump(
+                {
+                    "source": str(self.base_data_dir / "HP35" / "input"),
+                    "microstate_trajectory": "microstate_trajectory",
+                    "multi_feature_trajectory": "contact_distances_trajectory",
+                },
+                f,
+            )
+        with self.assertRaises(ValueError) as ctx:
+            run_module.Data(tmp_path)
+        self.assertIn("lagtime", str(ctx.exception))
+
+    def test_nonexistent_config_file_gives_argparse_error(self):
+        """A non-existent config file must produce a non-zero exit code."""
+        code, stdout, stderr = self._run(
+            ["/nonexistent/path/config.yml", "T", "none", "-Z", self.valid_z]
+        )
+        self.assertNotEqual(code, 0)

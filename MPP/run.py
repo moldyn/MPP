@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import warnings
 import yaml
 from pathlib import Path
@@ -61,6 +62,19 @@ def _normalize_config(config):
     return normalized
 
 
+_VALID_D = frozenset({"T", "KL", "none", "gpcca"})
+_VALID_G_MPP = frozenset({"JS", "none"})
+
+_REQUIRED_CONFIG_KEYS = [
+    "source",
+    "microstate_trajectory",
+    "multi_feature_trajectory",
+    "lagtime",
+    "pop_thr",
+    "q_min",
+    "frame_length",
+]
+
 OPTIONAL_PARAMS = [
     "cluster_file",
     "contact_index_file",
@@ -84,10 +98,12 @@ class Data:
             config = yaml.safe_load(f) or {}
         self.d = {**DEFAULTS, **_normalize_config(config)}
 
-        if "frame_length" not in self.d:
+        missing = [k for k in _REQUIRED_CONFIG_KEYS if k not in self.d]
+        if missing:
             raise ValueError(
-                "Config key 'frame_length' is required. "
-                "Specify the frame length in ns (e.g. frame_length: 0.2)."
+                "Config is missing required key(s): "
+                + ", ".join(f"'{k}'" for k in missing)
+                + ". See docs/usage_cli.md for the full list of required config keys."
             )
 
         self.source = self.d["source"]
@@ -210,7 +226,7 @@ class Data:
             If True, recompute even if the file already exists. (default False)
         """
         if os.path.exists(out) and not overwrite:
-            print("Loading existing Z")
+            print(f"Loading existing Z matrix from {out}")
             self.mpp.load_Z(out)
         else:
             Path(os.path.dirname(out)).mkdir(parents=True, exist_ok=True)
@@ -242,7 +258,7 @@ class Data:
         if n_macrostates == "reference_count":
             n_macrostates = self.mpp.reference.n_macrostates[0]
         if out is not None and os.path.exists(out) and not overwrite:
-            print("Loading existing Z")
+            print(f"Loading existing Z matrix from {out}")
             self.mpp.load_Z(out, gpcca=True)
         else:
             self.mpp.gpcca(n_macrostates)
@@ -316,7 +332,6 @@ def plot(data, out, kind="dendrogram", scale=1):
         data.get_rmsd(os.path.join(os.path.dirname(out), "rmsd_CA.npy"))
         data.mpp.plot.delta_rmsd(out, helices=data.helices)
     elif kind == "state_network":
-        print("Plotting state network")
         data.mpp.plot.state_network(out)
     elif kind == "macro_feature":
         data.mpp.plot.macro_feature(out)
@@ -357,100 +372,188 @@ def write_random_frames_indices(mpp, out, n):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        prog="Perform MPP on MD simulation data",
+        prog="python -m MPP.run",
         description=(
-            "This program allows for the analysis of MD data utilizing the "
-            "most probable path algorithm. It allows for easy plotting of "
-            "different quality measures."
+            "Run MPP (Most Probable Path) lumping on a Markov state model.\n"
+            "Reads a YAML configuration file, runs or loads a lumping, "
+            "and optionally generates plots or exports results."
         ),
+        epilog=(
+            "Examples:\n"
+            "  # Run with transition-probability kernel and save Z matrix:\n"
+            "  python -m MPP.run config.yml T none -Z results/t/Z.npy\n"
+            "\n"
+            "  # Load existing Z matrix and generate a dendrogram:\n"
+            "  python -m MPP.run config.yml T none -Z results/t/Z.npy \\\n"
+            "      -p dendrogram -o results/t/dendrogram.pdf\n"
+            "\n"
+            "  # Run with KL divergence kernel:\n"
+            "  python -m MPP.run config.yml KL none -Z results/kl/Z.npy\n"
+            "\n"
+            "  # Run with combined transition probability + feature kernel:\n"
+            "  python -m MPP.run config.yml T JS -Z results/t_js/Z.npy\n"
+            "\n"
+            "  # Save macrostate trajectory to text file:\n"
+            "  python -m MPP.run config.yml T none -Z results/t/Z.npy \\\n"
+            "      -p macrostate_trajectory -o results/t/macrostate_trajectory.txt\n"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "data_specification",
+        metavar="config.yml",
         help=(
-            "yaml file containing specification of files and parameters of "
-            "the simulation"
+            "YAML configuration file specifying input paths and lumping "
+            "parameters (source, microstate_trajectory, "
+            "multi_feature_trajectory, lagtime, pop_thr, q_min, "
+            "frame_length, and optional keys)."
         ),
         type=argparse.FileType("r", encoding="latin-1"),
     )
     parser.add_argument(
         "d",
+        metavar="d",
         help=(
-            "Dynamic similarity selector (kernel_similarity). "
-            "One of: 'T' (transition probability), 'KL' (Kullback-Leibler "
-            "divergence), 'none' (feature-only), or 'gpcca'."
+            "Dynamic similarity selector (lumping kernel). "
+            "One of: 'T' (transition probability, recommended default), "
+            "'KL' (Kullback-Leibler divergence of transition rows), "
+            "'none' (feature-only mode, requires g=JS), or "
+            "'gpcca' (GPCCA comparison run)."
         ),
     )
     parser.add_argument(
         "g",
+        metavar="g",
         help=(
-            "Geometric/feature similarity selector (feature_similarity). "
-            "One of: 'JS' (Jensen-Shannon divergence) or 'none'. "
-            "When d='gpcca', interpreted as number of macrostates: an integer "
-            "or 'reference_count' to reuse the reference lumping count."
+            "Feature similarity selector. "
+            "One of: 'JS' (Jensen-Shannon divergence of feature distributions) "
+            "or 'none' (no feature similarity). "
+            "When d='gpcca': an integer number of macrostates, or "
+            "'reference_count' to reuse the macrostate count from the "
+            "reference T lumping."
         ),
     )
     parser.add_argument(
         "-o",
         "--out",
-        help=("Where to store the plot"),
+        metavar="PATH",
+        help=(
+            "Output file path for the plot or exported file "
+            "(required when -p or -r is used)."
+        ),
     )
     parser.add_argument(
         "-Z",
+        metavar="PATH",
         help=(
-            "Path to the Z matrix (.npy). Runs MPP and saves the result if "
-            "the file does not exist; loads the existing file otherwise."
+            "Path to the Z matrix file (.npy). "
+            "If the file does not exist, MPP is run and the result is saved here. "
+            "If the file already exists, it is loaded instead of recomputed. "
+            "Also writes macrostate_map.npy to the same directory."
         ),
     )
     parser.add_argument(
         "--rmsd",
-        help="Generate and write RMSD to file",
+        metavar="PATH",
+        help=(
+            "Compute per-macrostate C-alpha RMSD and write the result "
+            "to this .npy file."
+        ),
     )
     parser.add_argument(
         "--rmsd-feature",
-        help="'CA' for C-alpha RMSD or 'feature' for feature RMSD (default: CA)",
+        metavar="CA|feature",
+        help=(
+            "RMSD variant: 'CA' for C-alpha RMSD (default) or "
+            "'feature' for feature-based RMSD."
+        ),
         default="CA",
     )
     parser.add_argument(
         "-r",
         "--draw-random",
-        help="Draw N random frames for each macrostate",
         metavar="N",
+        help=(
+            "Write N random frame indices per macrostate as .ndx files "
+            "to the directory given by -o."
+        ),
         type=int,
     )
     parser.add_argument(
         "-p",
         "--plot",
+        metavar="PLOT",
         help=(
-            "Generate listed plots. Possible arguments include "
-            "dendrogram, timescales, sankey, contacts, macrotraj, "
+            "Plot type to generate and save to the path given by -o. "
+            "One of: dendrogram, timescales, sankey, contacts, macrotraj, "
             "ck_test, rmsd, delta_rmsd, state_network, macro_feature, "
             "stochastic_state_similarity, relative_implied_timescales, "
-            "transition_matrix, transition_time and "
-            "macrostate_trajectory. The latter writes the macrostate "
-            "trajectory to a txt file."
+            "transition_matrix, transition_time, macrostate_trajectory. "
+            "The 'macrostate_trajectory' type writes a text file of "
+            "macrostate assignments (one integer per line)."
         ),
     )
     parser.add_argument(
         "--scale",
-        help="Scaling factor for plot size (default: 1)",
+        metavar="FLOAT",
+        help="Scaling factor for plot size (default: 1).",
         type=float,
         default=1.0,
     )
     parser.add_argument(
         "--n-timescales",
-        help="Number of implied timescales to compute (overrides config value)",
+        metavar="N",
+        help=(
+            "Number of implied timescales to compute "
+            "(overrides the n_timescales value in the config file)."
+        ),
         type=int,
         dest="n_timescales",
     )
     parser.add_argument(
         "--get-least-moving-residues",
-        help="Write least moving residues for each macrostate to a file",
+        metavar="CONTACT_INDEX_FILE",
+        help=(
+            "Write the least-varying residues per macrostate to the file "
+            "given by -o, using CONTACT_INDEX_FILE as the contact index."
+        ),
     )
     return parser.parse_args()
 
 
+def _arg_error(message):
+    """Print a user-facing error message and exit with code 2."""
+    print(f"error: {message}", file=sys.stderr)
+    print("Run 'python -m MPP.run --help' for usage information.", file=sys.stderr)
+    sys.exit(2)
+
+
+def _validate_args(args):
+    """Validate parsed CLI arguments and exit with a clear message on error."""
+    if args.d not in _VALID_D:
+        _arg_error(
+            f"invalid dynamic similarity selector '{args.d}'. "
+            f"Valid choices: {', '.join(sorted(_VALID_D))}."
+        )
+    if args.d != "gpcca" and args.g not in _VALID_G_MPP:
+        _arg_error(
+            f"invalid feature similarity selector '{args.g}'. "
+            f"Valid choices: {', '.join(sorted(_VALID_G_MPP))}."
+        )
+    if args.d != "gpcca" and args.Z is None:
+        _arg_error(
+            "'-Z <path>' is required to save or load the Z matrix. "
+            "Example: -Z results/t/Z.npy"
+        )
+    if args.plot and args.out is None:
+        _arg_error(
+            f"'-o <path>' is required when '-p {args.plot}' is specified."
+        )
+
+
 def main():
     args = parse_args()
+    _validate_args(args)
 
     # Parse input files
     data = Data(args.data_specification.name)
