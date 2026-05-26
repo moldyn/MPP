@@ -316,9 +316,6 @@ def plot(data, out, kind="dendrogram", scale=1):
     elif kind == "contacts":
         data.mpp.plot.contact_rep(data.cluster, out, scale=scale)
     elif kind == "macrotraj":
-        # trajectory_length = data.microstate_trajectory.shape[0]
-        # n_macrostates = data.mpp.n_macrostates[0]
-        # row_length = 1 / int(np.round(np.sqrt(trajectory_length) / (np.sqrt(n_macrostates) * 30)))
         row_length = 1 / 6
         if data.limits is not None:
             row_length = 1 / len(data.limits)
@@ -326,7 +323,6 @@ def plot(data, out, kind="dendrogram", scale=1):
     elif kind == "ck_test":
         data.mpp.plot.ck_test(out)
     elif kind == "rmsd":
-        # data.get_rmsd(os.path.splitext(out)[0] + ".npy")
         data.get_rmsd(os.path.join(os.path.dirname(out), "rmsd_CA.npy"))
         data.mpp.plot.rmsd(out, helices=data.helices)
     elif kind == "delta_rmsd":

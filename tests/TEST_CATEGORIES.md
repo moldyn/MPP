@@ -61,8 +61,8 @@ Based on `python -m pytest tests/ --collect-only -q` (39 tests collected at init
 | `TestRMSD_HP35::test_draw_random_indices` | DEFERRED | Random frame index generation is explicitly deferred. |
 | `TestRMSD_HP35::test_draw_random_frames` | DEFERRED | Random frame export / pdb-related output is deferred. |
 | `TestRMSD_aSyn::test_write_least_moving_residues` | DEFERRED | Least-moving-residue export is explicitly deferred. |
-| `TestRMSD_PDZ3::test_rmsd_property` | OPTIONAL | RMSD tooling is lower priority but still relevant optional coverage. |
-| `TestRMSD_PDZ3::test_rmsd_sharpness` | OPTIONAL | RMSD metric behavior is lower-priority optional scope. |
+| `TestRMSD_PDZ3::test_rmsd_property` | OPTIONAL | Requires XTC+topology for PDZ3 (not in test data); cannot be CORE. |
+| `TestRMSD_PDZ3::test_rmsd_sharpness` | OPTIONAL | Requires PDZ3 rmsd.npy from RMSD computation; cannot be CORE without XTC. |
 
 ### `tests/test_plots.py`
 

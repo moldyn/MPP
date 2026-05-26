@@ -1021,7 +1021,6 @@ class Lumping(object):
         """
         self._mean_frames_idx = np.loadtxt(fname, dtype=int)
 
-    # Don't use this method, rather use gmx instead.
     def load_mean_frames(self) -> None:
         """Load mean frame structures from the XTC trajectory.
 
