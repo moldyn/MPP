@@ -129,3 +129,62 @@ class TestFullFeature(unittest.TestCase):
         )
         full_feature = self.d.feature_kernel.full_feature_from_Z(self.d.mpp.Z)
         np.testing.assert_allclose(full_feature, expected_full_feature)
+
+
+class TestPureUtils(unittest.TestCase):
+    """Unit tests for pure utility functions that require no external data."""
+
+    def test_argmedian_odd(self):
+        """argmedian returns the index of the median element."""
+        arr = np.array([3, 1, 4, 1, 5])
+        idx = MPP.utils.argmedian(arr)
+        # median of sorted [1,1,3,4,5] is 3; index of 3 in original is 0
+        self.assertEqual(arr[idx], sorted(arr)[len(arr) // 2])
+
+    def test_argmedian_even(self):
+        arr = np.array([2, 0, 4, 6])
+        idx = MPP.utils.argmedian(arr)
+        self.assertTrue(0 <= idx < len(arr))
+
+    def test_weighting_function_single(self):
+        """Single-element input: returns exp(-dq)."""
+        dq = np.array([2.0])
+        result = MPP.utils.weighting_function(dq)
+        np.testing.assert_allclose(result, np.exp(-2.0))
+
+    def test_weighting_function_multi(self):
+        """Multi-element input: Gaussian kernel, no negative outputs."""
+        dq = np.array([0.1, 0.5, 1.0, 2.0])
+        result = MPP.utils.weighting_function(dq)
+        self.assertEqual(result.shape, dq.shape)
+        self.assertTrue(np.all(result >= 0))
+        # Smallest divergence → highest weight
+        self.assertEqual(np.argmax(result), np.argmin(dq))
+
+    def test_find_state_lengths_simple(self):
+        """Run-length encoding of a simple sequence."""
+        arr = [0, 0, 1, 1, 1, 2]
+        states, lengths = MPP.utils.find_state_lengths(arr)
+        np.testing.assert_array_equal(states, [0, 1, 2])
+        np.testing.assert_array_equal(lengths, [2, 3, 1])
+
+    def test_find_state_lengths_single(self):
+        arr = [5]
+        states, lengths = MPP.utils.find_state_lengths(arr)
+        np.testing.assert_array_equal(states, [5])
+        np.testing.assert_array_equal(lengths, [1])
+
+    def test_get_multi_state_trajectory_none_limits(self):
+        """None limits returns the original array."""
+        traj = np.array([0, 1, 2, 3])
+        result = MPP.utils.get_multi_state_trajectory(traj, None)
+        np.testing.assert_array_equal(result, traj)
+
+    def test_get_multi_state_trajectory_splits(self):
+        """Non-None limits splits into sub-trajectories of correct lengths."""
+        traj = np.array([0, 1, 2, 3, 4])
+        limits = np.array([2, 3])
+        result = MPP.utils.get_multi_state_trajectory(traj, limits)
+        self.assertEqual(len(result), 2)
+        np.testing.assert_array_equal(result[0], [0, 1])
+        np.testing.assert_array_equal(result[1], [2, 3, 4])

@@ -4,7 +4,7 @@ Based on `python -m pytest tests/ --collect-only -q` (39 tests collected at init
 
 ## Classification summary
 
-- **CORE**: 29 tests (includes stochastic, metrics, CLI-metrics tests)
+- **CORE**: 38 tests (includes stochastic, metrics, CLI-metrics, and pure utils tests)
 - **OPTIONAL**: 6 tests
 - **DEFERRED**: 4 tests
 
@@ -31,6 +31,14 @@ Based on `python -m pytest tests/ --collect-only -q` (39 tests collected at init
 | `test_utils.TestProperties::test_calc_full_tmat` | CORE | Validates deterministic transition matrix/population reconstruction. |
 | `test_utils.TestProperties::test_Z_to_mask` | CORE | Validates deterministic macrostate mask generation from Z. |
 | `test_utils.TestFullFeature::test_full_feature_from_Z` | CORE | Validates deterministic feature-kernel transformation from Z. |
+| `test_utils.TestPureUtils::test_argmedian_odd` | CORE | Unit test for argmedian utility (odd-length array). |
+| `test_utils.TestPureUtils::test_argmedian_even` | CORE | Unit test for argmedian utility (even-length array). |
+| `test_utils.TestPureUtils::test_weighting_function_single` | CORE | Unit test for weighting_function (scalar case). |
+| `test_utils.TestPureUtils::test_weighting_function_multi` | CORE | Unit test for weighting_function (vector case). |
+| `test_utils.TestPureUtils::test_find_state_lengths_simple` | CORE | Unit test for run-length encoding utility. |
+| `test_utils.TestPureUtils::test_find_state_lengths_single` | CORE | Unit test for run-length encoding (single element). |
+| `test_utils.TestPureUtils::test_get_multi_state_trajectory_none_limits` | CORE | Unit test for trajectory split (no limits). |
+| `test_utils.TestPureUtils::test_get_multi_state_trajectory_splits` | CORE | Unit test for trajectory split (with limits). |
 
 ### `tests/test_run.py`
 
