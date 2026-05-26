@@ -170,6 +170,25 @@ python -m MPP.run example/sample_system/input/config.yml T none \
     -Z results/t/Z.npy -p macrostate_trajectory -o results/t/macrostate_trajectory.txt
 ```
 
+**Print all quality metrics:**
+
+```bash
+python -m MPP.run example/sample_system/input/config.yml T none \
+    -Z results/t/Z.npy --metrics
+```
+
+Output format (one metric per line, `key=value`; comma-separated values for
+stochastic runs with `n>1`):
+
+```
+shannon_entropy=0.7440447
+davies_bouldin=2.1873796
+gmrq=2.6583023
+gmrq2=2.3739562
+silhouette=0.20912119
+calinski_harabasz=6498.0444
+```
+
 ---
 
 ## Plot Types

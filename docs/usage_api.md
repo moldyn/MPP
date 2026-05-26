@@ -230,19 +230,87 @@ mpp.plot.delta_rmsd("results/t/delta_rmsd.pdf")
 
 ## Quality Metrics
 
-```python
-# Implied timescales, shape (n_runs, n_timescales)
-ts = mpp.timescales
+All metrics are lazy-computed properties, cached on first access, and return an
+`ndarray` of shape `(n_runs,)`. For a single deterministic run, index `[0]` to
+get a scalar.
 
-# Shannon entropy of macrostate populations, shape (n_runs,)
-h = mpp.shannon_entropy
+Print all metrics at once from the CLI with:
 
-# Davies-Bouldin index (lower = better separated), shape (n_runs,)
-db = mpp.davies_bouldin_index
-
-# GMRQ (generalized matrix Rayleigh quotient), shape (n_runs,)
-gmrq = mpp.gmrq
+```bash
+python -m MPP.run config.yml T none -Z results/t/Z.npy --metrics
 ```
+
+### Implied Timescales
+
+```python
+# Compute implied timescales (shape: n_runs × n_timescales)
+ts = mpp.timescales
+# Or compute a specific number:
+mpp.calc_timescales(n=5)
+ts = mpp.timescales   # shape (n_runs, 5)
+```
+
+Timescales are in nanoseconds when `frame_length` is provided in ns.
+
+### Shannon Entropy
+
+```python
+h = mpp.shannon_entropy   # shape (n_runs,), range [0, 1]
+```
+
+Measures how evenly frames are distributed across macrostates. 0 = single
+dominant macrostate, 1 = perfectly uniform distribution.
+
+### Davies-Bouldin Index
+
+```python
+db = mpp.davies_bouldin_index   # shape (n_runs,), range [0, ∞)
+```
+
+Ratio of within-cluster scatter to between-cluster separation. Lower values
+indicate better-separated macrostates. Requires `multi_feature_trajectory`.
+
+### GMRQ and GMRQ2
+
+```python
+gmrq  = mpp.gmrq    # shape (n_runs,)
+gmrq2 = mpp.gmrq2   # shape (n_runs,)
+```
+
+The Generalized Matrix Rayleigh Quotient (GMRQ) is the sum of the 2nd–4th
+largest eigenvalues of the macrostate transition matrix — higher values indicate
+better-preserved slow dynamics. GMRQ2 uses the sum of squares of those eigenvalues.
+
+### RMSD Sharpness
+
+```python
+sharpness = mpp.rmsd_sharpness()   # float
+```
+
+Population-weighted mean of per-macrostate mean RMSDs. Lower values indicate
+more compact macrostates. Requires RMSD data (call `mpp.rmsd` or load via
+`mpp.load_rmsd(path)` first).
+
+### Silhouette Coefficient
+
+```python
+s = mpp.silhouette   # shape (n_runs,), range [-1, 1]
+```
+
+Measures how similar each frame is to its own macrostate compared to neighbouring
+macrostates. Values near +1 indicate well-separated, compact macrostates; values
+near −1 indicate misclassified frames. Requires `multi_feature_trajectory` and
+at least 2 macrostates.
+
+### Calinski–Harabász Index
+
+```python
+ch = mpp.calinski_harabasz   # shape (n_runs,), range [0, ∞)
+```
+
+Ratio of between-macrostate dispersion to within-macrostate dispersion. Higher
+values indicate more compact, well-separated macrostates. Requires
+`multi_feature_trajectory` and at least 2 macrostates.
 
 ---
 
