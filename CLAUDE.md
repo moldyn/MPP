@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Repository Layout
+
+Source lives under `src/MPP/`. Key files: `src/MPP/lumping.py` (Lumping class), `src/MPP/run.py` (Data + CLI), `src/MPP/kernel.py`, `src/MPP/core.py`.
+
 ## Commands
 
 ### Environment Setup (NixOS)
