@@ -324,6 +324,31 @@ The output is a plain-text file with one integer per line.
 
 ---
 
+## Stochastic Lumping
+
+Pass `n > 1` to `run_mpp` to perform multiple randomised lumping runs. Use a
+`seed` in the `LumpingKernel` for reproducible results.
+
+```python
+kernel = MPP.kernel.LumpingKernel(similarity="T", method="n", param=2, seed=42)
+mpp.run_mpp(kernel, n=10)
+
+# Access results per run — shape (n_runs, ...)
+for i in range(mpp.n_runs):
+    print(f"Run {i}: {mpp.n_macrostates[i]} macrostates")
+
+# Stochastic-specific plots
+mpp.plot.stochastic_state_similarity("results/stoch/state_similarity.pdf")
+mpp.plot.relative_implied_timescales("results/stoch/rel_timescales.pdf")
+mpp.plot.macro_feature("results/stoch/macro_feature.pdf")
+```
+
+When using the config-based workflow (`MPP.run.Data`), stochastic parameters
+are set in the YAML `stochastic` block (see CLI guide for details). The `seed`
+key is optional; omit it for a random seed.
+
+---
+
 ## Concatenated Trajectories
 
 When the microstate trajectory is composed of several independent simulations,

@@ -36,6 +36,7 @@ nav:
   - Home: index.md
   - CLI Usage: usage_cli.md
   - Python API: usage_api.md
+  - Plot Types: plots.md
   - Snakemake Workflow: usage_snakemake.md
 
 plugins:

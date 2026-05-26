@@ -228,3 +228,39 @@ index. Written by `-p macrostate_trajectory -o macrostate_trajectory.txt`.
 
 **RMSD file (`.npy`):** Shape `(n_macrostates, n_CA_atoms)`, C-alpha RMSD
 values per macrostate.
+
+**Stochastic Z matrix:** Shape `(n_runs, n_states-1, 4)` with `n_runs > 1`.
+The per-run macrostate assignment is accessed at index `[i]` on the `Lumping` object.
+
+---
+
+## Stochastic Lumping
+
+When the `stochastic` block is present in the YAML config, MPP performs multiple
+randomised lumping runs and returns a Z matrix of shape `(n_runs, n_states-1, 4)`.
+
+### YAML configuration
+
+```yaml
+stochastic:
+  method: n       # 'n' = top-N options (or 'p' = probability-mass threshold)
+  param: 2        # for 'n': number of candidate target states per merge
+  n: 10           # number of independent runs
+  seed: 42        # integer seed for reproducible results (optional)
+```
+
+- `method: n` + `param: 2`: at each merge step, the two most-similar candidate
+  states are selected; one is chosen randomly with probability proportional to
+  similarity.
+- `method: p` + `param: 0.5`: all states whose cumulative similarity exceeds the
+  threshold are considered.
+- `seed`: pass any integer to pin `numpy.random.default_rng` for reproducible
+  stochastic lumpings. Omit for a random seed.
+
+### Stochastic-specific plot types
+
+| Plot | Description |
+|---|---|
+| `stochastic_state_similarity` | Overlap of macrostate assignments across runs |
+| `relative_implied_timescales` | Timescales relative to the reference T lumping |
+| `macro_feature` | Mean feature per macrostate across all stochastic runs |
