@@ -33,6 +33,11 @@ Python 3.10 or later is required. The package has been tested with Python 3.12.
     - Command-line interface (`python -m MPP.run`)
     - Snakemake workflow
 
+## About
+
+MPP is developed by the [Molecular Dynamics Group](https://www.moldyn.uni-freiburg.de/)
+at the University of Freiburg.
+
 ## Usage Guides
 
 - [CLI Usage](usage_cli.md) — command-line interface, YAML config, kernel options, plot types

@@ -117,6 +117,13 @@ When modifying the CLI (`src/MPP/run.py`) or Python API (`src/MPP/lumping.py`, `
 - **`docs/usage_cli.md`** — update if argument names, defaults, or behaviour change.
 - **`docs/usage_api.md`** — update if class/method signatures, parameters, or attributes change.
 
+## When Things Go Wrong
+
+- If you fail at a task twice in a row (e.g., a test keeps failing, a command errors
+  repeatedly), stop and ask the user what to do rather than retrying the same approach.
+- If a required tool or binary is not available in the environment, ask the user before
+  attempting workarounds — they may be able to install it.
+
 ## Commit Messages
 
 - Must include the issue number, e.g. `TASK-2.2 (#22): ...`

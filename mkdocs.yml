@@ -26,6 +26,12 @@ theme:
     - search.suggest
     - content.code.copy
 
+extra:
+  social:
+    - icon: fontawesome/solid/globe
+      link: https://www.moldyn.uni-freiburg.de/
+      name: Molecular Dynamics Group Freiburg
+
 nav:
   - Home: index.md
   - CLI Usage: usage_cli.md

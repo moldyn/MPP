@@ -56,3 +56,36 @@ class TestProperties(unittest.TestCase):
 
     def test_davies_bouldin_index(self):
         np.testing.assert_allclose(self.mpp.davies_bouldin_index[0], 2.18738, atol=1e-6)
+
+    def test_silhouette(self):
+        np.testing.assert_allclose(self.mpp.silhouette[0], 0.20912119, atol=1e-6)
+
+    def test_calinski_harabasz(self):
+        np.testing.assert_allclose(self.mpp.calinski_harabasz[0], 6498.04436, atol=1e-3)
+
+    def test_silhouette_single_macrostate(self):
+        """Silhouette should raise ValueError when only 1 macrostate exists."""
+        # Force a single-macrostate scenario by patching macrostate_trajectory
+        import numpy as np
+        self.mpp._silhouette = None  # reset cache
+        original = self.mpp.macrostate_trajectory
+        self.mpp.macrostate_trajectory = np.zeros_like(original)
+        try:
+            with self.assertRaises(ValueError):
+                _ = self.mpp.silhouette
+        finally:
+            self.mpp.macrostate_trajectory = original
+            self.mpp._silhouette = None
+
+    def test_calinski_harabasz_single_macrostate(self):
+        """Calinski-Harabasz should raise ValueError when only 1 macrostate exists."""
+        import numpy as np
+        self.mpp._calinski_harabasz = None  # reset cache
+        original = self.mpp.macrostate_trajectory
+        self.mpp.macrostate_trajectory = np.zeros_like(original)
+        try:
+            with self.assertRaises(ValueError):
+                _ = self.mpp.calinski_harabasz
+        finally:
+            self.mpp.macrostate_trajectory = original
+            self.mpp._calinski_harabasz = None

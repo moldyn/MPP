@@ -44,6 +44,7 @@ python -m MPP.run <config.yml> <d> <g> -Z <Z.npy> [-p <plot>] [-o <output>]
 | `--rmsd-feature <CA\|feature>` | RMSD variant: `CA` (default) or `feature` |
 | `-r <N>` | Draw N random frame indices per macrostate (writes `.ndx` files) |
 | `--get-least-moving-residues <contact_index_file>` | Write least-varying residues per macrostate to file |
+| `--metrics` | Print all quality metrics to stdout as `key=value` pairs |
 
 ---
 

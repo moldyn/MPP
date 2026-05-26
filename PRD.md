@@ -48,10 +48,10 @@ want quantitative quality metrics for those macrostates.
 - Transition times.
 
 ### Planned Quality Metrics (Not Yet Implemented)
-- Silhouette Coefficient
-- Calinski–Harabasz index
+- Silhouette Coefficient (`silhouette` property; `sklearn.metrics.silhouette_score`)
+- Calinski–Harabasz index (`calinski_harabasz` property; `sklearn.metrics.calinski_harabasz_score`)
 
-> These metrics are planned but not currently available in the codebase.
+> These metrics are planned (TASK-4.5.1–4.5.2) but not currently available in the codebase.
 
 ### Plots (`MPP.plot`)
 All plots are generated via the `plot` module and invocable through all three
@@ -77,6 +77,7 @@ Invoked as `python -m MPP.run <config.yml> <d> <g> [options]`.
 | `--rmsd` | Compute and save RMSD |
 | `--rmsd-feature` | `CA` or `feature` |
 | `--get-least-moving-residues` | Write least-moving residue indices |
+| `--metrics` | Print all quality metrics to stdout as `key=value` pairs |
 
 ### Python API
 The primary objects are:
@@ -106,7 +107,7 @@ automatically. The workflow must stay in sync with the CLI arguments.
 
 | Goal | Description |
 |---|---|
-| Reproducibility | Given the same input files and config, all three interfaces must produce bit-identical Z matrices (deterministic kernels) or statistically equivalent results (stochastic kernels). |
+| Reproducibility | Given the same input files and config, all three interfaces must produce bit-identical Z matrices (deterministic kernels). Stochastic kernels must produce identical results given the same `seed`. |
 | Scientific correctness | Algorithmic changes require tests that verify numerical outputs against known-good reference data stored in `tests/data/`. |
 | Interface consistency | Every analysis capability must be accessible through CLI, API, and Snakemake with identical semantics and parameter names. |
 | Test coverage | Every public function in `MPP/` must be exercised by at least one test in `tests/`. |

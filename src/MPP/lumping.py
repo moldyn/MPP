@@ -10,7 +10,11 @@ from typing import Literal
 from pathlib import Path
 from tqdm import tqdm
 from collections.abc import Iterable
-from sklearn.metrics import davies_bouldin_score
+from sklearn.metrics import (
+    davies_bouldin_score,
+    silhouette_score,
+    calinski_harabasz_score,
+)
 import pygpcca as gp
 
 from . import core
@@ -219,6 +223,8 @@ class Lumping(object):
         self._davies_bouldin_index = None
         self._gmrq = None
         self._gmrq2 = None
+        self._silhouette = None
+        self._calinski_harabasz = None
         self._reference = None
         self._topology_file = None
         self._xtc_trajectory_file = None
@@ -1160,6 +1166,86 @@ class Lumping(object):
         if self._gmrq2 is None:
             self._gmrq2 = utils.gmrq2(self.macrostate_tmat)
         return self._gmrq2
+
+    @property
+    def silhouette(self) -> npt.NDArray[np.floating]:
+        """The Silhouette Coefficient, a clustering quality metric.
+
+        Measures how similar each frame is to its own macrostate compared to
+        other macrostates. Values range from -1 (poor) to +1 (excellent);
+        higher values indicate well-separated macrostates.
+
+        Requires at least 2 macrostates and a multi-feature trajectory.
+
+        Returns
+        -------
+        ndarray of float, shape (n_runs,)
+            Silhouette Coefficient for each run.
+
+        Raises
+        ------
+        ValueError
+            If fewer than 2 macrostates are present.
+
+        References
+        ----------
+        [1] Peter J. Rousseeuw, "Silhouettes: A graphical aid to the
+        interpretation and validation of cluster analysis", Journal of
+        Computational and Applied Mathematics, Volume 20, pp. 53-65, 1987,
+        DOI: 10.1016/0377-0427(87)90125-7
+        """
+        if self._silhouette is None:
+            self._silhouette = np.zeros(self.n_runs)
+            for i in range(self.n_runs):
+                n_macro = len(np.unique(self.macrostate_trajectory[i]))
+                if n_macro < 2:
+                    raise ValueError(
+                        f"Run {i}: silhouette score requires at least 2 macrostates, "
+                        f"got {n_macro}."
+                    )
+                self._silhouette[i] = silhouette_score(
+                    self.multi_feature_trajectory, self.macrostate_trajectory[i]
+                )
+        return self._silhouette
+
+    @property
+    def calinski_harabasz(self) -> npt.NDArray[np.floating]:
+        """The Calinski-Harabasz index, a clustering quality metric.
+
+        The ratio of between-cluster dispersion to within-cluster dispersion.
+        Higher values indicate more compact, well-separated macrostates.
+
+        Requires at least 2 macrostates and a multi-feature trajectory.
+
+        Returns
+        -------
+        ndarray of float, shape (n_runs,)
+            Calinski-Harabasz index for each run.
+
+        Raises
+        ------
+        ValueError
+            If fewer than 2 macrostates are present.
+
+        References
+        ----------
+        [1] T. Calinski; J. Harabasz, "A dendrite method for cluster
+        analysis", Communications in Statistics, Volume 3, Issue 1,
+        pp. 1-27, 1974, DOI: 10.1080/03610927408827101
+        """
+        if self._calinski_harabasz is None:
+            self._calinski_harabasz = np.zeros(self.n_runs)
+            for i in range(self.n_runs):
+                n_macro = len(np.unique(self.macrostate_trajectory[i]))
+                if n_macro < 2:
+                    raise ValueError(
+                        f"Run {i}: Calinski-Harabasz index requires at least 2 "
+                        f"macrostates, got {n_macro}."
+                    )
+                self._calinski_harabasz[i] = calinski_harabasz_score(
+                    self.multi_feature_trajectory, self.macrostate_trajectory[i]
+                )
+        return self._calinski_harabasz
 
     @property
     def macro_micro_feature(self) -> npt.NDArray[np.floating]:

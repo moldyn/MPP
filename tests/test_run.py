@@ -452,3 +452,20 @@ class TestCLIValidation(unittest.TestCase):
             ["/nonexistent/path/config.yml", "T", "none", "-Z", self.valid_z]
         )
         self.assertNotEqual(code, 0)
+
+    def test_metrics_flag_prints_all_keys(self):
+        """--metrics must print all expected metric keys to stdout."""
+        code, stdout, stderr = self._run(
+            [self.valid_config, "T", "none", "-Z", self.valid_z, "--metrics"]
+        )
+        self.assertEqual(code, 0)
+        expected_keys = [
+            "shannon_entropy",
+            "davies_bouldin",
+            "gmrq",
+            "gmrq2",
+            "silhouette",
+            "calinski_harabasz",
+        ]
+        for key in expected_keys:
+            self.assertIn(key + "=", stdout, msg=f"Missing metric key: {key}")

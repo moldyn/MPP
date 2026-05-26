@@ -370,6 +370,31 @@ def write_random_frames_indices(mpp, out, n):
     mpp.draw_random_frames_indices(Path(out), n)
 
 
+def _print_metrics(mpp):
+    """Print quality metrics for all runs to stdout as key=value pairs.
+
+    Parameters
+    ----------
+    mpp : MPP.Lumping
+        Lumping object with macrostates already assigned.
+    """
+    def _fmt(arr):
+        return ",".join(f"{v:.8g}" for v in arr)
+
+    print(f"shannon_entropy={_fmt(mpp.shannon_entropy)}")
+    print(f"davies_bouldin={_fmt(mpp.davies_bouldin_index)}")
+    print(f"gmrq={_fmt(mpp.gmrq)}")
+    print(f"gmrq2={_fmt(mpp.gmrq2)}")
+    try:
+        print(f"silhouette={_fmt(mpp.silhouette)}")
+    except ValueError as exc:
+        print(f"silhouette=N/A ({exc})")
+    try:
+        print(f"calinski_harabasz={_fmt(mpp.calinski_harabasz)}")
+    except ValueError as exc:
+        print(f"calinski_harabasz=N/A ({exc})")
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         prog="python -m MPP.run",
@@ -518,6 +543,16 @@ def parse_args():
             "given by -o, using CONTACT_INDEX_FILE as the contact index."
         ),
     )
+    parser.add_argument(
+        "--metrics",
+        action="store_true",
+        help=(
+            "Print all available quality metrics to stdout as key=value pairs. "
+            "Metrics reported: shannon_entropy, davies_bouldin, gmrq, gmrq2, "
+            "silhouette, calinski_harabasz (one value per run, comma-separated "
+            "for stochastic lumpings)."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -585,6 +620,9 @@ def main():
 
     if args.get_least_moving_residues:
         data.mpp.write_least_moving_residues(args.get_least_moving_residues, args.out)
+
+    if args.metrics:
+        _print_metrics(data.mpp)
 
 
 if __name__ == "__main__":

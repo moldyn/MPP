@@ -87,6 +87,7 @@ usage: python -m MPP.run [-h] [-o PATH] [-Z PATH] [--rmsd PATH]
                          [--rmsd-feature CA|feature] [-r N] [-p PLOT]
                          [--scale FLOAT] [--n-timescales N]
                          [--get-least-moving-residues CONTACT_INDEX_FILE]
+                         [--metrics]
                          config.yml d g
 
 Run MPP (Most Probable Path) lumping on a Markov state model.
@@ -140,6 +141,11 @@ options:
                         Write the least-varying residues per macrostate to the
                         file given by -o, using CONTACT_INDEX_FILE as the
                         contact index.
+  --metrics             Print all available quality metrics to stdout as
+                        key=value pairs. Metrics reported: shannon_entropy,
+                        davies_bouldin, gmrq, gmrq2, silhouette,
+                        calinski_harabasz (one value per run, comma-separated
+                        for stochastic lumpings).
 ```
 
 Your can try the example in the GitHub repository by downloading the `example` directory, navigate into it and try a command like
