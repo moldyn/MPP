@@ -34,6 +34,7 @@ extra:
 
 nav:
   - Home: index.md
+  - Tutorial: tutorial.md
   - CLI Usage: usage_cli.md
   - Python API: usage_api.md
   - Plot Types: plots.md
