@@ -144,7 +144,7 @@ class TestRunScript(unittest.TestCase):
         self.run_and_validate_output("HP35", "none", "JS")
 
     def test_HP35_gpcca(self):
-        self.run_and_validate_output("HP35", "gpcca", "ref")
+        self.run_and_validate_output("HP35", "gpcca", "reference_count")
 
     def test_PDZ3_kl(self):
         self.run_and_validate_output("PDZ3", "KL", "none")
