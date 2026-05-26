@@ -31,3 +31,6 @@ patches
 
 # Local conda/micromamba environment
 .micromamba/
+
+# MkDocs build output
+site/

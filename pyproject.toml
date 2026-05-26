@@ -40,6 +40,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/moldyn/MPP"
+Documentation = "https://moldyn.github.io/MPP/"
 Issues = "https://github.com/moldyn/MPP/issues"
 
 [tool.hatch.version]
