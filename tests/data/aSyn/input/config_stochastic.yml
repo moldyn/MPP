@@ -11,7 +11,7 @@ xtc_stride: 1000
 
 frame_length: 200 # in ns / frame
 lagtime: 1 # in frames
-pop_min: 0.01
+pop_thr: 0.01
 q_min: 0.5
 
 n_timescales: 5
@@ -20,3 +20,4 @@ stochastic:
   method: n
   param: 2
   n: 10
+  seed: 42

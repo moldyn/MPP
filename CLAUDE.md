@@ -38,12 +38,16 @@ coverage run --branch --source=src/MPP -m unittest_parallel --level test --cover
 ```bash
 python -m pytest tests/test_properties.py tests/test_utils.py \
   tests/test_run.py::TestRunScript::test_HP35_t_ref \
+  tests/test_run.py::TestRunScript::test_HP35_t_stoch \
   tests/test_run.py::TestRunScript::test_HP35_kl \
   tests/test_run.py::TestRunScript::test_HP35_t_js \
   tests/test_run.py::TestRunScript::test_HP35_js \
   tests/test_run.py::TestRunScript::test_PDZ3_kl \
   tests/test_run.py::TestRunScript::test_aSyn_t \
   tests/test_run.py::TestRunScript::test_aSyn_kl_js \
+  tests/test_run.py::TestRunScript::test_aSyn_t_stoch \
+  tests/test_run.py::TestRunScript::test_macrostate_map_saved_alongside_z \
+  tests/test_run.py::TestCLIValidation \
   tests/test_plots.py::TestPlotting::test_manual_ck_test \
   tests/test_plots.py::TestPlotting::test_manual_contacts \
   tests/test_plots.py::TestPlotting::test_manual_dendrogram \
@@ -87,6 +91,7 @@ The `Plotter` inner class (accessed via `mpp.plot`) delegates to `src/MPP/plot.p
 **`MPP.kernel.LumpingKernel`** (`src/MPP/kernel.py`) — Determines which state to merge next. Configurable with:
 - `similarity`: `"T"` (transition probability), `"KL"` (Kullback-Leibler divergence), `"none"` (feature-only)
 - `method`/`param`: `"n"`/int for deterministic or top-N stochastic; `"p"`/float for probability-mass-based stochastic
+- `seed`: integer seed for `numpy.random.default_rng` — pass to get reproducible stochastic runs; read from `stochastic.seed` in YAML config
 
 **`MPP.kernel.FeatureKernel`** (`src/MPP/kernel.py`) — Optional geometric similarity via Jensen-Shannon divergence of feature distributions. Tracks population-weighted mean features for merged states. Passed alongside `LumpingKernel` to incorporate both dynamic and geometric similarity.
 

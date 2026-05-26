@@ -168,6 +168,7 @@ class Data:
                 method=self.d["stochastic"]["method"],
                 param=self.d["stochastic"]["param"],
                 similarity=dynamic_similarity,
+                seed=self.d["stochastic"].get("seed", None),
             )
         else:
             kernel = MPP.kernel.LumpingKernel(

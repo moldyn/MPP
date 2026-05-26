@@ -103,13 +103,12 @@ class TestRunScript(unittest.TestCase):
                 output_data = np.load(z_output)
                 expected_data = np.load(expected_path)
 
-                if not stochastic:
-                    np.testing.assert_allclose(
-                        output_data,
-                        expected_data,
-                        rtol=1e-5,
-                        err_msg=f"Mismatch in Z for {dataset} {d}-{g}",
-                    )
+                np.testing.assert_allclose(
+                    output_data,
+                    expected_data,
+                    rtol=1e-5,
+                    err_msg=f"Mismatch in Z for {dataset} {d}-{g}",
+                )
 
                 # Second run: should load existing file (tests the from_Z logic indirectly)
                 exit_code2, stdout2, stderr2 = self._run_command(

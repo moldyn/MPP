@@ -1,12 +1,12 @@
 # Test Suite Categories
 
-Based on `python -m pytest tests/ --collect-only -q` (39 tests collected).
+Based on `python -m pytest tests/ --collect-only -q` (39 tests collected at initial classification; new tests added since).
 
 ## Classification summary
 
-- **CORE**: 23 tests
+- **CORE**: 29 tests (includes stochastic, metrics, CLI-metrics tests)
 - **OPTIONAL**: 6 tests
-- **DEFERRED**: 10 tests
+- **DEFERRED**: 4 tests
 
 ## Per-test classification
 
@@ -17,6 +17,10 @@ Based on `python -m pytest tests/ --collect-only -q` (39 tests collected).
 | `test_properties.TestProperties::test_shannon_entropy` | CORE | Deterministic lumping quality metric on core HP35 T workflow. |
 | `test_properties.TestProperties::test_gmrq` | CORE | Deterministic lumping quality metric in core pipeline. |
 | `test_properties.TestProperties::test_davies_bouldin_index` | CORE | Deterministic macrostate quality metric tied to core reproducibility. |
+| `test_properties.TestProperties::test_silhouette` | CORE | Silhouette coefficient regression test (TASK-4.5.1). |
+| `test_properties.TestProperties::test_calinski_harabasz` | CORE | Calinski-Harabász index regression test (TASK-4.5.2). |
+| `test_properties.TestProperties::test_silhouette_single_macrostate` | CORE | Guard: ValueError when only 1 macrostate exists. |
+| `test_properties.TestProperties::test_calinski_harabasz_single_macrostate` | CORE | Guard: ValueError when only 1 macrostate exists. |
 
 ### `tests/test_utils.py`
 
@@ -33,7 +37,7 @@ Based on `python -m pytest tests/ --collect-only -q` (39 tests collected).
 | Test case | Category | Rationale |
 |---|---|---|
 | `TestRunScript::test_HP35_t_ref` | CORE | CLI/API deterministic lumping run (T kernel). |
-| `TestRunScript::test_HP35_t_stoch` | DEFERRED | Stochastic lumping workflow. |
+| `TestRunScript::test_HP35_t_stoch` | CORE | Stochastic lumping with seeded RNG — reproducible, regression-testable. |
 | `TestRunScript::test_HP35_kl` | CORE | CLI/API deterministic lumping run (KL kernel). |
 | `TestRunScript::test_HP35_t_js` | CORE | CLI/API deterministic lumping run (T + JS kernels). |
 | `TestRunScript::test_HP35_js` | CORE | CLI/API deterministic lumping run (JS feature-kernel path). |
@@ -41,8 +45,14 @@ Based on `python -m pytest tests/ --collect-only -q` (39 tests collected).
 | `TestRunScript::test_PDZ3_kl` | CORE | Deterministic KL run on PDZ3 dataset; reproducibility-critical. |
 | `TestRunScript::test_aSyn_t` | CORE | Deterministic T run on aSyn dataset; reproducibility-critical. |
 | `TestRunScript::test_aSyn_kl_js` | CORE | Deterministic mixed-kernel run in core pipeline. |
-| `TestRunScript::test_aSyn_t_stoch` | DEFERRED | Stochastic lumping workflow. |
+| `TestRunScript::test_aSyn_t_stoch` | CORE | Stochastic lumping with seeded RNG — reproducible, regression-testable. |
 | `TestRunScript::test_random_frames_indices_aSyn_t_ref` | DEFERRED | Random frame generation is explicitly lower priority. |
+| `TestRunScript::test_macrostate_map_saved_alongside_z` | CORE | Verifies macrostate_map.npy is written alongside Z.npy. |
+| `TestCLIValidation::test_invalid_d_exits_with_error` | CORE | CLI argument validation. |
+| `TestCLIValidation::test_invalid_g_exits_with_error` | CORE | CLI argument validation. |
+| `TestCLIValidation::test_missing_z_for_mpp_exits_with_error` | CORE | CLI argument validation. |
+| `TestCLIValidation::test_plot_without_out_exits_with_error` | CORE | CLI argument validation. |
+| `TestCLIValidation::test_metrics_flag_prints_all_keys` | CORE | --metrics flag prints all quality metric keys (TASK-5.6). |
 
 ### `tests/test_rmsd.py`
 
@@ -76,11 +86,11 @@ Based on `python -m pytest tests/ --collect-only -q` (39 tests collected).
 
 ## Deferred areas identified
 
-- Stochastic lumping workflows and stochastic-only plots.
 - GPCCA output validation.
 - Random frame index/frame export.
 - PDB generation checks.
 - Least-moving-residue export.
+- Stochastic-only plots (`macro_feature`, `relative_implied_timescales`, `stochastic_state_similarity`).
 
 ## Stale aliases / obsolete paths / deprecated dataset names (document only)
 

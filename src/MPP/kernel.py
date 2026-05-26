@@ -27,7 +27,7 @@ class LumpingKernel(object):
     determined by the feature kernel (passed at call).
     """
 
-    def __init__(self, method="n", param=1, similarity="T"):
+    def __init__(self, method="n", param=1, similarity="T", seed=None):
         """
         Initialize LumpingKernel.
 
@@ -50,10 +50,15 @@ class LumpingKernel(object):
             ``'KL'``: Utilize the Kullback-Leibler divergence between the
             transition probabilities of the options.
             ``'none'``: Utilize only the feature as similarity measure.
+        seed : int or None
+            Seed for the random number generator used when selecting among
+            candidate target states. Pass an integer for reproducible
+            stochastic lumpings. ``None`` uses a random seed. (default None)
         """
         self.method = method
         self.param = param
         self.similarity = similarity
+        self._rng = np.random.default_rng(seed)
 
     def __call__(self, full_tmat, states_not_merged, mask, feature_kernel=None):
         """
@@ -148,7 +153,7 @@ class LumpingKernel(object):
             raise ValueError(f"sum of p_options is 0: {p_options}")
 
         # Select the target state
-        mask_target_state = np.random.choice(
+        mask_target_state = self._rng.choice(
             transitions[options], p=p_options / sum(p_options)
         )
 

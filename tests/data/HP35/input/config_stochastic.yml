@@ -17,3 +17,4 @@ stochastic:
   method: n
   param: 2
   n: 10
+  seed: 42
