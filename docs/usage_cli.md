@@ -8,7 +8,7 @@ workflows.
 
 ## Prerequisites
 
-MPP must be installed (e.g. in editable mode: `pip install -e .`). The
+MPP must be installed (`pip install mpp-lumping`). The
 following inputs are required:
 
 - A YAML configuration file

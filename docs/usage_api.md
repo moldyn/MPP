@@ -8,7 +8,7 @@ classes for deterministic lumping workflows.
 ## Installation
 
 ```bash
-pip install -e .
+pip install mpp-lumping
 ```
 
 ---
