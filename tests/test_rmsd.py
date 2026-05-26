@@ -93,7 +93,7 @@ class TestRMSD_HP35(unittest.TestCase):
 
 class TestRMSD_aSyn(unittest.TestCase):
     def setUp(self):
-        self.d = get_d("aSyn_rdc_200ns", "t")
+        self.d = get_d("aSyn", "t")
         self.mpp = self.d.mpp
 
     def compare_text_files(self, file1, file2):
@@ -127,8 +127,8 @@ class TestRMSD_aSyn(unittest.TestCase):
 
 class TestRMSD_PDZ3(unittest.TestCase):
     def setUp(self):
-        self.d1 = get_d("PDZ3_7", "kl")
-        self.d2 = get_d("PDZ3_7", "kl")
+        self.d1 = get_d("PDZ3", "kl")
+        self.d2 = get_d("PDZ3", "kl")
 
     def test_rmsd_property(self):
         expected_output = (
