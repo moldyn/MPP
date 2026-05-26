@@ -83,46 +83,63 @@ Provide the target file (where to store the plot) with the option `-o`. The lump
 
 ```bash
 ~$ python -m MPP.run --help
-usage: Perform MPP on MD simulation data [-h] [-o OUT] [-Z Z] [--rmsd RMSD]
-                                         [--rmsd-feature RMSD_FEATURE] [-r N]
-                                         [-p PLOT]
-                                         [--get-least-moving-residues GET_LEAST_MOVING_RESIDUES]
-                                         data_specification d g
+usage: python -m MPP.run [-h] [-o PATH] [-Z PATH] [--rmsd PATH]
+                         [--rmsd-feature CA|feature] [-r N] [-p PLOT]
+                         [--scale FLOAT] [--n-timescales N]
+                         [--get-least-moving-residues CONTACT_INDEX_FILE]
+                         config.yml d g
 
-This program allows for the analysis of MD data utilizing the most probable
-path algorithm. It allows for easy plotting of different quality measures.
+Run MPP (Most Probable Path) lumping on a Markov state model.
+Reads a YAML configuration file, runs or loads a lumping, and optionally generates plots or exports results.
 
 positional arguments:
-  data_specification    yaml file containing specification of files and
-                        parameters of the simulation
-  d                     Dynamic similarity selector (kernel_similarity). One
-                        of: 'T' (transition probability), 'KL' (Kullback-
-                        Leibler divergence), 'none' (feature-only), or
-                        'gpcca'.
-  g                     Geometric/feature similarity selector
-                        (feature_similarity). One of: 'JS' (Jensen-Shannon
-                        divergence) or 'none'.
+  config.yml            YAML configuration file specifying input paths and
+                        lumping parameters (source, microstate_trajectory,
+                        multi_feature_trajectory, lagtime, pop_thr, q_min,
+                        frame_length, and optional keys).
+  d                     Dynamic similarity selector (lumping kernel). One of:
+                        'T' (transition probability, recommended default),
+                        'KL' (Kullback-Leibler divergence of transition rows),
+                        'none' (feature-only mode, requires g=JS), or 'gpcca'
+                        (GPCCA comparison run).
+  g                     Feature similarity selector. One of: 'JS' (Jensen-
+                        Shannon divergence of feature distributions) or 'none'
+                        (no feature similarity). When d='gpcca': an integer
+                        number of macrostates, or 'reference_count' to reuse
+                        the macrostate count from the reference T lumping.
 
 options:
   -h, --help            show this help message and exit
-  -o OUT, --out OUT     Where to store the plot
-  -Z Z                  Perform MPP and write the Z matrix
-  --rmsd RMSD           Generate and write RMSD to file
-  --rmsd-feature RMSD_FEATURE
-                        'CA' for C-alpha RMSD or 'feature' for feature RMSD
-                        (default: CA)
+  -o PATH, --out PATH   Output file path for the plot or exported file
+                        (required when -p or -r is used).
+  -Z PATH               Path to the Z matrix file (.npy). If the file does not
+                        exist, MPP is run and the result is saved here. If the
+                        file already exists, it is loaded instead of
+                        recomputed. Also writes macrostate_map.npy to the same
+                        directory.
+  --rmsd PATH           Compute per-macrostate C-alpha RMSD and write the
+                        result to this .npy file.
+  --rmsd-feature CA|feature
+                        RMSD variant: 'CA' for C-alpha RMSD (default) or
+                        'feature' for feature-based RMSD.
   -r N, --draw-random N
-                        Draw N random frames for each macrostate
-  -p PLOT, --plot PLOT  Generate listed plots. Possible arguments include
-                        dendrogram, timescales, sankey, contacts, macrotraj,
-                        ck_test, rmsd, delta_rmsd, state_network,
+                        Write N random frame indices per macrostate as .ndx
+                        files to the directory given by -o.
+  -p PLOT, --plot PLOT  Plot type to generate and save to the path given by
+                        -o. One of: dendrogram, timescales, sankey, contacts,
+                        macrotraj, ck_test, rmsd, delta_rmsd, state_network,
                         macro_feature, stochastic_state_similarity,
                         relative_implied_timescales, transition_matrix,
-                        transition_time and macrostate_trajectory. The latter
-                        writes the macrostate trajectory to a txt file.
-  --get-least-moving-residues GET_LEAST_MOVING_RESIDUES
-                        Write least moving residues for each macrostate to a
-                        file
+                        transition_time, macrostate_trajectory. The
+                        'macrostate_trajectory' type writes a text file of
+                        macrostate assignments (one integer per line).
+  --scale FLOAT         Scaling factor for plot size (default: 1).
+  --n-timescales N      Number of implied timescales to compute (overrides the
+                        n_timescales value in the config file).
+  --get-least-moving-residues CONTACT_INDEX_FILE
+                        Write the least-varying residues per macrostate to the
+                        file given by -o, using CONTACT_INDEX_FILE as the
+                        contact index.
 ```
 
 Your can try the example in the GitHub repository by downloading the `example` directory, navigate into it and try a command like
