@@ -27,7 +27,7 @@ For commits, use `git commit -am "..."`. Only use `git add` when a new (untracke
 ```bash
 bash run_all_tests.sh
 # equivalent to:
-coverage run --branch --source=. -m unittest_parallel --level test --coverage-branch --coverage-html htmlcov
+coverage run --branch --source=src/MPP -m unittest_parallel --level test --coverage-branch --coverage-html htmlcov
 ```
 
 ### Run CORE tests only (currently in scope)
@@ -72,23 +72,23 @@ MPP is a two-step coarse-graining algorithm for Markov state models:
 
 ### Key Classes
 
-**`MPP.Lumping`** (`MPP/MPP.py`) — Central user-facing class. Holds the microstate trajectory, transition matrix, feature data, and all results. Usage pattern:
+**`MPP.Lumping`** (`src/MPP/lumping.py`) — Central user-facing class. Holds the microstate trajectory, transition matrix, feature data, and all results. Usage pattern:
 ```python
 mpp = MPP.Lumping(trajectory, lagtime, feature_trajectory, pop_thr=0.005, q_min=0.5)
 mpp.run_mpp(kernel, feature_kernel)
 # Access results via mpp.macrostate_trajectory, mpp.macrostate_assignment, etc.
 ```
-The `Plotter` inner class (accessed via `mpp.plot`) delegates to `MPP/plot.py`.
+The `Plotter` inner class (accessed via `mpp.plot`) delegates to `src/MPP/plot.py`.
 
-**`MPP.kernel.LumpingKernel`** (`MPP/kernel.py`) — Determines which state to merge next. Configurable with:
+**`MPP.kernel.LumpingKernel`** (`src/MPP/kernel.py`) — Determines which state to merge next. Configurable with:
 - `similarity`: `"T"` (transition probability), `"KL"` (Kullback-Leibler divergence), `"none"` (feature-only)
 - `method`/`param`: `"n"`/int for deterministic or top-N stochastic; `"p"`/float for probability-mass-based stochastic
 
-**`MPP.kernel.FeatureKernel`** (`MPP/kernel.py`) — Optional geometric similarity via Jensen-Shannon divergence of feature distributions. Tracks population-weighted mean features for merged states. Passed alongside `LumpingKernel` to incorporate both dynamic and geometric similarity.
+**`MPP.kernel.FeatureKernel`** (`src/MPP/kernel.py`) — Optional geometric similarity via Jensen-Shannon divergence of feature distributions. Tracks population-weighted mean features for merged states. Passed alongside `LumpingKernel` to incorporate both dynamic and geometric similarity.
 
-**`core.BinaryTreeNode`** (`MPP/core.py`) — `anytree`-based node for the lumping tree. Properties like `is_macrostate`, `assigned_macrostate`, `macrostates` implement the tree-parsing logic of step 2.
+**`core.BinaryTreeNode`** (`src/MPP/core.py`) — `anytree`-based node for the lumping tree. Properties like `is_macrostate`, `assigned_macrostate`, `macrostates` implement the tree-parsing logic of step 2.
 
-**`MPP.run.Data`** (`MPP/run.py`) — High-level wrapper that reads a YAML config, instantiates `Lumping`, and orchestrates `run_mpp`/`load_Z`/`save_Z`. Entry point for the CLI (`python -m MPP.run`).
+**`MPP.run.Data`** (`src/MPP/run.py`) — High-level wrapper that reads a YAML config, instantiates `Lumping`, and orchestrates `run_mpp`/`load_Z`/`save_Z`. Entry point for the CLI (`python -m MPP.run`).
 
 ### Similarity Modes (d/g arguments)
 | d | g | Description |

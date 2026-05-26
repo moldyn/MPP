@@ -7,7 +7,7 @@ exclude = [
   "tests/data",
 ]
 [tool.hatch.build.targets.wheel]
-packages = ["MPP"]
+packages = ["src/MPP"]
 
 [project]
 name = "mpp-lumping"
@@ -43,4 +43,4 @@ Homepage = "https://github.com/moldyn/MPP"
 Issues = "https://github.com/moldyn/MPP/issues"
 
 [tool.hatch.version]
-path = "MPP/__init__.py"
+path = "src/MPP/__init__.py"

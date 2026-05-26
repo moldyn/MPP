@@ -28,3 +28,6 @@ agentic_finalisation.odt
 
 *.patch
 patches
+
+# Local conda/micromamba environment
+.micromamba/

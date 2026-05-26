@@ -74,16 +74,16 @@ Renamed to `run_index` with `n_i` kept as a deprecated alias emitting
 
 ---
 
-## 4. `MPP/MPP.py` — Module Name Violates `snake_case`
+## 4. `MPP/MPP.py` — Module Name Violates `snake_case` ✅ DONE (cleanup/src-layout-and-module-rename)
 
 | File          | Current name | Proposed name  | Risk     |
 |---------------|--------------|----------------|----------|
-| `MPP/MPP.py`  | `MPP.py`     | `lumping.py`   | HIGH-RISK |
+| `src/MPP/MPP.py`  | `MPP.py` | `lumping.py`   | HIGH-RISK |
 
-The module filename `MPP.py` matches the package directory `MPP/`, which is
-confusing and violates `snake_case`. The `Lumping` class (the main content) would
-be better housed in `lumping.py`. All imports (`from .MPP import Lumping`,
-`from . import MPP`) and the `__init__.py` export must change together.
+The module filename `MPP.py` matched the package directory `MPP/`, which was
+confusing and violated `snake_case`. Renamed to `lumping.py`. The package was
+simultaneously migrated to a `src/` layout. `__init__.py` updated:
+`from .MPP import Lumping` → `from .lumping import Lumping`.
 
 ---
 
@@ -205,7 +205,7 @@ a naming violation, but noted here for completeness.
 
 1. Space-separated YAML keys: `microstate trajectory`, `multi feature trajectory` — ✅ done in TASK-2.2; `kernel similarity`, `feature kernel` — ✅ done in TASK-2.3
 2. `Lumping.n_i` property — ✅ renamed to `run_index` in TASK-2.3 (deprecated alias retained)
-3. Module `MPP/MPP.py` (affects all imports) — still pending
+3. Module `MPP/MPP.py` (affects all imports) — ✅ renamed to `src/MPP/lumping.py`, `src/` layout adopted
 
 ### CAUTION (rename in a coordinated single-module task)
 

@@ -1,4 +1,4 @@
-from .MPP import Lumping
+from .lumping import Lumping
 from . import kernel
 from . import utils
 from . import plot
