@@ -106,6 +106,17 @@ The `Plotter` inner class (accessed via `mpp.plot`) delegates to `src/MPP/plot.p
 ### Z Matrix Format
 Shape `(n_runs, n_states-1, 4)`. Each row: `[state_a, state_b, metastability_a, joint_population]`. Intermediate cluster index = `n_states + i`. Saved/loaded as `.npy`.
 
+## Documentation Hygiene
+
+When modifying the CLI (`src/MPP/run.py`) or Python API (`src/MPP/lumping.py`, `src/MPP/kernel.py`), check whether the corresponding documentation needs updating:
+
+- **CLI help in README.md** — the `--help` output block must match the actual output of `python -m MPP.run --help`. Regenerate it with:
+  ```bash
+  python -m MPP.run --help
+  ```
+- **`docs/usage_cli.md`** — update if argument names, defaults, or behaviour change.
+- **`docs/usage_api.md`** — update if class/method signatures, parameters, or attributes change.
+
 ## Commit Messages
 
 - Must include the issue number, e.g. `TASK-2.2 (#22): ...`
