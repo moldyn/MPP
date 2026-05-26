@@ -1,3 +1,4 @@
+prettypyplot == 0.13.2
 tqdm == 4.67.1
 numpy == 2.2.5
 seaborn == 0.13.2

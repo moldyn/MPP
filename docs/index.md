@@ -14,7 +14,7 @@ Install from the [Python Package Index](https://pypi.org/project/mpp-lumping/) v
 pip install mpp-lumping
 ```
 
-Python 3.10 or later is required. The package has been tested with Python 3.12.
+Python 3.10 or later is required. The package is tested with Python 3.12, 3.13, and 3.14.
 
 ## Features
 
