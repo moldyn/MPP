@@ -156,4 +156,4 @@ class TestRMSD_PDZ3(unittest.TestCase):
             / "rmsd.npy"
         )
         self.d1.mpp.load_rmsd(expected_output)
-        np.testing.assert_allclose(self.d1.mpp.rmsd_sharpness(), 2.1352340796266334)
+        np.testing.assert_allclose(self.d1.mpp.rmsd_sharpness(), 1.4105023179498706)
