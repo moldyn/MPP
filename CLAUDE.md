@@ -34,30 +34,11 @@ bash run_all_tests.sh
 coverage run --branch --source=src/MPP -m unittest_parallel --level test --coverage-branch --coverage-html htmlcov
 ```
 
-### Run CORE tests only (currently in scope)
+### Run all tests
 ```bash
-python -m pytest tests/test_properties.py tests/test_utils.py \
-  tests/test_run.py::TestRunScript::test_HP35_t_ref \
-  tests/test_run.py::TestRunScript::test_HP35_t_stoch \
-  tests/test_run.py::TestRunScript::test_HP35_kl \
-  tests/test_run.py::TestRunScript::test_HP35_t_js \
-  tests/test_run.py::TestRunScript::test_HP35_js \
-  tests/test_run.py::TestRunScript::test_PDZ3_kl \
-  tests/test_run.py::TestRunScript::test_aSyn_t \
-  tests/test_run.py::TestRunScript::test_aSyn_kl_js \
-  tests/test_run.py::TestRunScript::test_aSyn_t_stoch \
-  tests/test_run.py::TestRunScript::test_macrostate_map_saved_alongside_z \
-  tests/test_run.py::TestCLIValidation \
-  tests/test_plots.py::TestPlotting::test_manual_ck_test \
-  tests/test_plots.py::TestPlotting::test_manual_contacts \
-  tests/test_plots.py::TestPlotting::test_manual_dendrogram \
-  tests/test_plots.py::TestPlotting::test_manual_macrotraj_PDZ3 \
-  tests/test_plots.py::TestPlotting::test_manual_macrotraj_ref \
-  tests/test_plots.py::TestPlotting::test_manual_sankey \
-  tests/test_plots.py::TestPlotting::test_manual_state_network \
-  tests/test_plots.py::TestPlotting::test_manual_timescales -v
+python -m pytest tests/ -v
 ```
-See `tests/TEST_CATEGORIES.md` for the full classification (CORE / OPTIONAL / DEFERRED). OPTIONAL and DEFERRED tests may fail due to missing data files (topology, xtc) — this is expected and out of scope.
+All 67 tests pass. The OPTIONAL/DEFERRED classification in `tests/TEST_CATEGORIES.md` is now historical — all tests have the required data files and run as part of the normal suite.
 
 ### Run a single test
 ```bash
