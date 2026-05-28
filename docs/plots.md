@@ -35,11 +35,22 @@ mpp.plot.dendrogram("dendrogram.pdf")
 
 ## Implied Timescales
 
-**What it shows:** Implied timescales of the macrostate model (solid lines) and the
-microstate reference model (dashed lines) as a function of lag time, on a log–log
-scale. Timescales that are flat with respect to lag time support the Markov
-assumption. The shaded region marks timescales below the analysis lag time. Each
-color corresponds to one slowness-ranked timescale.
+**What it shows:** Implied timescales (ITS) of the macrostate model (solid lines)
+as a function of lag time on a log–log scale. Each color corresponds to one
+slowness-ranked timescale. A shaded region marks timescales below the analysis
+lag time. Timescales that are flat with respect to lag time support the Markov
+assumption.
+
+The reference lines (dashed or dotted) depend on the `use_ref` option:
+
+- **`use_ref=False`** (default for the `T none` reference lumping): the dashed
+  lines show the implied timescales of the **microstate trajectory** directly.
+  This is the standard way to assess how well the lumping preserves the slow
+  dynamics of the underlying MD model.
+- **`use_ref=True`** (useful for alternative lumpings such as `KL none`): the
+  dotted lines show the implied timescales of the **`T none` macrostate model**.
+  This allows a direct comparison between the alternative lumping and the
+  reference lumping.
 
 **CLI:**
 ```bash
@@ -48,13 +59,20 @@ python -m MPP.run config.yml T none -Z Z.npy -p timescales -o timescales.pdf
 
 **API:**
 ```python
-mpp.calc_timescales(ntimescales=5)
-mpp.plot.implied_timescales("timescales.pdf")
+mpp.calc_timescales(ntimescales=3)
+# use_ref=False: reference lines = microstate ITS (default for T/none)
+mpp.plot.implied_timescales("timescales.pdf", use_ref=False, scale=0.5)
+# use_ref=True: reference lines = T/none macrostate ITS (for alternative lumpings)
+mpp.plot.implied_timescales("timescales.pdf", use_ref=True, scale=0.5)
 ```
 
-**Example (HP35, `T none`, 12 macrostates):**
+**Example — `T none` with microstate ITS as reference (`use_ref=False`):**
 
-![Implied timescales](assets/plots/timescales.png)
+![Implied timescales T](assets/plots/timescales_t.png)
+
+**Example — `KL none` with `T none` macrostate ITS as reference (`use_ref=True`):**
+
+![Implied timescales KL](assets/plots/timescales_kl.png)
 
 ---
 
