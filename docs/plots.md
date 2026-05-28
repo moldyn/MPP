@@ -61,18 +61,18 @@ python -m MPP.run config.yml T none -Z Z.npy -p timescales -o timescales.pdf
 ```python
 mpp.calc_timescales(ntimescales=3)
 # use_ref=False: reference lines = microstate ITS (default for T/none)
-mpp.plot.implied_timescales("timescales.pdf", use_ref=False, scale=0.5)
+mpp.plot.implied_timescales("timescales.pdf", use_ref=False)
 # use_ref=True: reference lines = T/none macrostate ITS (for alternative lumpings)
-mpp.plot.implied_timescales("timescales.pdf", use_ref=True, scale=0.5)
+mpp.plot.implied_timescales("timescales.pdf", use_ref=True)
 ```
 
 **Example — `T none` with microstate ITS as reference (`use_ref=False`):**
 
-![Implied timescales T](assets/plots/timescales_t.png)
+![Implied timescales T](assets/plots/timescales_t.png){ width=50% }
 
 **Example — `KL none` with `T none` macrostate ITS as reference (`use_ref=True`):**
 
-![Implied timescales KL](assets/plots/timescales_kl.png)
+![Implied timescales KL](assets/plots/timescales_kl.png){ width=50% }
 
 ---
 
