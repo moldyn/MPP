@@ -37,6 +37,7 @@ nav:
   - Tutorial: tutorial.md
   - CLI Usage: usage_cli.md
   - Python API: usage_api.md
+  - Quality Metrics: metrics.md
   - Plot Types: plots.md
   - Snakemake Workflow: usage_snakemake.md
 
