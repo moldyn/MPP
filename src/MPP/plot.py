@@ -449,7 +449,8 @@ def transition_matrix(a, out, title="Transition Matrix", color_thr=0.01):
     logarithmic Reds colormap. Off-diagonal entries use a logarithmic viridis
     colormap; entries below ``color_thr`` of the maximum off-diagonal value
     are shown in light gray. Transition probabilities are annotated as
-    percentages. The figure is saved to ``out``.
+    numeric values in percent (e.g. ``12.34`` means 12.34 %). The figure
+    is saved to ``out``.
 
     Parameters
     ----------
@@ -522,7 +523,7 @@ def transition_matrix(a, out, title="Transition Matrix", color_thr=0.01):
                 ax.text(
                     j,
                     i,
-                    f"{value:.2f}%",
+                    f"{value:.2f}",
                     ha="center",
                     va="center",
                     color=text_color,
