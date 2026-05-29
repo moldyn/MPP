@@ -29,7 +29,7 @@ mpp.plot.dendrogram("dendrogram.pdf")
 
 **Example (HP35, `T none`, 12 macrostates):**
 
-![Dendrogram](assets/plots/dendrogram.png)
+![Dendrogram](assets/plots/dendrogram.png){ width=75% }
 
 ---
 
@@ -96,7 +96,7 @@ mpp.plot.sankey("sankey.pdf")
 
 **Example (HP35, `KL none` vs `T none` reference, 14 vs 12 macrostates):**
 
-![Sankey diagram](assets/plots/sankey.png){ width="35%" }
+![Sankey diagram](assets/plots/sankey.png){ width=40% }
 
 ---
 
@@ -124,7 +124,7 @@ mpp.plot.contact_rep("path/to/cluster_file", "contacts.pdf")
 
 **Example (HP35, `T none`, 12 macrostates):**
 
-![Contact representation](assets/plots/contacts.png)
+![Contact representation](assets/plots/contacts.png){ width=80% }
 
 ---
 
@@ -148,7 +148,7 @@ mpp.plot.macrostate_trajectory("macrotraj.pdf")
 
 **Example (HP35, `T none`, 12 macrostates, ~60 µs):**
 
-![Macrostate trajectory](assets/plots/macrotraj.png)
+![Macrostate trajectory](assets/plots/macrotraj.png){ width=100% }
 
 ---
 
@@ -174,7 +174,7 @@ mpp.plot.ck_test("ck_test.pdf")
 
 **Example (HP35, `T none`, 12 macrostates):**
 
-![Chapman-Kolmogorov test](assets/plots/ck_test.png)
+![Chapman-Kolmogorov test](assets/plots/ck_test.png){ width=85% }
 
 ---
 
@@ -203,7 +203,7 @@ mpp.plot.rmsd("rmsd.pdf")
 
 **Example (HP35, `T none`, 12 macrostates):**
 
-![RMSD](assets/plots/rmsd.png)
+![RMSD](assets/plots/rmsd.png){ width=80% }
 
 ---
 
@@ -229,7 +229,7 @@ mpp.plot.delta_rmsd("delta_rmsd.pdf")
 
 **Example (HP35, `T none`, 12 macrostates):**
 
-![Delta RMSD](assets/plots/delta_rmsd.png)
+![Delta RMSD](assets/plots/delta_rmsd.png){ width=80% }
 
 ---
 
@@ -253,7 +253,7 @@ mpp.plot.state_network("state_network.pdf")
 
 **Example (HP35, `T none`, 12 macrostates):**
 
-![State network](assets/plots/state_network.png)
+![State network](assets/plots/state_network.png){ width=100% }
 
 ---
 
@@ -278,7 +278,7 @@ mpp.plot.transition_matrix("tmat.pdf")
 
 **Example (HP35, `T none`, 12 macrostates):**
 
-![Transition matrix](assets/plots/transition_matrix.png)
+![Transition matrix](assets/plots/transition_matrix.png){ width=100% }
 
 ---
 
@@ -303,7 +303,7 @@ mpp.plot.transition_time("transition_time.pdf")
 
 **Example (HP35, `T none`, 12 macrostates):**
 
-![Transition time](assets/plots/transition_time.png)
+![Transition time](assets/plots/transition_time.png){ width=100% }
 
 ---
 
@@ -350,7 +350,7 @@ mpp.plot.stochastic_state_similarity("state_similarity.pdf")
 
 **Example (HP35, `T none` stochastic, 10 runs):**
 
-![Stochastic state similarity](assets/plots/stochastic_state_similarity.png)
+![Stochastic state similarity](assets/plots/stochastic_state_similarity.png){ width=100% }
 
 ---
 
@@ -379,7 +379,7 @@ mpp.plot.relative_implied_timescales("rel_timescales.pdf")
 
 **Example (HP35, `T none` stochastic, 10 runs):**
 
-![Relative implied timescales](assets/plots/relative_implied_timescales.png)
+![Relative implied timescales](assets/plots/relative_implied_timescales.png){ width=100% }
 
 ---
 
@@ -408,4 +408,4 @@ mpp.plot.macro_feature("macro_feature.pdf")
 
 **Example (HP35, `T none` stochastic, 10 runs):**
 
-![Macro feature](assets/plots/macro_feature.png)
+![Macro feature](assets/plots/macro_feature.png){ width=100% }
