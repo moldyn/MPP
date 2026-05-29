@@ -106,7 +106,8 @@ class Data:
                 + ". See docs/usage_cli.md for the full list of required config keys."
             )
 
-        self.source = self.d["source"]
+        config_dir = os.path.dirname(os.path.abspath(yaml_file))
+        self.source = os.path.join(config_dir, self.d["source"])
 
         self.microstate_trajectory = np.loadtxt(
             os.path.join(self.source, self.d["microstate_trajectory"]), dtype=np.uint16

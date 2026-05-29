@@ -1,4 +1,4 @@
-source: tests/data/PDZ3/input/
+source: .
 
 microstate_trajectory: microstate_trajectory
 multi_feature_trajectory: contact_distances_trajectory

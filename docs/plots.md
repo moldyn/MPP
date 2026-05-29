@@ -96,7 +96,7 @@ mpp.plot.sankey("sankey.pdf")
 
 **Example (HP35, `KL none` vs `T none` reference, 14 vs 12 macrostates):**
 
-<img src="assets/plots/sankey.png" alt="Sankey diagram" width="35%">
+![Sankey diagram](assets/plots/sankey.png){ width="35%" }
 
 ---
 
