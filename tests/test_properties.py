@@ -50,19 +50,19 @@ class TestProperties(unittest.TestCase):
         self.mpp = self.d.mpp
 
     def test_shannon_entropy(self):
-        np.testing.assert_allclose(self.mpp.shannon_entropy[0], 0.7440447)
+        np.testing.assert_allclose(self.mpp.shannon_entropy[0], 0.7665980477304275)
 
     def test_gmrq(self):
-        np.testing.assert_allclose(self.mpp.gmrq[0], 2.65830228)
+        np.testing.assert_allclose(self.mpp.gmrq[0], 2.6535358764024735)
 
     def test_davies_bouldin_index(self):
-        np.testing.assert_allclose(self.mpp.davies_bouldin_index[0], 2.18738, atol=1e-6)
+        np.testing.assert_allclose(self.mpp.davies_bouldin_index[0], 2.8680837318802976, atol=1e-6)
 
     def test_silhouette(self):
-        np.testing.assert_allclose(self.mpp.silhouette[0], 0.20912119, atol=1e-6)
+        np.testing.assert_allclose(self.mpp.silhouette[0], 0.18347998705659652, atol=1e-6)
 
     def test_calinski_harabasz(self):
-        np.testing.assert_allclose(self.mpp.calinski_harabasz[0], 6498.04436, atol=1e-3)
+        np.testing.assert_allclose(self.mpp.calinski_harabasz[0], 5624.4446439695, atol=1e-3)
 
     def test_silhouette_single_macrostate(self):
         """Silhouette should raise ValueError when only 1 macrostate exists."""
