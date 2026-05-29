@@ -41,10 +41,10 @@ Dependent on your skills and needs, the module can be used at three different en
 - In a [Snakemake](https://snakemake.github.io/) workflow where you only need to provide the configuration of your system and you're ready to go.
 
 ### Config File
-Config files (YAML files) are used to pass the information of where the files are located and some lumping parameters. Below you see a reference config file with all possible parameters. Note that only the following fields are mandatory: `source`, `microstate_trajectory`, `multi_feature_trajectory`, `frame_length`, `lagtime`, `pop_thr`, `q_min`. Please refer to the [documentation](https://moldyn.github.io/MPP/usage_cli/) for a detailed description of the parameters.
+Config files (YAML files) are used to pass the information of where the files are located and some lumping parameters. Below you see a reference config file with all possible parameters. Note that only the following fields are mandatory: `microstate_trajectory`, `multi_feature_trajectory`, `frame_length`, `lagtime`, `pop_thr`, `q_min`. Please refer to the [documentation](https://moldyn.github.io/MPP/usage_cli/) for a detailed description of the parameters.
 
 ```yaml
-source: data/HP35/input/ # root directory of the other files
+# source: /optional/path/to/input/  # root directory for input files; defaults to the config file's own directory
 
 microstate_trajectory: microstate_trajectory # the microstate trajectory
 multi_feature_trajectory: contact_distances_trajectory # the feature trajectory, each line contains the feature values of the respective feature
@@ -154,7 +154,7 @@ Your can try the example in the GitHub repository by downloading the `example` d
 python -m MPP.run sample_system/input/config.yml T none -Z sample_system/results/t/Z.npy -p dendrogram -o sample_system/results/t/dendrogram.pdf
 ```
 
-Make sure that the `source` is properly set according to your working directory (you need to remove `example` when you are inside the directory). Please note that not all functions of the package work here because the sample system is only a mock up.
+Please note that not all functions of the package work here because the sample system is only a mock up.
 
 ### The Snakemake Workflow
 Snakemake is a workflow organization tool and used here to provide a high level user interface. In order to use it, prepare a conda environment with Snakemake installed:

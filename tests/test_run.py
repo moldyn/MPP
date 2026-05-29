@@ -251,7 +251,6 @@ class TestConfigNormalization(unittest.TestCase):
     def _write_config(self, path, extra_keys):
         """Write a minimal valid config to *path* with the given extra keys."""
         config = {
-            "source": "tests/data/HP35/input/",
             "lagtime": 1,
             "pop_thr": 0.005,
             "q_min": 0.5,
@@ -264,8 +263,9 @@ class TestConfigNormalization(unittest.TestCase):
 
     def test_canonical_keys_load_without_warning(self):
         """New snake_case keys must load without any DeprecationWarning."""
+        hp35_input = Path(__file__).parent / "data" / "HP35" / "input"
         with tempfile.NamedTemporaryFile(
-            suffix=".yml", mode="w", delete=False
+            suffix=".yml", mode="w", delete=False, dir=hp35_input
         ) as tmp:
             tmp_path = tmp.name
         self._write_config(
@@ -287,8 +287,9 @@ class TestConfigNormalization(unittest.TestCase):
 
     def test_legacy_keys_emit_deprecation_warning(self):
         """Old space-separated keys must emit DeprecationWarning and still load."""
+        hp35_input = Path(__file__).parent / "data" / "HP35" / "input"
         with tempfile.NamedTemporaryFile(
-            suffix=".yml", mode="w", delete=False
+            suffix=".yml", mode="w", delete=False, dir=hp35_input
         ) as tmp:
             tmp_path = tmp.name
         self._write_config(

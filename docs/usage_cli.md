@@ -55,8 +55,6 @@ The config file specifies input paths and lumping parameters. All keys use
 
 ```yaml
 # example/sample_system/input/config.yml
-source: example/sample_system/input
-
 microstate_trajectory: traj
 multi_feature_trajectory: feature_traj
 
@@ -68,13 +66,14 @@ frame_length: 0.2    # frame length in ns
 contact_threshold: 0.45  # distance threshold to binarise feature (nm)
 ```
 
-**Required keys:** `source`, `microstate_trajectory`,
+**Required keys:** `microstate_trajectory`,
 `multi_feature_trajectory`, `lagtime`, `pop_thr`, `q_min`, `frame_length`.
 
 **Optional keys:**
 
 | Key | Description |
 |---|---|
+| `source` | Root directory for all input file paths. Relative paths are resolved relative to the config file's directory; absolute paths are used as-is. Defaults to the config file's own directory (i.e. place the config next to your data and omit `source` entirely). Individual file entries can also be absolute paths or relative paths (resolved against `source`), so files scattered across different locations can be referenced without moving them. |
 | `contact_threshold` | Feature binarisation threshold (default `0.45`) |
 | `cluster_file` | Contact index file for contact plots |
 | `contact_index_file` | Contact pair index file for structural analysis |

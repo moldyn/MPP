@@ -66,7 +66,6 @@ _VALID_D = frozenset({"T", "KL", "none", "gpcca"})
 _VALID_G_MPP = frozenset({"JS", "none"})
 
 _REQUIRED_CONFIG_KEYS = [
-    "source",
     "microstate_trajectory",
     "multi_feature_trajectory",
     "lagtime",
@@ -107,7 +106,7 @@ class Data:
             )
 
         config_dir = os.path.dirname(os.path.abspath(yaml_file))
-        self.source = os.path.join(config_dir, self.d["source"])
+        self.source = os.path.join(config_dir, self.d.get("source", "."))
 
         self.microstate_trajectory = np.loadtxt(
             os.path.join(self.source, self.d["microstate_trajectory"]), dtype=np.uint16
@@ -427,9 +426,9 @@ def parse_args():
         metavar="config.yml",
         help=(
             "YAML configuration file specifying input paths and lumping "
-            "parameters (source, microstate_trajectory, "
+            "parameters (microstate_trajectory, "
             "multi_feature_trajectory, lagtime, pop_thr, q_min, "
-            "frame_length, and optional keys)."
+            "frame_length, and optional keys including source)."
         ),
         type=argparse.FileType("r", encoding="latin-1"),
     )
