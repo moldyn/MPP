@@ -24,6 +24,8 @@ jobs:
         allow-prereleases: true
 
     - name: Install dependencies
+      env:
+        BEZIER_IGNORE_VERSION_CHECK: "1"
       run: pip install .
 
     - name: Run CORE tests
