@@ -29,8 +29,8 @@ from . import utils
 from .sankey_gap import sankey
 from .graph import draw_knetwork
 
-plt.rcParams["font.family"] = ["Latin Modern Roman"]
 pplt.use_style(true_black=True)
+plt.rcParams["font.family"] = ["Latin Modern Roman"]
 
 ### DENDROGRAM ###############################################################
 
