@@ -219,7 +219,7 @@ def sankey(
     # Draw vertical bars on left and right of each  label's section & print label
     for vall, leftLabel in enumerate(leftLabels):
         if vall != 0:
-            if _draw_label(leftWidths[leftLabel], leftWidths[previousleftlabel]):
+            if _draw_label(leftWidths[leftLabel], leftWidths[previousleftlabel], topEdge * 0.05):
                 continue
         ax.text(
             -0.05 * xMax,
@@ -233,7 +233,7 @@ def sankey(
     previousrightlabel = ""
     for valr, rightLabel in enumerate(rightLabels):
         if valr != 0:
-            if _draw_label(rightWidths[rightLabel], rightWidths[previousrightlabel]):
+            if _draw_label(rightWidths[rightLabel], rightWidths[previousrightlabel], topEdge * 0.05):
                 continue
         ax.text(
             1.05 * xMax,
@@ -314,8 +314,8 @@ def sankey(
 
 def _get_positions_and_total_widths(df, labels, side):
     """Determine positions of label patches and total widths"""
-    # add gap
-    gap = 50000
+    # add gap — relative to total weight so spacing scales with any dataset size
+    gap = 0.03 * df[side + "Weight"].sum()
     widths = defaultdict()
     for i, label in enumerate(labels):
         labelWidths = {}
