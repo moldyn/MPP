@@ -26,6 +26,7 @@ jobs:
     - name: Install dependencies
       env:
         BEZIER_IGNORE_VERSION_CHECK: "1"
+        BEZIER_NO_EXTENSION: "1"
       run: pip install .
 
     - name: Run CORE tests
