@@ -22,7 +22,19 @@ mpp.calc_timescales(ntimescales=5)
 ts = mpp.timescales   # shape (n_runs, 5)
 ```
 
-Timescales are in nanoseconds when `frame_length` is provided in ns.
+The \(k\)-th implied timescale of a Markov state model is derived from the
+\(k\)-th largest eigenvalue of the transition matrix \(\mathbf{T}(\tau)\) at
+lag time \(\tau\):
+
+\[
+t_k = -\frac{\tau}{\ln \lambda_k}, \quad k = 2, 3, \ldots
+\]
+
+where \(\lambda_1 = 1\) is the stationary eigenvalue (excluded) and
+\(\lambda_2 \geq \lambda_3 \geq \cdots\) are the remaining eigenvalues sorted
+in descending order. Larger timescales correspond to slower dynamical processes.
+The values returned by `mpp.timescales` are in frames; multiply by
+`frame_length` (ns per frame) to obtain physical units.
 
 ---
 
