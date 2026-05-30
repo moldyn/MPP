@@ -34,10 +34,11 @@ def get_d(system, setup, rmsd=False):
         lumpings[setup]["kernel_similarity"],
         lumpings[setup]["feature_kernel"],
     )
+    z_path = f"tests/data/{system}/expected_output/{setup}/Z.npy"
     if setup == "gpcca":
-        d.perform_gpcca("ref", f"{root}{system}/{setup}/Z.npy")
+        d.perform_gpcca("ref", z_path)
     else:
-        d.perform_mpp(f"{root}{system}/{setup}/Z.npy")
+        d.perform_mpp(z_path)
     if rmsd:
         d.mpp.load_rmsd(f"{root}{system}/{setup}/rmsd.npy")
     return d
