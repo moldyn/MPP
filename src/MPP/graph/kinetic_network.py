@@ -10,7 +10,10 @@ from matplotlib.colors import to_hex
 from matplotlib.collections import LineCollection
 from matplotlib.colors import Normalize
 
+from .._style import FONT_FAMILY
+
 pplt.use_style(figsize=1.8, figratio=1)
+plt.rcParams["font.family"] = [FONT_FAMILY]
 
 USE_FA2 = True
 DRAW_FLUX = True

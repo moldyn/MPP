@@ -1,4 +1,5 @@
 import unittest
+import unittest.mock
 
 import sys
 from io import StringIO
@@ -9,8 +10,10 @@ import tempfile
 from pathlib import Path
 import yaml
 import hashlib
+import matplotlib.figure
 from matplotlib import pyplot as plt
 import MPP.run as run_module
+from MPP._style import FONT_FAMILY
 
 
 DATASETS = ["HP35", "PDZ3", "aSyn"]
@@ -224,6 +227,104 @@ class TestPlotting(unittest.TestCase):
         d, g = "T", "none"
         kind = "transition_time"
         self.run_single_plot_test(dataset, kind, d, g, manual_inspection=True)
+
+
+class TestFontFamily(unittest.TestCase):
+    """Verify that all plot functions use FONT_FAMILY at save time."""
+
+    def setUp(self):
+        self.data_root = Path(__file__).parent / "data"
+        with open(MAPPING_FILE, "r") as f:
+            self.param_map = yaml.safe_load(f)
+
+    def _get_key(self, d, g):
+        for key, val in self.param_map.items():
+            if val["kernel_similarity"] == d and val["feature_kernel"] == g:
+                return key
+        raise ValueError(f"No mapping found for d={d}, g={g}")
+
+    def _assert_font_family(self, dataset, kind, d, g, stochastic=False):
+        key = self._get_key(d, g)
+        config = (
+            self.data_root
+            / dataset
+            / "input"
+            / f"config{'_stochastic' if stochastic else ''}.yml"
+        )
+        z_file = (
+            self.data_root
+            / dataset
+            / "expected_output"
+            / key
+            / f"Z{'_stochastic' if stochastic else ''}.npy"
+        )
+
+        observed_fonts = []
+
+        original_savefig = matplotlib.figure.Figure.savefig
+
+        def capturing_savefig(fig_self, fname, *args, **kwargs):
+            observed_fonts.append(list(plt.rcParams.get("font.family", [])))
+            return original_savefig(fig_self, fname, *args, **kwargs)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out = str(Path(tmpdir) / f"{kind}.pdf")
+            args = [str(config), d, g, "-p", kind, "-o", out, "-Z", str(z_file)]
+            with unittest.mock.patch.object(
+                matplotlib.figure.Figure, "savefig", capturing_savefig
+            ):
+                _run_main_with_args(args)
+
+        self.assertTrue(
+            len(observed_fonts) > 0,
+            f"savefig was never called for plot kind '{kind}'",
+        )
+        for fonts in observed_fonts:
+            self.assertIn(
+                FONT_FAMILY,
+                fonts,
+                f"Font family '{FONT_FAMILY}' not found in {fonts} for plot kind '{kind}'",
+            )
+
+    def test_font_dendrogram(self):
+        self._assert_font_family("HP35", "dendrogram", "T", "none")
+
+    def test_font_timescales(self):
+        self._assert_font_family("HP35", "timescales", "T", "none")
+
+    def test_font_sankey(self):
+        self._assert_font_family("HP35", "sankey", "KL", "none")
+
+    def test_font_contacts(self):
+        self._assert_font_family("HP35", "contacts", "T", "none")
+
+    def test_font_macrotraj(self):
+        self._assert_font_family("HP35", "macrotraj", "T", "none")
+
+    def test_font_ck_test(self):
+        self._assert_font_family("HP35", "ck_test", "T", "none")
+
+    def test_font_state_network(self):
+        self._assert_font_family("HP35", "state_network", "T", "none")
+
+    def test_font_macro_feature(self):
+        self._assert_font_family("HP35", "macro_feature", "T", "none", stochastic=True)
+
+    def test_font_stochastic_state_similarity(self):
+        self._assert_font_family(
+            "HP35", "stochastic_state_similarity", "T", "none", stochastic=True
+        )
+
+    def test_font_relative_implied_timescales(self):
+        self._assert_font_family(
+            "HP35", "relative_implied_timescales", "T", "none", stochastic=True
+        )
+
+    def test_font_transition_matrix(self):
+        self._assert_font_family("HP35", "transition_matrix", "T", "none")
+
+    def test_font_transition_time(self):
+        self._assert_font_family("HP35", "transition_time", "T", "none")
 
 
 def file_hash(path, algo="sha256"):
