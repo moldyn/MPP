@@ -34,3 +34,7 @@ patches
 
 # MkDocs build output
 site/
+
+# Intermediate RMSD computation files written alongside doc plots
+docs/assets/plots/rmsd_CA.npy
+docs/assets/plots/rmsd_CA_mean_frames.ndx

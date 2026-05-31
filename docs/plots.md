@@ -3,8 +3,10 @@
 MPP can generate 15 types of plots, all accessible through both the CLI (`-p <plot>`) and
 the Python API (`mpp.plot.<method>(out)`).
 
-All examples below use the HP35 villin headpiece dataset (35 residues, 12 macrostates,
-`T none` lumping unless noted otherwise).
+Most examples use the HP35 villin headpiece dataset (35 residues, 12 macrostates,
+`T none` lumping unless noted otherwise). The RMSD and Delta RMSD examples use the
+PDZ3 dataset (`KL none`, 7 macrostates), which provides topology and trajectory
+files required for those plots.
 
 ---
 
@@ -201,7 +203,7 @@ mpp.xtc_trajectory_file = "trajectory.xtc"
 mpp.plot.rmsd("rmsd.pdf")
 ```
 
-**Example (HP35, `T none`, 12 macrostates):**
+**Example (PDZ3, `KL none`, 7 macrostates):**
 
 ![RMSD](assets/plots/rmsd.png){ width=80% }
 
@@ -227,7 +229,7 @@ python -m MPP.run config.yml T none -Z Z.npy -p delta_rmsd -o delta_rmsd.pdf
 mpp.plot.delta_rmsd("delta_rmsd.pdf")
 ```
 
-**Example (HP35, `T none`, 12 macrostates):**
+**Example (PDZ3, `KL none`, 7 macrostates):**
 
 ![Delta RMSD](assets/plots/delta_rmsd.png){ width=80% }
 
