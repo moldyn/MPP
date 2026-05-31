@@ -24,7 +24,9 @@ jobs:
         allow-prereleases: true
 
     - name: Install LaTeX
-      run: sudo apt-get install -y texlive texlive-latex-extra cm-super dvipng
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y texlive texlive-latex-extra dvipng
 
     - name: Install dependencies
       env:
