@@ -259,12 +259,15 @@ class TestFontFamily(unittest.TestCase):
             / f"Z{'_stochastic' if stochastic else ''}.npy"
         )
 
-        observed_fonts = []
+        observed = []
 
         original_savefig = matplotlib.figure.Figure.savefig
 
         def capturing_savefig(fig_self, fname, *args, **kwargs):
-            observed_fonts.append(list(plt.rcParams.get("font.family", [])))
+            observed.append({
+                "usetex": plt.rcParams.get("text.usetex"),
+                "font.family": list(plt.rcParams.get("font.family", [])),
+            })
             return original_savefig(fig_self, fname, *args, **kwargs)
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -276,14 +279,18 @@ class TestFontFamily(unittest.TestCase):
                 _run_main_with_args(args)
 
         self.assertTrue(
-            len(observed_fonts) > 0,
+            len(observed) > 0,
             f"savefig was never called for plot kind '{kind}'",
         )
-        for fonts in observed_fonts:
+        for snapshot in observed:
+            self.assertTrue(
+                snapshot["usetex"],
+                f"text.usetex is not True for plot kind '{kind}': {snapshot}",
+            )
             self.assertIn(
                 FONT_FAMILY,
-                fonts,
-                f"Font family '{FONT_FAMILY}' not found in {fonts} for plot kind '{kind}'",
+                snapshot["font.family"],
+                f"Font family '{FONT_FAMILY}' not set for plot kind '{kind}': {snapshot}",
             )
 
     def test_font_dendrogram(self):

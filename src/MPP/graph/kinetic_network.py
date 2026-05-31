@@ -13,6 +13,7 @@ from matplotlib.colors import Normalize
 from .._style import FONT_FAMILY
 
 pplt.use_style(figsize=1.8, figratio=1)
+plt.rcParams["text.usetex"] = True
 plt.rcParams["font.family"] = [FONT_FAMILY]
 
 USE_FA2 = True
