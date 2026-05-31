@@ -26,11 +26,18 @@ import msmhelper as mh
 from msmhelper._cli.contact_rep import load_clusters
 
 from . import utils
+from ._style import FONT_FAMILY
 from .sankey_gap import sankey
 from .graph import draw_knetwork
 
-pplt.use_style(true_black=True)
-plt.rcParams["font.family"] = ["Latin Modern Roman"]
+
+def _apply_style(**kwargs):
+    """Call pplt.use_style and enforce the package font family."""
+    pplt.use_style(**kwargs)
+    plt.rcParams["font.family"] = [FONT_FAMILY]
+
+
+_apply_style(true_black=True)
 
 ### DENDROGRAM ###############################################################
 
@@ -60,7 +67,7 @@ def plot_tree(root, macrostate_assignment, output_file, scale=1, offset=0):
     n_states = len(root.leaves)
 
     # setup matplotlib
-    pplt.use_style(figsize=3.2 * scale, figratio="golden", true_black=True)
+    _apply_style(figsize=3.2 * scale, figratio="golden", true_black=True)
 
     fig, (ax, ax_mat) = plt.subplots(
         2,
@@ -248,7 +255,7 @@ def implied_timescales(
     if first_ref:
         ref_trajectory = trajectories.pop(0)
     x, y = utils.get_grid_format(len(trajectories))
-    pplt.use_style(
+    _apply_style(
         figsize=(2.7 * scale, 2.7 * scale), latex=False, colors="pastel_autumn"
     )
     fig, axs = plt.subplots(y, x, sharex=True, sharey=True)
@@ -374,7 +381,7 @@ def relative_implied_timescales(cl, out):
     out : str
         Path to save the output figure.
     """
-    pplt.use_style(figsize=(8, 2.5), latex=False, colors="pastel_autumn")
+    _apply_style(figsize=(8, 2.5), latex=False, colors="pastel_autumn")
 
     ref = cl.reference
     its = cl.timescales / ref.timescales
@@ -827,7 +834,7 @@ def contact_rep(contacts, cluster_file, state_trajectory, output, grid, scale=1)
         Figure size scaling factor. (default 1)
     """
     # setup matplotlib
-    pplt.use_style(
+    _apply_style(
         figsize=1.2 * scale,
         colors="pastel_autumn",
         true_black=True,
@@ -988,7 +995,7 @@ def sankey_diagram(cl, ref, out, ax=None, scale=1):
     for i, o in enumerate(ma_order):
         colorDict[str(i + 1)] = cl.tree[cl.run_index].macrostates[o].color
     if ax is None:
-        pplt.use_style(figsize=(1.7 * scale, 3.6 * scale), true_black=True)
+        _apply_style(figsize=(1.7 * scale, 3.6 * scale), true_black=True)
     sankey(
         left=(cl.macrostate_map[cl.run_index] + 1).astype(str),
         right=(ref.macrostate_map[0] + 1).astype(str),
@@ -1055,7 +1062,7 @@ def rmsd(rmsds, pops, helices=None, filename=None):
 
     w = 0.08 * rmsds.shape[1] + 3  # 8.6
     h = 1 + 0.4 * n_plots  # 6
-    pplt.use_style(
+    _apply_style(
         figsize=(w, h),
         colors="pastel_autumn",
         true_black=True,
@@ -1248,7 +1255,7 @@ def delta_rmsd(rmsds, pops, helices=None, filename=None):
 
     w = 0.08 * rmsds.shape[1] + 3  # 8.6
     h = 1 + 0.4 * n_plots  # 6
-    pplt.use_style(
+    _apply_style(
         figsize=(w, h),
         colors="pastel_autumn",
         true_black=True,
@@ -1559,7 +1566,7 @@ def chapman_kolmogorov(mpt, out, frame_length=0.2):
         4000,
         # int(1550*frame_length),
     )
-    pplt.use_style(
+    _apply_style(
         figsize=4.8,
         colors="pastel_autumn",
         true_black=True,

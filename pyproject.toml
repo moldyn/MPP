@@ -49,3 +49,6 @@ Issues = "https://github.com/moldyn/MPP/issues"
 
 [tool.hatch.version]
 path = "src/MPP/__init__.py"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
