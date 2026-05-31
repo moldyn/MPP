@@ -128,7 +128,10 @@ class LumpingKernel(object):
         trans_probs = np.nan_to_num(trans_probs, copy=False, nan=1e-6)
 
         # transitions contains indices for masked tmat
-        transitions = np.argsort(trans_probs)[::-1]
+        # Use stable sort so that ties are broken consistently by original state
+        # index (lower index wins after reversal), making the algorithm
+        # deterministic regardless of memory layout or Python version.
+        transitions = np.argsort(trans_probs, kind="stable")[::-1]
         # consider n most similar options
         if self.method == "n":
             options = list(range(self.param))[: trans_probs.shape[0]]
