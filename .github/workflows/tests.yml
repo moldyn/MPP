@@ -26,7 +26,7 @@ jobs:
     - name: Install LaTeX
       run: |
         sudo apt-get update
-        sudo apt-get install -y texlive texlive-latex-extra dvipng
+        sudo apt-get install -y --no-install-recommends texlive texlive-latex-extra cm-super dvipng
 
     - name: Install dependencies
       env:
