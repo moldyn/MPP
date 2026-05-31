@@ -32,8 +32,9 @@ from .graph import draw_knetwork
 
 
 def _apply_style(**kwargs):
-    """Call pplt.use_style and enforce the package font family."""
+    """Call pplt.use_style and enforce LaTeX rendering with the package font family."""
     pplt.use_style(**kwargs)
+    plt.rcParams["text.usetex"] = True
     plt.rcParams["font.family"] = [FONT_FAMILY]
 
 
@@ -255,9 +256,7 @@ def implied_timescales(
     if first_ref:
         ref_trajectory = trajectories.pop(0)
     x, y = utils.get_grid_format(len(trajectories))
-    _apply_style(
-        figsize=(2.7 * scale, 2.7 * scale), latex=False, colors="pastel_autumn"
-    )
+    _apply_style(figsize=(2.7 * scale, 2.7 * scale), colors="pastel_autumn")
     fig, axs = plt.subplots(y, x, sharex=True, sharey=True)
     plt.grid(False)
     if not isinstance(axs, np.ndarray):
@@ -381,7 +380,7 @@ def relative_implied_timescales(cl, out):
     out : str
         Path to save the output figure.
     """
-    _apply_style(figsize=(8, 2.5), latex=False, colors="pastel_autumn")
+    _apply_style(figsize=(8, 2.5), colors="pastel_autumn")
 
     ref = cl.reference
     its = cl.timescales / ref.timescales
@@ -838,7 +837,6 @@ def contact_rep(contacts, cluster_file, state_trajectory, output, grid, scale=1)
         figsize=1.2 * scale,
         colors="pastel_autumn",
         true_black=True,
-        latex=False,
     )
 
     # load files
@@ -912,7 +910,7 @@ def contact_rep(contacts, cluster_file, state_trajectory, output, grid, scale=1)
             pplt.text(
                 0.5,
                 0.95,
-                rf"S{state + 1} {pop_state:.1%}",
+                rf"S{state + 1} {100 * pop_state:.1f}\%",
                 ha="center",
                 va="top",
                 ax=ax,
@@ -1066,7 +1064,6 @@ def rmsd(rmsds, pops, helices=None, filename=None):
         figsize=(w, h),
         colors="pastel_autumn",
         true_black=True,
-        latex=False,
     )
     fig, axs = plt.subplots(
         n_plots,
@@ -1259,7 +1256,6 @@ def delta_rmsd(rmsds, pops, helices=None, filename=None):
         figsize=(w, h),
         colors="pastel_autumn",
         true_black=True,
-        latex=False,
     )
     fig, axs = plt.subplots(
         n_plots,
@@ -1443,6 +1439,9 @@ def state_trajectory(trajectory, filename, row_length=0.2, frame_length=0.2):
         Duration of each frame in ns. Used to scale the x-axis label in μs.
         (default 0.2)
     """
+    plt.rcParams["text.usetex"] = True
+    plt.rcParams["font.family"] = [FONT_FAMILY]
+
     if row_length > 1:
         x_max = int(row_length)
     elif row_length > 0:
@@ -1570,7 +1569,6 @@ def chapman_kolmogorov(mpt, out, frame_length=0.2):
         figsize=4.8,
         colors="pastel_autumn",
         true_black=True,
-        latex=False,
     )
 
     nrows, ncols = utils.get_grid_format(mpt.n_macrostates[mpt.run_index])
