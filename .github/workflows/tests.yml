@@ -23,6 +23,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
         allow-prereleases: true
 
+    - name: Install LaTeX
+      run: sudo apt-get install -y texlive texlive-latex-extra cm-super dvipng
+
     - name: Install dependencies
       env:
         BEZIER_IGNORE_VERSION_CHECK: "1"
