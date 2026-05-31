@@ -3,10 +3,11 @@
 MPP can generate 15 types of plots, all accessible through both the CLI (`-p <plot>`) and
 the Python API (`mpp.plot.<method>(out)`).
 
-Most examples use the HP35 villin headpiece dataset (35 residues, 12 macrostates,
-`T none` lumping unless noted otherwise). The RMSD and Delta RMSD examples use the
-PDZ3 dataset (`KL none`, 7 macrostates), which provides topology and trajectory
-files required for those plots.
+Most examples use the HP35 villin headpiece dataset (35 residues, 14 macrostates,
+`T none` lumping unless noted otherwise) with a reduced test dataset. The
+Chapman-Kolmogorov test example uses the full HP35 dataset (12 macrostates). The
+RMSD and Delta RMSD examples use the PDZ3 dataset (`KL none`, 7 macrostates), which
+provides topology and trajectory files required for those plots.
 
 ---
 
@@ -29,7 +30,7 @@ python -m MPP.run config.yml T none -Z Z.npy -p dendrogram -o dendrogram.pdf
 mpp.plot.dendrogram("dendrogram.pdf")
 ```
 
-**Example (HP35, `T none`, 12 macrostates):**
+**Example (HP35, `T none`, 14 macrostates):**
 
 ![Dendrogram](assets/plots/dendrogram.png){ width=75% }
 
@@ -96,7 +97,7 @@ python -m MPP.run config.yml KL none -Z Z.npy -p sankey -o sankey.pdf
 mpp.plot.sankey("sankey.pdf")
 ```
 
-**Example (HP35, `KL none` vs `T none` reference, 14 vs 12 macrostates):**
+**Example (HP35, `KL none` vs `T none` reference, 14 vs 14 macrostates):**
 
 ![Sankey diagram](assets/plots/sankey.png){ width=40% }
 
@@ -124,7 +125,7 @@ python -m MPP.run config.yml T none -Z Z.npy -p contacts -o contacts.pdf
 mpp.plot.contact_rep("path/to/cluster_file", "contacts.pdf")
 ```
 
-**Example (HP35, `T none`, 12 macrostates):**
+**Example (HP35, `T none`, 14 macrostates):**
 
 ![Contact representation](assets/plots/contacts.png){ width=80% }
 
@@ -148,7 +149,7 @@ python -m MPP.run config.yml T none -Z Z.npy -p macrotraj -o macrotraj.pdf
 mpp.plot.macrostate_trajectory("macrotraj.pdf")
 ```
 
-**Example (HP35, `T none`, 12 macrostates, ~60 µs):**
+**Example (HP35, `T none`, 14 macrostates, ~300 µs):**
 
 ![Macrostate trajectory](assets/plots/macrotraj.png){ width=100% }
 
@@ -253,7 +254,7 @@ python -m MPP.run config.yml T none -Z Z.npy -p state_network -o state_network.p
 mpp.plot.state_network("state_network.pdf")
 ```
 
-**Example (HP35, `T none`, 12 macrostates):**
+**Example (HP35, `T none`, 14 macrostates):**
 
 ![State network](assets/plots/state_network.png){ width=100% }
 
@@ -278,7 +279,7 @@ python -m MPP.run config.yml T none -Z Z.npy -p transition_matrix -o tmat.pdf
 mpp.plot.transition_matrix("tmat.pdf")
 ```
 
-**Example (HP35, `T none`, 12 macrostates):**
+**Example (HP35, `T none`, 14 macrostates):**
 
 ![Transition matrix](assets/plots/transition_matrix.png){ width=100% }
 
@@ -303,7 +304,7 @@ python -m MPP.run config.yml T none -Z Z.npy -p transition_time -o transition_ti
 mpp.plot.transition_time("transition_time.pdf")
 ```
 
-**Example (HP35, `T none`, 12 macrostates):**
+**Example (HP35, `T none`, 14 macrostates):**
 
 ![Transition time](assets/plots/transition_time.png){ width=100% }
 
