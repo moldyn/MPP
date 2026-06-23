@@ -1,0 +1,925 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Lumping tool for Markov state trajectories using the Most Probable Path algorithm">
+      
+      
+      
+        <link rel="canonical" href="https://moldyn.github.io/MPP/metrics/">
+      
+      
+        <link rel="prev" href="../usage_api/">
+      
+      
+        <link rel="next" href="../plots/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Quality Metrics - MPP</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#quality-metrics" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MPP" class="md-header__button md-logo" aria-label="MPP" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MPP
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Quality Metrics
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/moldyn/MPP" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    moldyn/MPP
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MPP" class="md-nav__button md-logo" aria-label="MPP" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MPP
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/moldyn/MPP" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    moldyn/MPP
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithm
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage_cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage_api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quality Metrics
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quality Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#implied-timescales" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implied Timescales
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shannon-entropy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shannon Entropy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#davies-bouldin-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Davies-Bouldin Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gmrq-and-gmrq2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GMRQ and GMRQ2
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rmsd-sharpness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RMSD Sharpness
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#silhouette-coefficient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Silhouette Coefficient
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calinskiharabasz-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calinski–Harabász Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plot Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage_snakemake/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Snakemake Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#implied-timescales" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implied Timescales
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shannon-entropy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shannon Entropy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#davies-bouldin-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Davies-Bouldin Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gmrq-and-gmrq2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GMRQ and GMRQ2
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rmsd-sharpness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RMSD Sharpness
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#silhouette-coefficient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Silhouette Coefficient
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calinskiharabasz-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calinski–Harabász Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="quality-metrics">Quality Metrics<a class="headerlink" href="#quality-metrics" title="Permanent link">&para;</a></h1>
+<p>All metrics are lazy-computed properties of <code>MPP.Lumping</code>, cached on first access,
+and return an <code>ndarray</code> of shape <code>(n_runs,)</code>. For a single deterministic run,
+index <code>[0]</code> to get a scalar.</p>
+<p>Print all metrics at once from the CLI with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>-m<span class="w"> </span>MPP.run<span class="w"> </span>config.yml<span class="w"> </span>T<span class="w"> </span>none<span class="w"> </span>-Z<span class="w"> </span>results/t/Z.npy<span class="w"> </span>--metrics
+</code></pre></div>
+<hr />
+<h2 id="implied-timescales">Implied Timescales<a class="headerlink" href="#implied-timescales" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Compute implied timescales (shape: n_runs × n_timescales)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">ts</span> <span class="o">=</span> <span class="n">mpp</span><span class="o">.</span><span class="n">timescales</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># Or compute a specific number:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">mpp</span><span class="o">.</span><span class="n">calc_timescales</span><span class="p">(</span><span class="n">ntimescales</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">ts</span> <span class="o">=</span> <span class="n">mpp</span><span class="o">.</span><span class="n">timescales</span>   <span class="c1"># shape (n_runs, 5)</span>
+</code></pre></div>
+<p>The <span class="arithmatex">\(k\)</span>-th implied timescale of a Markov state model is derived from the
+<span class="arithmatex">\(k\)</span>-th largest eigenvalue of the transition matrix <span class="arithmatex">\(\mathbf{T}(\tau)\)</span> at
+lag time <span class="arithmatex">\(\tau\)</span>:</p>
+<div class="arithmatex">\[
+t_k = -\frac{\tau}{\ln \lambda_k}, \quad k = 2, 3, \ldots
+\]</div>
+<p>where <span class="arithmatex">\(\lambda_1 = 1\)</span> is the stationary eigenvalue (excluded) and
+<span class="arithmatex">\(\lambda_2 \geq \lambda_3 \geq \cdots\)</span> are the remaining eigenvalues sorted
+in descending order. Larger timescales correspond to slower dynamical processes.
+The values returned by <code>mpp.timescales</code> are in frames; multiply by
+<code>frame_length</code> (ns per frame) to obtain physical units.</p>
+<hr />
+<h2 id="shannon-entropy">Shannon Entropy<a class="headerlink" href="#shannon-entropy" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">h</span> <span class="o">=</span> <span class="n">mpp</span><span class="o">.</span><span class="n">shannon_entropy</span>   <span class="c1"># shape (n_runs,), range [0, 1]</span>
+</code></pre></div>
+<p>Normalized Shannon entropy of the macrostate population distribution:</p>
+<div class="arithmatex">\[
+H = -\frac{1}{\ln K} \sum_{j=1}^{K} p_j \ln p_j
+\]</div>
+<p>where <span class="arithmatex">\(p_j\)</span> is the population fraction of macrostate <span class="arithmatex">\(j\)</span> and <span class="arithmatex">\(K\)</span> is the
+number of macrostates. <span class="arithmatex">\(H = 0\)</span> when all frames belong to a single macrostate;
+<span class="arithmatex">\(H = 1\)</span> when all macrostates are equally populated.</p>
+<p><strong>Reference:</strong> Shannon, C. E. (1948). <em>A Mathematical Theory of Communication.</em>
+The Bell System Technical Journal, 27(3), 379–423.
+<a href="https://doi.org/10.1002/j.1538-7305.1948.tb01338.x">DOI: 10.1002/j.1538-7305.1948.tb01338.x</a></p>
+<hr />
+<h2 id="davies-bouldin-index">Davies-Bouldin Index<a class="headerlink" href="#davies-bouldin-index" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">db</span> <span class="o">=</span> <span class="n">mpp</span><span class="o">.</span><span class="n">davies_bouldin_index</span>   <span class="c1"># shape (n_runs,), range [0, ∞)</span>
+</code></pre></div>
+<p>Ratio of within-cluster scatter to between-cluster separation:</p>
+<div class="arithmatex">\[
+\text{DB} = \frac{1}{K} \sum_{i=1}^{K} \max_{j \neq i}
+    \frac{s_i + s_j}{d(c_i,\, c_j)}
+\]</div>
+<p>where <span class="arithmatex">\(s_i\)</span> is the mean feature distance from frames in macrostate <span class="arithmatex">\(i\)</span> to
+their centroid <span class="arithmatex">\(c_i\)</span>, and <span class="arithmatex">\(d(c_i, c_j)\)</span> is the distance between centroids.
+Lower values indicate better-separated macrostates. Requires
+<code>multi_feature_trajectory</code>.</p>
+<p><strong>Reference:</strong> Davies, D. L. &amp; Bouldin, D. W. (1979). <em>A Cluster Separation
+Measure.</em> IEEE Trans. Pattern Anal. Mach. Intell., PAMI-1(2), 224–227.
+<a href="https://doi.org/10.1109/TPAMI.1979.4766909">DOI: 10.1109/TPAMI.1979.4766909</a></p>
+<hr />
+<h2 id="gmrq-and-gmrq2">GMRQ and GMRQ2<a class="headerlink" href="#gmrq-and-gmrq2" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">gmrq</span>  <span class="o">=</span> <span class="n">mpp</span><span class="o">.</span><span class="n">gmrq</span>    <span class="c1"># shape (n_runs,)</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">gmrq2</span> <span class="o">=</span> <span class="n">mpp</span><span class="o">.</span><span class="n">gmrq2</span>   <span class="c1"># shape (n_runs,)</span>
+</code></pre></div>
+<p>The Generalized Matrix Rayleigh Quotient (GMRQ) is the sum of the 2nd through 4th
+largest eigenvalues of the macrostate transition matrix:</p>
+<div class="arithmatex">\[
+\text{GMRQ} = \sum_{k=2}^{4} \lambda_k
+\]</div>
+<p>where <span class="arithmatex">\(\lambda_1 \geq \lambda_2 \geq \cdots\)</span> are the eigenvalues sorted in
+descending order. Higher values indicate that more slow dynamical modes are
+preserved in the lumping. GMRQ2 uses the sum of squares:</p>
+<div class="arithmatex">\[
+\text{GMRQ2} = \sum_{k=2}^{4} \lambda_k^2
+\]</div>
+<p><strong>Reference:</strong> McGibbon, R. T. &amp; Pande, V. S. (2015). <em>Variational
+cross-validation of slow dynamical modes in molecular kinetics.</em>
+J. Chem. Phys., 142(12), 124105.
+<a href="https://doi.org/10.1063/1.4916292">DOI: 10.1063/1.4916292</a></p>
+<hr />
+<h2 id="rmsd-sharpness">RMSD Sharpness<a class="headerlink" href="#rmsd-sharpness" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">sharpness</span> <span class="o">=</span> <span class="n">mpp</span><span class="o">.</span><span class="n">rmsd_sharpness</span><span class="p">()</span>   <span class="c1"># float</span>
+</code></pre></div>
+<p>Population-weighted mean of per-macrostate mean C<span class="arithmatex">\(\alpha\)</span> RMSDs:</p>
+<div class="arithmatex">\[
+s = \frac{\sum_j \langle\text{RMSD}\rangle_j \cdot p_j}{\sum_j p_j}
+\]</div>
+<p>where <span class="arithmatex">\(\langle\text{RMSD}\rangle_j\)</span> is the mean C<span class="arithmatex">\(\alpha\)</span> RMSD of all frames
+in macrostate <span class="arithmatex">\(j\)</span> relative to the macrostate mean structure, and <span class="arithmatex">\(p_j\)</span> is its
+population in frames. Lower values indicate more structurally compact macrostates.
+Requires RMSD data (access <code>mpp.rmsd</code> or load via <code>mpp.load_rmsd(path)</code> first).</p>
+<hr />
+<h2 id="silhouette-coefficient">Silhouette Coefficient<a class="headerlink" href="#silhouette-coefficient" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">s</span> <span class="o">=</span> <span class="n">mpp</span><span class="o">.</span><span class="n">silhouette</span>   <span class="c1"># shape (n_runs,), range [-1, 1]</span>
+</code></pre></div>
+<p>For each frame <span class="arithmatex">\(i\)</span>, the silhouette value is:</p>
+<div class="arithmatex">\[
+s(i) = \frac{b(i) - a(i)}{\max\bigl(a(i),\, b(i)\bigr)}
+\]</div>
+<p>where <span class="arithmatex">\(a(i)\)</span> is the mean feature distance to all other frames in the same
+macrostate, and <span class="arithmatex">\(b(i)\)</span> is the mean feature distance to frames in the nearest
+other macrostate. The reported metric is the mean over all frames. Values near
++1 indicate well-separated, compact macrostates; values near −1 indicate
+misclassified frames. Requires <code>multi_feature_trajectory</code> and at least 2
+macrostates.</p>
+<p><strong>Reference:</strong> Rousseeuw, P. J. (1987). <em>Silhouettes: A graphical aid to the
+interpretation and validation of cluster analysis.</em>
+J. Comput. Appl. Math., 20, 53–65.
+<a href="https://doi.org/10.1016/0377-0427(87)90125-7">DOI: 10.1016/0377-0427(87)90125-7</a></p>
+<hr />
+<h2 id="calinskiharabasz-index">Calinski–Harabász Index<a class="headerlink" href="#calinskiharabasz-index" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">ch</span> <span class="o">=</span> <span class="n">mpp</span><span class="o">.</span><span class="n">calinski_harabasz</span>   <span class="c1"># shape (n_runs,), range [0, ∞)</span>
+</code></pre></div>
+<p>Ratio of between-macrostate dispersion to within-macrostate dispersion,
+normalised by degrees of freedom:</p>
+<div class="arithmatex">\[
+\text{CH} = \frac{\mathrm{SS}_B}{\mathrm{SS}_W} \cdot \frac{N - K}{K - 1}
+\]</div>
+<p>where <span class="arithmatex">\(\mathrm{SS}_B\)</span> is the between-cluster sum of squared distances to the
+global centroid, <span class="arithmatex">\(\mathrm{SS}_W\)</span> is the within-cluster sum of squared distances
+to each macrostate centroid, <span class="arithmatex">\(N\)</span> is the total number of frames, and <span class="arithmatex">\(K\)</span> is
+the number of macrostates. Higher values indicate more compact, well-separated
+macrostates. Requires <code>multi_feature_trajectory</code> and at least 2 macrostates.</p>
+<p><strong>Reference:</strong> Calinski, T. &amp; Harabasz, J. (1974). <em>A dendrite method for cluster
+analysis.</em> Commun. Stat., 3(1), 1–27.
+<a href="https://doi.org/10.1080/03610927408827101">DOI: 10.1080/03610927408827101</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://www.moldyn.uni-freiburg.de/" target="_blank" rel="noopener" title="Molecular Dynamics Group Freiburg" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "search.highlight", "search.suggest", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

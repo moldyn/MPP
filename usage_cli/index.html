@@ -1,0 +1,1338 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Lumping tool for Markov state trajectories using the Most Probable Path algorithm">
+      
+      
+      
+        <link rel="canonical" href="https://moldyn.github.io/MPP/usage_cli/">
+      
+      
+        <link rel="prev" href="../tutorial/">
+      
+      
+        <link rel="next" href="../usage_api/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>CLI Usage - MPP</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cli-usage-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MPP" class="md-header__button md-logo" aria-label="MPP" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MPP
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CLI Usage
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/moldyn/MPP" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    moldyn/MPP
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MPP" class="md-nav__button md-logo" aria-label="MPP" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MPP
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/moldyn/MPP" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    moldyn/MPP
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithm
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Usage
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-invocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Invocation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yaml-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YAML Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamic-similarity-selectors-d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dynamic Similarity Selectors (d)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-similarity-selector-g" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature Similarity Selector (g)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kernel-combinations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kernel Combinations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plot-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plot Types
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Interpretation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stochastic-lumping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stochastic Lumping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stochastic Lumping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yaml-configuration_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YAML configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stochastic-specific-plot-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stochastic-specific plot types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage_api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quality Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plot Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage_snakemake/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Snakemake Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-invocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Invocation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yaml-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YAML Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamic-similarity-selectors-d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dynamic Similarity Selectors (d)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-similarity-selector-g" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature Similarity Selector (g)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kernel-combinations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kernel Combinations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plot-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plot Types
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Interpretation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stochastic-lumping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stochastic Lumping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stochastic Lumping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yaml-configuration_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YAML configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stochastic-specific-plot-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stochastic-specific plot types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="cli-usage-guide">CLI Usage Guide<a class="headerlink" href="#cli-usage-guide" title="Permanent link">&para;</a></h1>
+<p>MPP is invoked via <code>python -m MPP.run</code>. This guide covers inputs, kernel
+selection, plot generation, and output interpretation for deterministic
+workflows.</p>
+<hr />
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<p>MPP must be installed (<code>pip install mpp-lumping</code>). The
+following inputs are required:</p>
+<ul>
+<li>A YAML configuration file</li>
+<li>A microstate trajectory file (plain-text, one integer state per line)</li>
+<li>A multi-feature trajectory file (plain-text, one row of floats per frame)</li>
+</ul>
+<hr />
+<h2 id="basic-invocation">Basic Invocation<a class="headerlink" href="#basic-invocation" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python -m MPP.run &lt;config.yml&gt; &lt;d&gt; &lt;g&gt; -Z &lt;Z.npy&gt; [-p &lt;plot&gt;] [-o &lt;output&gt;]
+</code></pre></div>
+<p><strong>Positional arguments:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>config.yml</code></td>
+<td>YAML configuration file</td>
+</tr>
+<tr>
+<td><code>d</code></td>
+<td>Dynamic similarity selector (<code>T</code>, <code>KL</code>, <code>none</code>, or <code>gpcca</code>)</td>
+</tr>
+<tr>
+<td><code>g</code></td>
+<td>Feature similarity selector (<code>JS</code> or <code>none</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-Z &lt;path&gt;</code></td>
+<td>Path to save (or load) the Z matrix (<code>.npy</code>). If the file already exists, it is loaded instead of recomputed.</td>
+</tr>
+<tr>
+<td><code>-p &lt;plot&gt;</code></td>
+<td>Plot type to generate (see <a href="#plot-types">Plot Types</a>)</td>
+</tr>
+<tr>
+<td><code>-o &lt;output&gt;</code></td>
+<td>Output file path for the plot or macrostate trajectory</td>
+</tr>
+<tr>
+<td><code>--scale &lt;float&gt;</code></td>
+<td>Scaling factor for plot size (default <code>1</code>)</td>
+</tr>
+<tr>
+<td><code>--n-timescales &lt;N&gt;</code></td>
+<td>Number of implied timescales to compute (overrides config value)</td>
+</tr>
+<tr>
+<td><code>--rmsd &lt;path&gt;</code></td>
+<td>Compute C-alpha RMSD and write to <code>.npy</code> file</td>
+</tr>
+<tr>
+<td><code>--rmsd-feature &lt;CA\|feature&gt;</code></td>
+<td>RMSD variant: <code>CA</code> (default) or <code>feature</code></td>
+</tr>
+<tr>
+<td><code>-r &lt;N&gt;</code></td>
+<td>Draw N random frame indices per macrostate (writes <code>.ndx</code> files)</td>
+</tr>
+<tr>
+<td><code>--get-least-moving-residues &lt;contact_index_file&gt;</code></td>
+<td>Write least-varying residues per macrostate to file</td>
+</tr>
+<tr>
+<td><code>--metrics</code></td>
+<td>Print all quality metrics to stdout as <code>key=value</code> pairs</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="yaml-configuration">YAML Configuration<a class="headerlink" href="#yaml-configuration" title="Permanent link">&para;</a></h2>
+<p>The config file specifies input paths and lumping parameters. All keys use
+<code>snake_case</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># example/sample_system/input/config.yml</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">microstate_trajectory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">traj</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">multi_feature_trajectory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">feature_traj</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nt">lagtime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span><span class="w">          </span><span class="c1"># lag time in frames</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nt">pop_thr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.15</span><span class="w">        </span><span class="c1"># minimum macrostate population (fraction)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nt">q_min</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span><span class="w">           </span><span class="c1"># minimum macrostate metastability</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="nt">frame_length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.2</span><span class="w">    </span><span class="c1"># frame length in ns</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="nt">contact_threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.45</span><span class="w">  </span><span class="c1"># distance threshold to binarise feature (nm)</span>
+</code></pre></div>
+<p><strong>Required keys:</strong> <code>microstate_trajectory</code>,
+<code>multi_feature_trajectory</code>, <code>lagtime</code>, <code>pop_thr</code>, <code>q_min</code>, <code>frame_length</code>.</p>
+<p><strong>Optional keys:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>source</code></td>
+<td>Root directory for all input file paths. Relative paths are resolved relative to the config file's directory; absolute paths are used as-is. Defaults to the config file's own directory (i.e. place the config next to your data and omit <code>source</code> entirely). Individual file entries can also be absolute paths or relative paths (resolved against <code>source</code>), so files scattered across different locations can be referenced without moving them.</td>
+</tr>
+<tr>
+<td><code>contact_threshold</code></td>
+<td>Feature binarisation threshold (default <code>0.45</code>)</td>
+</tr>
+<tr>
+<td><code>cluster_file</code></td>
+<td>Contact index file for contact plots</td>
+</tr>
+<tr>
+<td><code>contact_index_file</code></td>
+<td>Contact pair index file for structural analysis</td>
+</tr>
+<tr>
+<td><code>topology_file</code></td>
+<td>PDB topology file for structural analysis</td>
+</tr>
+<tr>
+<td><code>xtc_file</code></td>
+<td>XTC trajectory file for structural analysis</td>
+</tr>
+<tr>
+<td><code>xtc_stride</code></td>
+<td>Stride for XTC reading</td>
+</tr>
+<tr>
+<td><code>n_timescales</code></td>
+<td>Number of implied timescales to compute</td>
+</tr>
+<tr>
+<td><code>helices</code></td>
+<td>Helix residue ranges for RMSD annotation</td>
+</tr>
+<tr>
+<td><code>limits</code></td>
+<td>Concatenated trajectory lengths (for multiple independent simulations)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="dynamic-similarity-selectors-d">Dynamic Similarity Selectors (<code>d</code>)<a class="headerlink" href="#dynamic-similarity-selectors-d" title="Permanent link">&para;</a></h2>
+<p>The <code>d</code> argument selects how microstate similarity is computed during lumping.</p>
+<table>
+<thead>
+<tr>
+<th><code>d</code></th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>T</code></td>
+<td>Transition probability (reference kernel; recommended default)</td>
+</tr>
+<tr>
+<td><code>KL</code></td>
+<td>Kullback-Leibler divergence of transition probability rows</td>
+</tr>
+<tr>
+<td><code>none</code></td>
+<td>Disable dynamic similarity; use feature kernel only</td>
+</tr>
+<tr>
+<td><code>gpcca</code></td>
+<td>Use GPCCA instead of MPP (comparison only)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="feature-similarity-selector-g">Feature Similarity Selector (<code>g</code>)<a class="headerlink" href="#feature-similarity-selector-g" title="Permanent link">&para;</a></h2>
+<p>The <code>g</code> argument optionally incorporates geometric information via feature
+distributions.</p>
+<table>
+<thead>
+<tr>
+<th><code>g</code></th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>none</code></td>
+<td>No feature similarity</td>
+</tr>
+<tr>
+<td><code>JS</code></td>
+<td>Jensen-Shannon divergence of feature distributions</td>
+</tr>
+<tr>
+<td><code>reference_count</code></td>
+<td><em>(gpcca mode only)</em> Use macrostate count from the reference <code>T</code> lumping</td>
+</tr>
+<tr>
+<td><code>&lt;int&gt;</code></td>
+<td><em>(gpcca mode only)</em> Use a fixed number of macrostates</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="kernel-combinations">Kernel Combinations<a class="headerlink" href="#kernel-combinations" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th><code>d</code></th>
+<th><code>g</code></th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>T</code></td>
+<td><code>none</code></td>
+<td>Transition probability only (default/reference)</td>
+</tr>
+<tr>
+<td><code>KL</code></td>
+<td><code>none</code></td>
+<td>Kullback-Leibler divergence only</td>
+</tr>
+<tr>
+<td><code>T</code></td>
+<td><code>JS</code></td>
+<td>Combined transition probability + feature similarity</td>
+</tr>
+<tr>
+<td><code>KL</code></td>
+<td><code>JS</code></td>
+<td>Combined KL divergence + feature similarity</td>
+</tr>
+<tr>
+<td><code>none</code></td>
+<td><code>JS</code></td>
+<td>Feature similarity only</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
+<p><strong>Run lumping with transition probability kernel and save Z matrix:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-m<span class="w"> </span>MPP.run<span class="w"> </span>example/sample_system/input/config.yml<span class="w"> </span>T<span class="w"> </span>none<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span>-Z<span class="w"> </span>results/t/Z.npy
+</code></pre></div>
+<p><strong>Run with KL divergence kernel:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>-m<span class="w"> </span>MPP.run<span class="w"> </span>example/sample_system/input/config.yml<span class="w"> </span>KL<span class="w"> </span>none<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span>-Z<span class="w"> </span>results/kl/Z.npy
+</code></pre></div>
+<p><strong>Run with combined transition probability + Jensen-Shannon feature kernel:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>MPP.run<span class="w"> </span>example/sample_system/input/config.yml<span class="w"> </span>T<span class="w"> </span>JS<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span>-Z<span class="w"> </span>results/t_js/Z.npy
+</code></pre></div>
+<p><strong>Load an existing Z matrix and generate a dendrogram:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>-m<span class="w"> </span>MPP.run<span class="w"> </span>example/sample_system/input/config.yml<span class="w"> </span>T<span class="w"> </span>none<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span>-Z<span class="w"> </span>results/t/Z.npy<span class="w"> </span>-p<span class="w"> </span>dendrogram<span class="w"> </span>-o<span class="w"> </span>results/t/dendrogram.pdf
+</code></pre></div>
+<p><strong>Generate a Sankey diagram:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>-m<span class="w"> </span>MPP.run<span class="w"> </span>example/sample_system/input/config.yml<span class="w"> </span>T<span class="w"> </span>none<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span>-Z<span class="w"> </span>results/t/Z.npy<span class="w"> </span>-p<span class="w"> </span>sankey<span class="w"> </span>-o<span class="w"> </span>results/t/sankey.pdf
+</code></pre></div>
+<p><strong>Save the macrostate trajectory as a text file:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>-m<span class="w"> </span>MPP.run<span class="w"> </span>example/sample_system/input/config.yml<span class="w"> </span>T<span class="w"> </span>none<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span>-Z<span class="w"> </span>results/t/Z.npy<span class="w"> </span>-p<span class="w"> </span>macrostate_trajectory<span class="w"> </span>-o<span class="w"> </span>results/t/macrostate_trajectory.txt
+</code></pre></div>
+<p><strong>Print all quality metrics:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>-m<span class="w"> </span>MPP.run<span class="w"> </span>example/sample_system/input/config.yml<span class="w"> </span>T<span class="w"> </span>none<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span>-Z<span class="w"> </span>results/t/Z.npy<span class="w"> </span>--metrics
+</code></pre></div>
+<p>Output format (one metric per line, <code>key=value</code>; comma-separated values for
+stochastic runs with <code>n&gt;1</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>shannon_entropy=0.7440447
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>davies_bouldin=2.1873796
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>gmrq=2.6583023
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>gmrq2=2.3739562
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>silhouette=0.20912119
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>calinski_harabasz=6498.0444
+</code></pre></div>
+<hr />
+<h2 id="plot-types">Plot Types<a class="headerlink" href="#plot-types" title="Permanent link">&para;</a></h2>
+<p>Available values for <code>-p</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Plot</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dendrogram</code></td>
+<td>Lumping tree with macrostate boundaries</td>
+</tr>
+<tr>
+<td><code>timescales</code></td>
+<td>Implied timescales of micro- and macrostate models</td>
+</tr>
+<tr>
+<td><code>sankey</code></td>
+<td>Sankey diagram comparing this lumping to the reference</td>
+</tr>
+<tr>
+<td><code>contacts</code></td>
+<td>Contact representation per macrostate</td>
+</tr>
+<tr>
+<td><code>macrotraj</code></td>
+<td>Macrostate trajectory as a color-coded time series</td>
+</tr>
+<tr>
+<td><code>ck_test</code></td>
+<td>Chapman-Kolmogorov test</td>
+</tr>
+<tr>
+<td><code>rmsd</code></td>
+<td>Per-macrostate C-alpha RMSD</td>
+</tr>
+<tr>
+<td><code>delta_rmsd</code></td>
+<td>Per-macrostate delta RMSD relative to macrostate 0</td>
+</tr>
+<tr>
+<td><code>state_network</code></td>
+<td>Macrostate transition network</td>
+</tr>
+<tr>
+<td><code>transition_matrix</code></td>
+<td>Macrostate transition matrix heatmap</td>
+</tr>
+<tr>
+<td><code>transition_time</code></td>
+<td>Mean first-passage times between macrostates</td>
+</tr>
+<tr>
+<td><code>macrostate_trajectory</code></td>
+<td>Write macrostate trajectory to text file (use <code>-o &lt;file.txt&gt;</code>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="output-interpretation">Output Interpretation<a class="headerlink" href="#output-interpretation" title="Permanent link">&para;</a></h2>
+<p><strong>Z matrix (<code>Z.npy</code>):</strong> Shape <code>(n_runs, n_states-1, 4)</code>. Each row encodes one
+merge step: <code>[state_a, state_b, metastability_a, joint_population]</code>. The Z
+matrix is in scipy linkage format with <code>n_states + i</code> as the intermediate
+cluster index. For deterministic runs, <code>n_runs = 1</code>.</p>
+<p><strong>Macrostate map (<code>macrostate_map.npy</code>):</strong> Integer array of shape <code>(n_states,)</code>.
+Entry <code>i</code> gives the macrostate index assigned to microstate <code>i</code>. Written
+automatically to the same directory as <code>Z.npy</code> whenever <code>-Z</code> is used.</p>
+<p><strong>Macrostate trajectory (text):</strong> One integer per line, 0-based macrostate
+index. Written by <code>-p macrostate_trajectory -o macrostate_trajectory.txt</code>.</p>
+<p><strong>RMSD file (<code>.npy</code>):</strong> Shape <code>(n_macrostates, n_CA_atoms)</code>, C-alpha RMSD
+values per macrostate.</p>
+<p><strong>Stochastic Z matrix:</strong> Shape <code>(n_runs, n_states-1, 4)</code> with <code>n_runs &gt; 1</code>.
+The per-run macrostate assignment is accessed at index <code>[i]</code> on the <code>Lumping</code> object.</p>
+<hr />
+<h2 id="stochastic-lumping">Stochastic Lumping<a class="headerlink" href="#stochastic-lumping" title="Permanent link">&para;</a></h2>
+<p>When the <code>stochastic</code> block is present in the YAML config, MPP performs multiple
+randomised lumping runs and returns a Z matrix of shape <code>(n_runs, n_states-1, 4)</code>.</p>
+<h3 id="yaml-configuration_1">YAML configuration<a class="headerlink" href="#yaml-configuration_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">stochastic</span><span class="p">:</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">n</span><span class="w">       </span><span class="c1"># &#39;n&#39; = top-N options (or &#39;p&#39; = probability-mass threshold)</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="nt">param</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w">        </span><span class="c1"># for &#39;n&#39;: number of candidate target states per merge</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="nt">n</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span><span class="w">           </span><span class="c1"># number of independent runs</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="nt">seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">42</span><span class="w">        </span><span class="c1"># integer seed for reproducible results (optional)</span>
+</code></pre></div>
+<ul>
+<li><code>method: n</code> + <code>param: 2</code>: at each merge step, the two most-similar candidate
+  states are selected; one is chosen randomly with probability proportional to
+  similarity.</li>
+<li><code>method: p</code> + <code>param: 0.5</code>: all states whose cumulative similarity exceeds the
+  threshold are considered.</li>
+<li><code>seed</code>: pass any integer to pin <code>numpy.random.default_rng</code> for reproducible
+  stochastic lumpings. Omit for a random seed.</li>
+</ul>
+<h3 id="stochastic-specific-plot-types">Stochastic-specific plot types<a class="headerlink" href="#stochastic-specific-plot-types" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Plot</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>stochastic_state_similarity</code></td>
+<td>Overlap of macrostate assignments across runs</td>
+</tr>
+<tr>
+<td><code>relative_implied_timescales</code></td>
+<td>Timescales relative to the reference T lumping</td>
+</tr>
+<tr>
+<td><code>macro_feature</code></td>
+<td>Mean feature per macrostate across all stochastic runs</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://www.moldyn.uni-freiburg.de/" target="_blank" rel="noopener" title="Molecular Dynamics Group Freiburg" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "search.highlight", "search.suggest", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

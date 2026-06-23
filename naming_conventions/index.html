@@ -1,0 +1,1198 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Lumping tool for Markov state trajectories using the Most Probable Path algorithm">
+      
+      
+      
+        <link rel="canonical" href="https://moldyn.github.io/MPP/naming_conventions/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Naming Conventions — MPP - MPP</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#naming-conventions-mpp" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MPP" class="md-header__button md-logo" aria-label="MPP" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MPP
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Naming Conventions — MPP
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/moldyn/MPP" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    moldyn/MPP
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MPP" class="md-nav__button md-logo" aria-label="MPP" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MPP
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/moldyn/MPP" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    moldyn/MPP
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithm
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage_cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage_api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quality Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plot Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage_snakemake/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Snakemake Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-conventions-by-entity-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Conventions by Entity Type
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Conventions by Entity Type">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-file-and-directory-naming" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. File and Directory Naming
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-terminology-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Terminology Policy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Terminology Policy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#preferred-terms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preferred Terms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accepted-abbreviations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accepted Abbreviations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#discouraged-abbreviations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discouraged Abbreviations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legacy-internal-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy / Internal Names
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-yaml-config-key-standard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. YAML Config Key Standard
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. YAML Config Key Standard">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#canonical-yaml-keys-all-migrated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Canonical YAML keys (all migrated)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-cross-interface-consistency-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Cross-Interface Consistency Rule
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="naming-conventions-mpp">Naming Conventions — MPP<a class="headerlink" href="#naming-conventions-mpp" title="Permanent link">&para;</a></h1>
+<p>This document defines the authoritative naming standard for the MPP repository.
+All Phase 2 refactors must follow these conventions.</p>
+<hr />
+<h2 id="1-conventions-by-entity-type">1. Conventions by Entity Type<a class="headerlink" href="#1-conventions-by-entity-type" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Entity Type</th>
+<th>Convention</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Functions</td>
+<td><code>snake_case</code></td>
+<td><code>run_mpp</code>, <code>assign_macrostates</code></td>
+</tr>
+<tr>
+<td>Classes</td>
+<td><code>PascalCase</code></td>
+<td><code>Lumping</code>, <code>LumpingKernel</code></td>
+</tr>
+<tr>
+<td>Modules</td>
+<td><code>snake_case</code></td>
+<td><code>core.py</code>, <code>utils.py</code></td>
+</tr>
+<tr>
+<td>Variables</td>
+<td><code>snake_case</code></td>
+<td><code>n_states</code>, <code>pop_thr</code></td>
+</tr>
+<tr>
+<td>Constants</td>
+<td><code>UPPER_SNAKE_CASE</code></td>
+<td><code>OPTIONAL_PARAMS</code>, <code>DEFAULTS</code></td>
+</tr>
+<tr>
+<td>YAML config keys</td>
+<td><code>snake_case</code></td>
+<td><code>microstate_trajectory</code>, <code>q_min</code></td>
+</tr>
+<tr>
+<td>CLI flags (long)</td>
+<td><code>kebab-case</code></td>
+<td><code>--rmsd-feature</code>, <code>--draw-random</code></td>
+</tr>
+<tr>
+<td>CLI positional</td>
+<td>short lowercase</td>
+<td><code>d</code>, <code>g</code> (see note below)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Module rename completed:</strong> <code>MPP/MPP.py</code> was renamed to <code>src/MPP/lumping.py</code>
+  and the package was migrated to a <code>src/</code> layout (cleanup/src-layout-and-module-rename).</li>
+<li><strong>CLI positional args <code>d</code> / <code>g</code>:</strong> These are established abbreviations in the
+  existing CLI interface. They are clarified in help text and documentation
+  but are not renamed.</li>
+<li><strong>Scientific abbreviations</strong> in function/variable names are permitted when they
+  are defined in this document's terminology policy (Section 3).</li>
+</ul>
+<hr />
+<h2 id="2-file-and-directory-naming">2. File and Directory Naming<a class="headerlink" href="#2-file-and-directory-naming" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Scope</th>
+<th>Convention</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python modules</td>
+<td><code>snake_case</code></td>
+<td><code>kernel.py</code>, <code>run.py</code></td>
+</tr>
+<tr>
+<td>YAML configs</td>
+<td><code>snake_case</code></td>
+<td><code>config.yml</code>, <code>lumpings.yml</code></td>
+</tr>
+<tr>
+<td>Test files</td>
+<td><code>test_&lt;name&gt;</code></td>
+<td><code>test_run.py</code></td>
+</tr>
+<tr>
+<td>Docs files</td>
+<td><code>snake_case</code></td>
+<td><code>naming_conventions.md</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-terminology-policy">3. Terminology Policy<a class="headerlink" href="#3-terminology-policy" title="Permanent link">&para;</a></h2>
+<h3 id="preferred-terms">Preferred Terms<a class="headerlink" href="#preferred-terms" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Preferred Term</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Discrete MD state</td>
+<td><strong>microstate</strong></td>
+<td>Use throughout; not "state" alone if ambiguous</td>
+</tr>
+<tr>
+<td>Coarse-grained state</td>
+<td><strong>macrostate</strong></td>
+<td>Use throughout</td>
+</tr>
+<tr>
+<td>The coarse-graining</td>
+<td><strong>lumping</strong></td>
+<td>Not "clustering" for the MPP algorithm</td>
+</tr>
+<tr>
+<td>Dynamic similarity fn.</td>
+<td><strong>lumping kernel</strong></td>
+<td>The <code>LumpingKernel</code> class</td>
+</tr>
+<tr>
+<td>Geometric similarity fn.</td>
+<td><strong>feature kernel</strong></td>
+<td>The <code>FeatureKernel</code> class</td>
+</tr>
+<tr>
+<td>Coarse-graining step</td>
+<td><strong>merge</strong> / <strong>merging</strong></td>
+<td>Not "cluster" or "aggregate"</td>
+</tr>
+<tr>
+<td>Similarity matrix</td>
+<td><strong>transition matrix</strong></td>
+<td>Abbreviated <code>tmat</code> in code</td>
+</tr>
+<tr>
+<td>Self-transition prob.</td>
+<td><strong>metastability</strong></td>
+<td>Symbol <code>q</code>; not "stability" or "persistence"</td>
+</tr>
+<tr>
+<td>Linkage tree output</td>
+<td><strong>Z matrix</strong></td>
+<td>scipy-compatible linkage format</td>
+</tr>
+<tr>
+<td>Population threshold</td>
+<td><strong>pop_thr</strong></td>
+<td>Parameter name; not <code>min_pop</code> or <code>p_min</code></td>
+</tr>
+<tr>
+<td>Min. metastability</td>
+<td><strong>q_min</strong></td>
+<td>Parameter name; not <code>min_q</code> or <code>q_threshold</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="accepted-abbreviations">Accepted Abbreviations<a class="headerlink" href="#accepted-abbreviations" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Abbreviation</th>
+<th>Expansion</th>
+<th>Permitted in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tmat</code></td>
+<td>transition matrix</td>
+<td>code variables</td>
+</tr>
+<tr>
+<td><code>pop</code></td>
+<td>population (count)</td>
+<td>code variables</td>
+</tr>
+<tr>
+<td><code>q</code></td>
+<td>metastability (self-transition)</td>
+<td>code variables, docs</td>
+</tr>
+<tr>
+<td><code>n_states</code></td>
+<td>number of microstates</td>
+<td>code variables</td>
+</tr>
+<tr>
+<td><code>n_macrostates</code></td>
+<td>number of macrostates</td>
+<td>code variables</td>
+</tr>
+<tr>
+<td><code>T</code></td>
+<td>transition-probability similarity</td>
+<td>CLI arg, config, docs</td>
+</tr>
+<tr>
+<td><code>KL</code></td>
+<td>Kullback-Leibler divergence</td>
+<td>CLI arg, config, docs</td>
+</tr>
+<tr>
+<td><code>JS</code></td>
+<td>Jensen-Shannon divergence</td>
+<td>CLI arg, config, docs</td>
+</tr>
+<tr>
+<td><code>Z</code></td>
+<td>Z matrix (linkage)</td>
+<td>CLI arg, code, docs</td>
+</tr>
+<tr>
+<td><code>d</code></td>
+<td>dynamic similarity selector (CLI)</td>
+<td>CLI positional arg</td>
+</tr>
+<tr>
+<td><code>g</code></td>
+<td>geometric similarity selector (CLI)</td>
+<td>CLI positional arg</td>
+</tr>
+<tr>
+<td><code>CA</code></td>
+<td>C-alpha atoms</td>
+<td>code, config, docs</td>
+</tr>
+<tr>
+<td><code>RMSD</code></td>
+<td>root-mean-square deviation</td>
+<td>code, config, docs</td>
+</tr>
+<tr>
+<td><code>GPCCA</code></td>
+<td>Generalized PCCA (proper noun)</td>
+<td>code, config, docs</td>
+</tr>
+</tbody>
+</table>
+<h3 id="discouraged-abbreviations">Discouraged Abbreviations<a class="headerlink" href="#discouraged-abbreviations" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Abbreviation</th>
+<th>Problem</th>
+<th>Preferred Replacement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dij</code></td>
+<td>Math-index notation leaking into code</td>
+<td><code>dynamic_similarity</code> or drop — use <code>d</code> at CLI boundary only</td>
+</tr>
+<tr>
+<td><code>gij</code></td>
+<td>Math-index notation leaking into code</td>
+<td><code>feature_similarity</code> or drop — use <code>g</code> at CLI boundary only</td>
+</tr>
+<tr>
+<td><code>n_i</code></td>
+<td>Ambiguous: "run index" not obvious</td>
+<td><code>run_index</code> (CAUTION rename)</td>
+</tr>
+<tr>
+<td><code>t</code></td>
+<td>Shadows meaning when near <code>tmat</code></td>
+<td>Use <code>masked_tmat</code> for local</td>
+</tr>
+<tr>
+<td><code>ms</code></td>
+<td>Used for "macrostate slice"</td>
+<td><code>macrostate_mask</code></td>
+</tr>
+<tr>
+<td><code>gma</code></td>
+<td>GPCCA macrostate assignment</td>
+<td><code>gpcca_assignment</code></td>
+</tr>
+<tr>
+<td><code>gmt</code></td>
+<td>GPCCA macrostate trajectory</td>
+<td><code>gpcca_trajectory</code></td>
+</tr>
+<tr>
+<td><code>gmf</code></td>
+<td>GPCCA macrostate feature</td>
+<td><code>gpcca_feature</code></td>
+</tr>
+<tr>
+<td><code>m</code></td>
+<td>macrostate row in loops</td>
+<td>context-dependent</td>
+</tr>
+</tbody>
+</table>
+<h3 id="legacy-internal-names">Legacy / Internal Names<a class="headerlink" href="#legacy-internal-names" title="Permanent link">&para;</a></h3>
+<p>These names appear in the codebase but should not be introduced in new code:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>multi_state_trajectory_raw</code></td>
+<td>legacy</td>
+<td>Use <code>multi_feature_trajectory_raw</code> consistently</td>
+</tr>
+<tr>
+<td><code>full_tmat</code></td>
+<td>internal</td>
+<td>Acceptable as local; documents 2n-1 matrix</td>
+</tr>
+<tr>
+<td><code>full_pop</code></td>
+<td>internal</td>
+<td>Acceptable as local/attribute</td>
+</tr>
+<tr>
+<td><code>linkage</code></td>
+<td>legacy</td>
+<td>Derived from Z; prefer Z-based operations</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-yaml-config-key-standard">4. YAML Config Key Standard<a class="headerlink" href="#4-yaml-config-key-standard" title="Permanent link">&para;</a></h2>
+<p>All YAML config keys use <code>snake_case</code>. The migration from space-separated keys
+was completed in TASK-2.2. Legacy space-separated forms are still accepted with
+a <code>DeprecationWarning</code> for one release cycle.</p>
+<h3 id="canonical-yaml-keys-all-migrated">Canonical YAML keys (all migrated)<a class="headerlink" href="#canonical-yaml-keys-all-migrated" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Canonical key</th>
+<th>Deprecated (space-separated) form</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>microstate_trajectory</code></td>
+<td><code>microstate trajectory</code></td>
+</tr>
+<tr>
+<td><code>multi_feature_trajectory</code></td>
+<td><code>multi feature trajectory</code></td>
+</tr>
+<tr>
+<td><code>contact_threshold</code></td>
+<td><code>contact threshold</code></td>
+</tr>
+<tr>
+<td><code>cluster_file</code></td>
+<td><code>cluster file</code></td>
+</tr>
+<tr>
+<td><code>contact_index_file</code></td>
+<td><code>contact index file</code></td>
+</tr>
+<tr>
+<td><code>topology_file</code></td>
+<td><code>topology file</code></td>
+</tr>
+<tr>
+<td><code>xtc_file</code></td>
+<td><code>xtc file</code></td>
+</tr>
+<tr>
+<td><code>frame_length</code></td>
+<td><code>frame length</code></td>
+</tr>
+<tr>
+<td><code>xtc_stride</code></td>
+<td><code>xtc stride</code></td>
+</tr>
+<tr>
+<td><code>n_timescales</code></td>
+<td><code>n timescales</code></td>
+</tr>
+<tr>
+<td><code>kernel_similarity</code></td>
+<td><code>kernel similarity</code></td>
+</tr>
+<tr>
+<td><code>feature_kernel</code></td>
+<td><code>feature kernel</code></td>
+</tr>
+</tbody>
+</table>
+<p>Always-conforming keys: <code>lagtime</code>, <code>pop_thr</code>, <code>q_min</code>, <code>source</code>, <code>stochastic</code>,
+<code>method</code>, <code>param</code>, <code>n</code>, <code>seed</code>.</p>
+<hr />
+<h2 id="5-cross-interface-consistency-rule">5. Cross-Interface Consistency Rule<a class="headerlink" href="#5-cross-interface-consistency-rule" title="Permanent link">&para;</a></h2>
+<p>Parameter names must be identical across CLI, Python API, and Snakemake workflow.
+If a concept is named differently in any two interfaces, that is a violation.</p>
+<p>Current cross-interface mapping:</p>
+<table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>CLI arg</th>
+<th>Python API param</th>
+<th>YAML key</th>
+<th>Snakemake param</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dynamic kernel</td>
+<td><code>d</code></td>
+<td><code>similarity</code></td>
+<td><code>kernel_similarity</code></td>
+<td><code>params.d</code></td>
+</tr>
+<tr>
+<td>Feature kernel</td>
+<td><code>g</code></td>
+<td><code>feature_kernel</code></td>
+<td><code>feature_kernel</code></td>
+<td><code>params.g</code></td>
+</tr>
+<tr>
+<td>Population threshold</td>
+<td><em>(via config)</em></td>
+<td><code>pop_thr</code></td>
+<td><code>pop_thr</code></td>
+<td><em>(via config)</em></td>
+</tr>
+<tr>
+<td>Min. metastability</td>
+<td><em>(via config)</em></td>
+<td><code>q_min</code></td>
+<td><code>q_min</code></td>
+<td><em>(via config)</em></td>
+</tr>
+<tr>
+<td>Trajectory stride</td>
+<td><em>(via config)</em></td>
+<td><code>xtc_stride</code></td>
+<td><code>xtc_stride</code></td>
+<td><em>(via config)</em></td>
+</tr>
+</tbody>
+</table>
+<p>The <code>d</code>/<code>g</code> CLI abbreviations map to <code>kernel_similarity</code>/<code>feature_kernel</code> in
+YAML and <code>similarity</code>/<code>feature_kernel</code> in the Python API. These should be
+documented consistently but are not renamed in this phase.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://www.moldyn.uni-freiburg.de/" target="_blank" rel="noopener" title="Molecular Dynamics Group Freiburg" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "search.highlight", "search.suggest", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
