@@ -47,11 +47,9 @@ want quantitative quality metrics for those macrostates.
 - Transition matrix visualisation.
 - Transition times.
 
-### Planned Quality Metrics (Not Yet Implemented)
+### Additional Quality Metrics (Implemented in v1.1.0)
 - Silhouette Coefficient (`silhouette` property; `sklearn.metrics.silhouette_score`)
 - Calinski–Harabasz index (`calinski_harabasz` property; `sklearn.metrics.calinski_harabasz_score`)
-
-> These metrics are planned (TASK-4.5.1–4.5.2) but not currently available in the codebase.
 
 ### Plots (`MPP.plot`)
 All plots are generated via the `plot` module and invocable through all three
@@ -110,4 +108,4 @@ automatically. The workflow must stay in sync with the CLI arguments.
 | Reproducibility | Given the same input files and config, all three interfaces must produce bit-identical Z matrices (deterministic kernels). Stochastic kernels must produce identical results given the same `seed`. |
 | Scientific correctness | Algorithmic changes require tests that verify numerical outputs against known-good reference data stored in `tests/data/`. |
 | Interface consistency | Every analysis capability must be accessible through CLI, API, and Snakemake with identical semantics and parameter names. |
-| Test coverage | Every public function in `MPP/` must be exercised by at least one test in `tests/`. |
+| Test coverage | Every public function in `src/MPP/` must be exercised by at least one test in `tests/`. |

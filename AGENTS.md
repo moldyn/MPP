@@ -7,7 +7,7 @@ Guidelines for AI agents (e.g. GitHub Copilot) working on this repository.
 ## Core Rules
 
 1. **NEVER change algorithmic logic without tests.**
-   Any change to `core.py`, `MPP.py`, `kernel.py`, or `utils.py` that alters
+   Any change to `core.py`, `lumping.py`, `kernel.py`, or `utils.py` that alters
    numerical output must be accompanied by a test that verifies the new
    behaviour against a known-good reference (stored in `tests/data/`).
 
@@ -23,8 +23,8 @@ Guidelines for AI agents (e.g. GitHub Copilot) working on this repository.
    A capability added to one interface must be reflected in all three. Parameter
    names must match across `run.py`, `MPP.Lumping`, and `workflow/Snakefile`.
 
-5. **Refactoring is forbidden until tests are green.**
-   Phase 1 (test stabilisation) must be completed before any naming or structural refactor.
+5. **Refactoring is forbidden when tests are red.**
+   All tests must pass before starting any naming or structural refactor.
 
 ---
 
@@ -45,7 +45,7 @@ Guidelines for AI agents (e.g. GitHub Copilot) working on this repository.
 ## Code Quality Rules
 
 8. **Prefer type hints for all public function signatures.**
-   Follow the patterns already established in `core.py` and `MPP.py`
+   Follow the patterns already established in `core.py` and `lumping.py`
    (`NDArray`, `Literal`, etc. from `numpy.typing` and `typing`).
 
 9. **Avoid deep nesting.**

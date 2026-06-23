@@ -3,8 +3,6 @@
 This document defines the authoritative naming standard for the MPP repository.
 All Phase 2 refactors must follow these conventions.
 
-See `docs/naming_audit.md` for the full violation inventory.
-
 ---
 
 ## 1. Conventions by Entity Type
@@ -22,11 +20,11 @@ See `docs/naming_audit.md` for the full violation inventory.
 
 ### Notes
 
-- **Module exception:** `MPP/MPP.py` violates snake_case by matching the package
-  name. This is a HIGH-RISK rename and is tracked separately (see audit).
+- **Module rename completed:** `MPP/MPP.py` was renamed to `src/MPP/lumping.py`
+  and the package was migrated to a `src/` layout (cleanup/src-layout-and-module-rename).
 - **CLI positional args `d` / `g`:** These are established abbreviations in the
-  existing CLI interface. They must be clarified in help text and documentation
-  but are not renamed in this phase due to high breakage risk.
+  existing CLI interface. They are clarified in help text and documentation
+  but are not renamed.
 - **Scientific abbreviations** in function/variable names are permitted when they
   are defined in this document's terminology policy (Section 3).
 
@@ -109,28 +107,29 @@ These names appear in the codebase but should not be introduced in new code:
 
 ## 4. YAML Config Key Standard
 
-All YAML config keys must use `snake_case`. The current keys with spaces are
-violations pending migration.
+All YAML config keys use `snake_case`. The migration from space-separated keys
+was completed in TASK-2.2. Legacy space-separated forms are still accepted with
+a `DeprecationWarning` for one release cycle.
 
-### Proposed canonical YAML keys
+### Canonical YAML keys (all migrated)
 
-| Current (violating)          | Proposed canonical        |
-|------------------------------|---------------------------|
-| `microstate trajectory`      | `microstate_trajectory`   |
-| `multi feature trajectory`   | `multi_feature_trajectory`|
-| `contact threshold`          | `contact_threshold`       |
-| `cluster file`               | `cluster_file`            |
-| `contact index file`         | `contact_index_file`      |
-| `topology file`              | `topology_file`           |
-| `xtc file`                   | `xtc_file`                |
-| `frame length`               | `frame_length`            |
-| `xtc stride`                 | `xtc_stride`              |
-| `n timescales`               | `n_timescales`            |
-| `kernel similarity`          | `kernel_similarity`       |
-| `feature kernel`             | `feature_kernel`          |
+| Canonical key                | Deprecated (space-separated) form |
+|------------------------------|-----------------------------------|
+| `microstate_trajectory`      | `microstate trajectory`           |
+| `multi_feature_trajectory`   | `multi feature trajectory`        |
+| `contact_threshold`          | `contact threshold`               |
+| `cluster_file`               | `cluster file`                    |
+| `contact_index_file`         | `contact index file`              |
+| `topology_file`              | `topology file`                   |
+| `xtc_file`                   | `xtc file`                        |
+| `frame_length`               | `frame length`                    |
+| `xtc_stride`                 | `xtc stride`                      |
+| `n_timescales`               | `n timescales`                    |
+| `kernel_similarity`          | `kernel similarity`               |
+| `feature_kernel`             | `feature kernel`                  |
 
-Keys that already conform: `lagtime`, `pop_thr`, `q_min`, `source`, `stochastic`,
-`method`, `param`, `n`.
+Always-conforming keys: `lagtime`, `pop_thr`, `q_min`, `source`, `stochastic`,
+`method`, `param`, `n`, `seed`.
 
 ---
 
@@ -143,11 +142,11 @@ Current cross-interface mapping:
 
 | Concept             | CLI arg         | Python API param       | YAML key              | Snakemake param |
 |---------------------|-----------------|------------------------|-----------------------|-----------------|
-| Dynamic kernel      | `d`             | `similarity`           | `kernel similarity`   | `params.d`      |
-| Feature kernel      | `g`             | `feature_kernel`       | `feature kernel`      | `params.g`      |
+| Dynamic kernel      | `d`             | `similarity`           | `kernel_similarity`   | `params.d`      |
+| Feature kernel      | `g`             | `feature_kernel`       | `feature_kernel`      | `params.g`      |
 | Population threshold| *(via config)*  | `pop_thr`              | `pop_thr`             | *(via config)*  |
 | Min. metastability  | *(via config)*  | `q_min`                | `q_min`               | *(via config)*  |
-| Trajectory stride   | *(via config)*  | `xtc_stride`           | `xtc stride`          | *(via config)*  |
+| Trajectory stride   | *(via config)*  | `xtc_stride`           | `xtc_stride`          | *(via config)*  |
 
 The `d`/`g` CLI abbreviations map to `kernel_similarity`/`feature_kernel` in
 YAML and `similarity`/`feature_kernel` in the Python API. These should be
